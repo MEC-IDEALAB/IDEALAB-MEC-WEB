@@ -1,0 +1,24 @@
+name: Feature or workflow
+description: A testable IDEALAB MEC requirement
+body:
+  - type: textarea
+    id: outcome
+    attributes:
+      label: User and intended outcome
+    validations:
+      required: true
+  - type: textarea
+    id: acceptance
+    attributes:
+      label: Observable acceptance criteria
+      description: Include permissions, loading/error/empty states and real acceptance journeys.
+    validations:
+      required: true
+  - type: textarea
+    id: dependencies
+    attributes:
+      label: Decisions, contracts and dependencies
+  - type: textarea
+    id: evidence
+    attributes:
+      label: Implementation and verification evidence

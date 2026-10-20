@@ -1,0 +1,45 @@
+{
+  "repository": "https://github.com/MEC-IDEALAB/IDEALAB-MEC-WEB",
+  "private": true,
+  "project": "https://github.com/orgs/MEC-IDEALAB/projects/1",
+  "projectPrivate": true,
+  "projectItems": 13,
+  "fields": [
+    "Title",
+    "Assignees",
+    "Status",
+    "Labels",
+    "Linked pull requests",
+    "Milestone",
+    "Repository",
+    "Reviewers",
+    "Parent issue",
+    "Sub-issues progress",
+    "Created",
+    "Updated",
+    "Closed",
+    "Phase",
+    "Priority",
+    "Verification",
+    "Next action"
+  ],
+  "milestones": [
+    {
+      "title": "Foundation and UX",
+      "url": "https://github.com/MEC-IDEALAB/IDEALAB-MEC-WEB/milestone/1"
+    },
+    {
+      "title": "Shared backend and identity",
+      "url": "https://github.com/MEC-IDEALAB/IDEALAB-MEC-WEB/milestone/2"
+    },
+    {
+      "title": "V1 operational workflows",
+      "url": "https://github.com/MEC-IDEALAB/IDEALAB-MEC-WEB/milestone/3"
+    },
+    {
+      "title": "Pilot and release",
+      "url": "https://github.com/MEC-IDEALAB/IDEALAB-MEC-WEB/milestone/4"
+    }
+  ],
+  "issueCount": 13
+}

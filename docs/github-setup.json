@@ -1,0 +1,88 @@
+{
+  "organization": "https://github.com/MEC-IDEALAB",
+  "repository": "https://github.com/MEC-IDEALAB/IDEALAB-MEC-WEB",
+  "private": true,
+  "project": "https://github.com/orgs/MEC-IDEALAB/projects/1",
+  "projectNumber": 1,
+  "issues": [
+    {
+      "number": 1,
+      "nodeId": "I_kwDOVQoAGc8AAAABYfisQw",
+      "title": "V1 delivery tracker and acceptance gates",
+      "url": "https://github.com/MEC-IDEALAB/IDEALAB-MEC-WEB/issues/1"
+    },
+    {
+      "number": 2,
+      "nodeId": "I_kwDOVQoAGc8AAAABYfjPuQ",
+      "title": "Responsive public website and institutional branding",
+      "url": "https://github.com/MEC-IDEALAB/IDEALAB-MEC-WEB/issues/2"
+    },
+    {
+      "number": 3,
+      "nodeId": "I_kwDOVQoAGc8AAAABYfjysg",
+      "title": "Member and staff UX flows, wireframes and design system",
+      "url": "https://github.com/MEC-IDEALAB/IDEALAB-MEC-WEB/issues/3"
+    },
+    {
+      "number": 4,
+      "nodeId": "I_kwDOVQoAGc8AAAABYfkW4g",
+      "title": "Shared schema, migration and RLS reconciliation",
+      "url": "https://github.com/MEC-IDEALAB/IDEALAB-MEC-WEB/issues/4"
+    },
+    {
+      "number": 5,
+      "nodeId": "I_kwDOVQoAGc8AAAABYfk62g",
+      "title": "Shared account signup, browser auth, recovery and onboarding",
+      "url": "https://github.com/MEC-IDEALAB/IDEALAB-MEC-WEB/issues/5"
+    },
+    {
+      "number": 6,
+      "nodeId": "I_kwDOVQoAGc8AAAABYfli-w",
+      "title": "Scoped operational positions and administrative controls",
+      "url": "https://github.com/MEC-IDEALAB/IDEALAB-MEC-WEB/issues/6"
+    },
+    {
+      "number": 7,
+      "nodeId": "I_kwDOVQoAGc8AAAABYfq43g",
+      "title": "Work Request lifecycle and preferred-time negotiation",
+      "url": "https://github.com/MEC-IDEALAB/IDEALAB-MEC-WEB/issues/7"
+    },
+    {
+      "number": 8,
+      "nodeId": "I_kwDOVQoAGc8AAAABYfq6Pw",
+      "title": "Projects and creator-approved membership",
+      "url": "https://github.com/MEC-IDEALAB/IDEALAB-MEC-WEB/issues/8"
+    },
+    {
+      "number": 9,
+      "nodeId": "I_kwDOVQoAGc8AAAABYfq7Xw",
+      "title": "Events, capacity, manual payment and cancellation",
+      "url": "https://github.com/MEC-IDEALAB/IDEALAB-MEC-WEB/issues/9"
+    },
+    {
+      "number": 10,
+      "nodeId": "I_kwDOVQoAGc8AAAABYfq8Mw",
+      "title": "Lab visits, inventory and borrowing",
+      "url": "https://github.com/MEC-IDEALAB/IDEALAB-MEC-WEB/issues/10"
+    },
+    {
+      "number": 11,
+      "nodeId": "I_kwDOVQoAGc8AAAABYfq9ZA",
+      "title": "Manufacturing tasks, machine queue, runtime and maintenance",
+      "url": "https://github.com/MEC-IDEALAB/IDEALAB-MEC-WEB/issues/11"
+    },
+    {
+      "number": 12,
+      "nodeId": "I_kwDOVQoAGc8AAAABYfq-sA",
+      "title": "Quotations, UPI verification, reports, notifications and audit",
+      "url": "https://github.com/MEC-IDEALAB/IDEALAB-MEC-WEB/issues/12"
+    },
+    {
+      "number": 13,
+      "nodeId": "I_kwDOVQoAGc8AAAABYfq_oA",
+      "title": "CI, PR gates, Vercel delivery and pilot readiness",
+      "url": "https://github.com/MEC-IDEALAB/IDEALAB-MEC-WEB/issues/13"
+    }
+  ],
+  "organizationMetadataUpdated": true
+}

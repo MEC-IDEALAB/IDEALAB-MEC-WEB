@@ -1,0 +1,87 @@
+# IDEALAB MEC delivery plan
+
+Planning baseline: 20 October 2026. The user created and confirmed `MEC-IDEALAB`. The coordinator verified administrator access, created the private [IDEALAB-MEC-WEB repository](https://github.com/MEC-IDEALAB/IDEALAB-MEC-WEB), and updated organization profile metadata. Native API setup completed successfully: the private organization project is linked, all 13 issues are in the project, and four milestones were created. Vercel remains the selected hosting target; no application push, passing hosted CI, deployment or live backend acceptance is established here.
+
+The owner selected “Continue UI and GitHub setup first.” The current frontend foundation phase covers public UI, sample drafts and access-denial states. `ENABLE_MEMBER_PLATFORM=false` independently disables shared-account activation even when public keys are present; live member/staff/backend acceptance gates remain required before activation and full-V1 release.
+
+## Coordinated status
+
+| Owner | Dependency | State | Output / evidence | Review / QA | Next action |
+| --- | --- | --- | --- | --- | --- |
+| Main agent | Confirmed owner direction | Confirmed planning inputs | Curated public homepage; records signed-in only; machine/room-specific assignments; requester accepts changed time; labeled demo catalog allowed | Requirements recorded; production behavior unverified | Resolve remaining contracts before dependent writes. |
+| Product documentation agent | Existing product/design records | Planning documents created | [Requirements](requirements.md), [experience](experience.md), this plan | Documentation-only scope; no runtime result | Main agent review and reconcile with actual implementation. |
+| Main implementation agent | Requirements and local source | Local foundation implemented | Homepage, existing email/password sign-in, protected member pages with unavailable states, account-scoped browser request draft and opt-in design preview | Previous lint/typecheck/build passed; final current-source rerun pending; audit zero vulnerabilities; production browser acceptance and six configuration tests passed; review found no blocking defect; live auth unverified | Resolve actual findings and record current-source results. |
+| Backend/security owner | Read-only live schema access; approved permission matrix | Gated | Existing schema drift and role/profile/storage decision records | No live reconciliation or negative tests evidenced here | Reconcile deployed schema, grants, RLS, functions and ledger. |
+| Product owner / heads | Category, catalog, scheduling and policy inputs | Open / partly deferred | Open decisions in requirements; labeled temporary demo catalog allowed | Demo is not verified stock/prices; no operational success simulation | Supply actual contracts before operational activation. |
+| Main agent / human account owner | Confirmed `MEC-IDEALAB` and verified administrator access | Organization, private repository and project tracking setup completed | [Setup result](github-setup.json): linked private project, 13 issues in project, four milestones; organization metadata updated | Native API setup process exited successfully; no application push or hosted CI pass | Complete local frontend acceptance, then prepare authorized source delivery and inspect hosted checks. |
+| Release owner | Repository, current-source checks, secure environment | Planned | Vercel target confirmed | No deployment or hosted CI evidenced | Prepare preview only after applicable local gates and authorized delivery. |
+
+This is a handoff snapshot, not live telemetry. Replace state/evidence only after inspecting actual returned files, current revision, command results, previews and review reports. Concurrent implementation may progress beyond this snapshot.
+
+## GitHub work tracking
+
+- [Private repository](https://github.com/MEC-IDEALAB/IDEALAB-MEC-WEB)
+- [Private organization project](https://github.com/orgs/MEC-IDEALAB/projects/1), linked to the repository with all 13 issues
+- [V1 delivery tracker and acceptance gates](https://github.com/MEC-IDEALAB/IDEALAB-MEC-WEB/issues/1)
+- [Public website and branding](https://github.com/MEC-IDEALAB/IDEALAB-MEC-WEB/issues/2) and [UX flows/wireframes/design system](https://github.com/MEC-IDEALAB/IDEALAB-MEC-WEB/issues/3)
+- [CI, PR gates, Vercel delivery and pilot readiness](https://github.com/MEC-IDEALAB/IDEALAB-MEC-WEB/issues/13)
+
+| Issue | Workstream |
+| --- | --- |
+| [#1](https://github.com/MEC-IDEALAB/IDEALAB-MEC-WEB/issues/1) | V1 delivery tracker and acceptance gates |
+| [#2](https://github.com/MEC-IDEALAB/IDEALAB-MEC-WEB/issues/2) | Responsive public website and institutional branding |
+| [#3](https://github.com/MEC-IDEALAB/IDEALAB-MEC-WEB/issues/3) | Member and staff UX flows, wireframes and design system |
+| [#4](https://github.com/MEC-IDEALAB/IDEALAB-MEC-WEB/issues/4) | Shared schema, migration and RLS reconciliation |
+| [#5](https://github.com/MEC-IDEALAB/IDEALAB-MEC-WEB/issues/5) | Shared account signup, browser auth, recovery and onboarding |
+| [#6](https://github.com/MEC-IDEALAB/IDEALAB-MEC-WEB/issues/6) | Scoped operational positions and administrative controls |
+| [#7](https://github.com/MEC-IDEALAB/IDEALAB-MEC-WEB/issues/7) | Work Request lifecycle and preferred-time negotiation |
+| [#8](https://github.com/MEC-IDEALAB/IDEALAB-MEC-WEB/issues/8) | Projects and creator-approved membership |
+| [#9](https://github.com/MEC-IDEALAB/IDEALAB-MEC-WEB/issues/9) | Events, capacity, manual payment and cancellation |
+| [#10](https://github.com/MEC-IDEALAB/IDEALAB-MEC-WEB/issues/10) | Lab visits, inventory and borrowing |
+| [#11](https://github.com/MEC-IDEALAB/IDEALAB-MEC-WEB/issues/11) | Manufacturing tasks, machine queue, runtime and maintenance |
+| [#12](https://github.com/MEC-IDEALAB/IDEALAB-MEC-WEB/issues/12) | Quotations, UPI verification, reports, notifications and audit |
+| [#13](https://github.com/MEC-IDEALAB/IDEALAB-MEC-WEB/issues/13) | CI, PR gates, Vercel delivery and pilot readiness |
+
+The [setup result](github-setup.json) records the repository, project and issue URLs. Four milestones were created. Creating tracking artifacts does not complete their acceptance criteria or prove CI/CD execution.
+
+## Delivery sequence and gates
+
+| Stage | Deliverable | Exit criteria |
+| --- | --- | --- |
+| 1. Product and design foundation | Public shell, responsive app shell, route/state designs, shared tokens | Requirements traceability, accurate content, keyboard/narrow-screen review and no fictional operational data. |
+| 2. Shared identity | Signup/verification/sign-in/recovery, session management, minimum profile | Real existing accounts work; confirmation/recovery/link edge cases, route protection and private responses tested on a safe environment. |
+| 3. Read-only member surfaces | Real approved projects/events/notifications/profile/catalog reads | Individual records require sign-in; field visibility, ownership, failure states and cross-account denial verified. Demo catalog visibly labeled and isolated. |
+| 4. Operational contract foundation | Roles/positions, request lifecycle, scheduling, storage/payment contracts | Live schema reconciliation, reviewed migrations/rollback, approved matrix and meaningful negative/concurrency tests on a faithful non-production baseline. |
+| 5. Request vertical slice | Real Machine/Operations submission, scoped head review, edits, confirmed time, cancellation/history | Machine/room assignment enforced; requester accepts changed time; browser-to-data journey; claim/cancel race; cross-user/role denial; truthful receipts. |
+| 6. Remaining documented V1 | Manufacturing/queue, inventory/borrowing, events/payments, reports/admin | Each requirement passes its real end-to-end journey, financial/capacity rules and audit checks. Deferred inputs block only dependent behavior. |
+| 7. Pilot and release | Reviewed release on Vercel with operational ownership | Current revision gates, hosted evidence, accessibility, support, backup/restore and pilot acceptance; explicit production authorization where required. |
+
+Finish one real vertical slice at a time. A navigable unavailable module is a transparent interim state, not completion of that module. No frontend scaffold, mock adapter, static screenshot, passing build or historical Flutter test proves production workflow correctness.
+
+## Verification and evidence checklist
+
+**Local foundation:** inspect package scripts before running. The manifest declares `npm run typecheck`, `npm run lint`, `npm run build`, `npm run test:acceptance`, `npm run dev` and `npm run start`. Script presence alone does not prove success. Previous coordinator-verified lint, typecheck and build passed; a final current-source rerun is pending. Dependency audit reported zero vulnerabilities. Production browser acceptance completed successfully (session 70971, exit 0): five responsive widths, assets, menu, disabled sign-in, protected-route denial, sample draft save/restore/delete, 404 handling including preview-disabled verification on a real second server, security headers and reduced motion passed. Six native configuration tests passed (session 37853), using fixtures without real service requests. Independent current-source review found no blocking defect; its configuration-boundary and preview-disabled coverage requests are now backed by those results. The coordinator’s documentation link check passed for seven files and 23 local links. Record command, current revision/worktree state, result and material output. Check diff/format as applicable. Independently review implementation and security boundaries, then resolve findings.
+
+**Browser acceptance:** verify rendered public homepage, account entry, navigation/deep links/Back, authenticated route behavior, responsive layouts at the experience-plan widths, keyboard operation, zoom/text enlargement, reduced motion, loading/empty/error/offline/denied states and real retry outcomes. Check all visible controls and links; no dead controls or fabricated success. Record exact URLs/environment, evidence artifacts and limitations.
+
+**Identity:** remains gated for backend activation. The configuration fixture checks for `ENABLE_MEMBER_PLATFORM=false` with public keys present passed without real service requests; preview-disabled 404 passed on a separate real local server. Live shared identity remains unverified. Before backend activation accept the shared existing account; signup/confirm/explicit sign-in; used/expired/malformed links; wrong credentials; reset/recovery; logout; incomplete onboarding; unauthorized destinations; session refresh and multi-tab behavior. Configure safe callback allowlists without silently changing production providers. No credentials/tokens in source, screenshots or logs.
+
+**Operational E2E:** member submits a real request, authorized head reviews, member accepts material edits, head confirms preferred time, task progresses, user sees accountable history; cancel before/after claim and race conditions; project join request/creator approval; free/paid event capacity under concurrent verification; borrowing return/Operations verification; report authorization/audit. Follow each journey through browser, server, data and returned UI. Missing backend gates mean skipped/blocked, never passed.
+
+Additionally verify changed proposed time is not treated as agreed until explicit requester acceptance; machine/room-specific assignments reject out-of-scope head actions; anonymous visitors cannot read individual project/event records; demo catalog labels remain obvious and no demo stock/prices flow into operational submissions, billing or reservation claims. Current browser-only drafts must remain account-scoped and explicitly unsubmitted. The `/design/request` preview is enabled only by `ENABLE_DESIGN_PREVIEW=true`; verify its disabled state returns not found, its sample draft is separate, and `/app` remains protected. This local preview is not evidence of authenticated backend acceptance.
+
+**Security:** verify real deployed grants/RLS and ownership, cross-user reads/writes, client-supplied identity/role/position rejection, restricted staff scope, payment verification authority, private profile fields/media, anonymous publication, safe redirects and cache boundaries. Keep service-role/secret keys out of browser/public environment. File uploads stay disabled until storage path/MIME/size/access/retention policy is approved and tested.
+
+**Shared backend:** preserve existing identities and mobile compatibility; compare schema/functions/grants/policies/triggers/storage/migration ledger with repository contracts; approve migration and rollback separately; use faithful non-production tests. Historical SQL is not deployment evidence. No production migration is authorized by these documents.
+
+**Push/release:** user guidance requires actual current-source local checks and applicable end-to-end acceptance before application/feature pushes. Missing/failed/skipped required tests block push. After an authorized push inspect actual hosted checks on the relevant revision; required verification cannot pass by absent/neutral/skipped execution. Before merge require current head, required checks and independent review. Before production release verify provider/callback/domain configuration, recovery, backup/restore, support ownership and rollout/rollback. Repo/Vercel setup does not itself authorize unrelated remote settings changes.
+
+## Reporting rules
+
+Record checks as **passed**, **failed**, **skipped**, **blocked**, or **unverified**, with environment and revision. Report production limitations plainly. Current evidence here is source/document inspection and the main agent's local implementation handoff. Previous lint/typecheck/build passed; the final current-source rerun remains pending. Audit reported zero vulnerabilities. Production browser acceptance passed, six native configuration tests passed, and the documentation check passed for seven files and 23 local links. Independent review found no blocking defect, and its two requested boundary checks now have passing evidence. The coordinator verified private repository/project setup, all 13 issues linked, four milestones and organization profile updates. No application push, passing hosted CI, verified live authentication or deployment URL is recorded here. Full V1 remains planned beyond the explicit foundation slice.
+
+## Source boundaries
+
+Use the local [requirements](requirements.md), [experience](experience.md) and [architecture](architecture.md) as canonical web scope, UX and integration decision records. They preserve accepted decisions without requiring files outside the standalone repository.
+
+Historical provenance in the parent Grow workspace includes `docs/00_Project/CURRENT_PROJECT_BASELINE.md`, `docs/03_Database/ROLE_AND_POSITION_CONTRACT.md`, `docs/02_Product/PROFILE_ECOSYSTEM_DECISION_GATE.md`, `docs/03_Database/BACKEND_SECURITY_BASELINE.md` and `docs/03_Database/AUTH_PROVIDER_RELEASE_CHECKLIST.md`. These paths are contextual references, not working standalone links or pinned deployment evidence. Backend approval must reference inspected contracts and actual current environment evidence.

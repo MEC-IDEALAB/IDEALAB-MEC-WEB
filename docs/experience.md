@@ -57,7 +57,9 @@ flowchart TD
   Changes -->|No| TimeChange{Head changes preferred time?}
   TimeChange -->|Yes| Proposal[Propose changed time to requester]
   Proposal --> Acceptance{Requester explicitly accepts?}
-  Acceptance -->|No or pending| Unagreed[Time remains unagreed; revise or resolve]
+  Acceptance -->|Pending| Awaiting[Time remains unagreed; no automatic expiry]
+  Awaiting --> Acceptance
+  Acceptance -->|Declined| Unagreed[Request stays open for another proposal]
   Unagreed --> Proposal
   Acceptance -->|Yes| Confirm[Authorized head and requester-agreed time recorded]
   TimeChange -->|No| Confirm
@@ -79,7 +81,7 @@ flowchart TD
 
 Project join: code/discovery → membership request → pending → creator approves/denies. Event: eligible registration → free confirmation or UPI/proof → awaiting verification → capacity-checked confirmation; unverified payment holds no seat. Event cancellation/refund request goes to Events Head. Lab: purpose → check-in → active visit → check-out. Borrowing: eligible request/issue → expected return → member marks returned → Operations verifies. A visit grants no machine authority.
 
-Staff start with a role-specific inbox, explicit machine/room assignment and next action. Machine Head reviews/requests changes/confirms time, creates separate tasks and manages queue/runtime. A changed time remains proposed until the requester explicitly accepts; show Accept proposed time and Request another time controls with audit history. Operations handles operations requests, stock, borrowing and billing. Events Head publishes events and resolves capacity/payment/attendance/refund work. Super Admin assigns/revokes machine/room-specific head responsibilities through audited server operations. Show only controls backed by current server permission checks.
+Staff start with a role-specific inbox, explicit machine/room assignment and next action. Machine Head reviews/requests changes/confirms time, creates separate tasks and manages queue/runtime. A changed time remains proposed until the requester explicitly accepts; show Accept proposed time and Request another time controls with audit history. Declining keeps the request open for another proposal, with no automatic expiry. Operations handles operations requests, stock, borrowing and billing. Events Head publishes events and resolves capacity/payment/attendance/refund work. Only Super Admin assigns/revokes machine/room-specific head responsibilities and manages active-work handover/reassignment through audited server operations. Detailed action permissions, handover mechanics, automatic reassignment and in-flight transaction effects remain unresolved; the UI must not imply those rules are settled. Show only controls backed by current server permission checks.
 
 ## Wireframes
 

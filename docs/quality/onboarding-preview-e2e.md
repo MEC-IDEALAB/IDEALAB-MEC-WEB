@@ -17,12 +17,12 @@ The no-JavaScript case fills the six controls with synthetic values and activate
 | Check | Result |
 | --- | --- |
 | Node runtime | Pass; bundled Node.js `v24.19.0` satisfies the package engine |
-| `npm run lint` | Pass on current working tree |
-| `npm run typecheck` | Pass on current working tree |
+| `npm run lint` | Pass on the working tree for verified source `ca08645` |
+| `npm run typecheck` | Pass on the working tree for verified source `ca08645` |
 | `npm run test:boundaries` | Pass, 16 tests |
 | `npm run build` | Pass; production build includes `/design/onboarding` |
 | `npm run test:acceptance` | Pass; current year choices, required validation, no storage, no-JavaScript/no-request, feature-disabled 404, responsive light/dark checks, and existing public/member-preview journeys |
-| `node scripts/check-docs.mjs` | Pass; 14 Markdown files and 63 local links on the final working tree |
+| `node scripts/check-docs.mjs` | Pass; 14 Markdown files and 63 local links in the onboarding-preview verification tree |
 | Screenshot review | Pass; 320 px light and 1440 px jet-black dark versions inspected for overflow and form layout |
 | Independent security review | Pass for the non-persistent preview boundary and no-JavaScript request assertion; the current review also checked planned-policy wording and the single-stage scope. |
 | Hosted Website CI on base `c56665b` | Failed at the focus assertion before the summary focus callback completed ([run 39490312810](https://github.com/MEC-IDEALAB/IDEALAB-MEC-WEB/actions/runs/39490312810)); this exposed a real timing race. |

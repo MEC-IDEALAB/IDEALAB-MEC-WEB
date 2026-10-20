@@ -31,7 +31,7 @@ Use the notebook cross-grid texture on the neutral canvas; retain cream/jet-blac
 
 Content is visible in server HTML and remains usable if JavaScript or animation APIs are unavailable. Reduced-motion preference disables these enhancements; changing that preference cancels active animations. Cleanup disconnects observers and releases animations when navigating away. The ordinary page flow, working focus rings and direct links remain available.
 
-Facility reference photographs are native 200 × 200 px and render-capped to avoid upscaling; preserve their proportions and light plates. The notebook/content gate passed before the latest jet-black token adjustment; its current final rerun is pending.
+Facility reference photographs are native 200 × 200 px and render-capped to avoid upscaling; preserve their proportions and light plates. The final notebook/content and jet-black dark-mode gates passed in local browser validation; the current request-draft browser suite also checks both themes and five widths. Hosted acceptance passed on the current application and docs-only revisions recorded in [delivery evidence](delivery-plan.md#verification-and-evidence-checklist).
 
 ## Audit refinements
 

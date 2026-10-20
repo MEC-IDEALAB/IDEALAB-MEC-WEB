@@ -65,6 +65,16 @@ try {
   }
   await page.setViewportSize({ width: 375, height: 900 });
   await page.goto(base);
+  await page.keyboard.press('Tab');
+  const skip = page.getByRole('link', { name: 'Skip to content' });
+  assert(await skip.evaluate(element => element === document.activeElement), 'Keyboard starts at skip link');
+  const skipBox = await skip.boundingBox();
+  assert(skipBox && skipBox.width > 1 && skipBox.height > 1 && skipBox.y >= 0, 'Focused skip link must be visible');
+  await page.keyboard.press('Enter');
+  assert.equal(new URL(page.url()).hash, '#main-content');
+  await page.keyboard.press('Tab');
+  assert(await page.evaluate(() => Boolean(document.activeElement?.closest('main'))), 'Skip link must move keyboard navigation into main content');
+  await page.goto(base);
   const menu = page.locator('.mobile-nav summary');
   await menu.click();
   assert(await page.locator('.mobile-nav').evaluate(node => node.open), 'Mobile menu opens');
@@ -121,7 +131,7 @@ try {
   }
   assert(offReady, 'Preview-off production instance must become ready');
   assert.equal((await fetch(offBase + '/design/request')).status, 404, 'Design preview must be unavailable when disabled');
-  console.log('PASS: production public journey, 5 responsive widths, assets, mobile menu, missing-config sign-in, protected-route denial, sample browser draft save/restore/delete, 404, security headers and reduced motion.');
+  console.log('PASS: production public journey, 5 responsive widths, assets, keyboard skip navigation, mobile menu, missing-config sign-in, protected-route denial, sample browser draft save/restore/delete, 404, security headers and reduced motion.');
   console.log('UNVERIFIED: live account success/recovery/OAuth, draft under a real member session, scoped permissions and operational backend workflows.');
 } catch (error) {
   const activePage = browser?.contexts()[0]?.pages()[0];

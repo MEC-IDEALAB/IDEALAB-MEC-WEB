@@ -50,3 +50,4 @@ The browser acceptance script starts a real local production server and checks t
 - [Content and asset provenance](docs/content-sources.md)
 
 Target repository: `MEC-IDEALAB/IDEALAB-MEC-WEB` (private). Vercel is the selected hosting provider; deployment/account/domain setup and full production acceptance are separate unfinished steps. GitHub's hosted check results must be inspected on the current revision; a workflow file alone does not establish a pass or branch protection.
+Deployment preparation: [Vercel settings and account requirements](docs/deployment.md).

@@ -12,7 +12,7 @@
     "typecheck": "tsc --noEmit",
     "lint": "eslint .",
     "test:acceptance": "node scripts/acceptance.mjs",
-    "test:boundaries": "node --test scripts/config.test.mjs scripts/draft-storage.test.mjs"
+    "test:boundaries": "node --test scripts/config.test.mjs scripts/draft-storage.test.mjs scripts/auth-config.test.mjs"
   },
   "dependencies": {
     "@supabase/ssr": "0.12.7",

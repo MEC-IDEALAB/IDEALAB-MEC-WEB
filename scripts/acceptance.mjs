@@ -17,6 +17,16 @@ async function availablePort() {
 }
 const port = await availablePort();
 const base = `http://127.0.0.1:${port}`;
+async function setTheme(page, theme) {
+  await page.waitForFunction(() => {
+    const button = document.querySelector('.theme-toggle');
+    const current = document.documentElement.dataset.theme;
+    const dark = current === 'dark' || (current !== 'light' && matchMedia('(prefers-color-scheme: dark)').matches);
+    return button?.getAttribute('aria-pressed') === String(dark);
+  });
+  const dark = await page.locator('.theme-toggle').getAttribute('aria-pressed') === 'true';
+  if (dark !== (theme === 'dark')) await page.locator('.theme-toggle').click();
+}
 async function loadPageImages(page) {
   for (const image of await page.locator('img').all()) await image.scrollIntoViewIfNeeded();
   await page.waitForFunction(() => [...document.images].every(image => image.complete && image.naturalWidth > 0));
@@ -67,6 +77,10 @@ try {
   releaseScripts();
   await loaderPage.locator('.boot-loader').waitFor({ state: 'hidden' });
   await loaderPage.getByRole('heading', { level: 1 }).waitFor();
+  await loaderPage.reload();
+  assert.equal(await loaderPage.locator('html').getAttribute('data-boot'), null, 'Loader does not repeat on reload in the same visit');
+  await loaderPage.goto(base + '/sign-in');
+  assert.equal(await loaderPage.locator('html').getAttribute('data-boot'), null, 'Loader does not repeat between pages');
   await loaderContext.close();
   const noScriptContext = await browser.newContext({ javaScriptEnabled: false });
   const noScriptPage = await noScriptContext.newPage();
@@ -96,17 +110,14 @@ try {
   }
   await page.setViewportSize({ width: 375, height: 900 });
   await page.goto(base);
-  await page.getByLabel('Color theme', { exact: true }).click();
-  await page.getByRole('button', { name: 'Dark', exact: true }).click();
+  await setTheme(page, 'dark');
   assert.equal(await page.locator('html').getAttribute('data-theme'), 'dark');
   const secondTab = await page.context().newPage();
   await secondTab.goto(base);
-  await secondTab.getByLabel('Color theme', { exact: true }).click();
-  await secondTab.getByRole('button', { name: 'Light', exact: true }).click();
+  await setTheme(secondTab, 'light');
   await page.waitForFunction(() => document.documentElement.getAttribute('data-theme') === 'light');
   await secondTab.close();
-  await page.getByLabel('Color theme', { exact: true }).click();
-  await page.getByRole('button', { name: 'Dark', exact: true }).click();
+  await setTheme(page, 'dark');
   await page.reload();
   assert.equal(await page.locator('html').getAttribute('data-theme'), 'dark', 'Explicit dark theme survives reload');
   for (const width of [320, 375, 768, 1024, 1440]) {
@@ -123,18 +134,16 @@ try {
     await page.screenshot({ path: `artifacts/acceptance/home-dark-${width}.png`, fullPage: true });
     if (width === 1440) await page.screenshot({ path: 'artifacts/acceptance/home-dark-hero-1440.png' });
   }
-  await page.getByLabel('Color theme', { exact: true }).click();
-  await page.getByRole('button', { name: 'System', exact: true }).click();
+  await page.evaluate(() => localStorage.removeItem('idealab-mec:theme'));
+  await page.reload();
   await page.emulateMedia({ colorScheme: 'light' });
   assert.equal(await page.evaluate(() => getComputedStyle(document.documentElement).colorScheme), 'light');
   await page.emulateMedia({ colorScheme: 'dark' });
   assert.equal(await page.evaluate(() => getComputedStyle(document.documentElement).colorScheme), 'dark', 'System theme follows OS changes');
-  await page.getByLabel('Color theme', { exact: true }).click();
-  await page.getByRole('button', { name: 'Light', exact: true }).click();
+  await setTheme(page, 'light');
   await page.emulateMedia({ colorScheme: 'light' });
   for (const theme of ['light', 'dark']) {
-    await page.getByLabel('Color theme', { exact: true }).click();
-    await page.getByRole('button', { name: theme === 'dark' ? 'Dark' : 'Light', exact: true }).click();
+    await setTheme(page, theme);
     const ratios = await page.evaluate(() => {
       function rgb(value) { return value.match(/[\d.]+/g).slice(0, 3).map(Number); }
       function luminance(color) { return rgb(color).map(channel => { const value = channel / 255; return value <= .04045 ? value / 12.92 : ((value + .055) / 1.055) ** 2.4; }).reduce((sum, value, index) => sum + value * [.2126, .7152, .0722][index], 0); }
@@ -148,18 +157,15 @@ try {
     assert(ratios.plate >= 4.5, `${theme} accent plate contrast`);
     assert(ratios.secondary >= 4.5, `${theme} secondary copy contrast`);
   }
-  await page.getByLabel('Color theme', { exact: true }).click();
-  await page.getByRole('button', { name: 'Light', exact: true }).click();
+  await setTheme(page, 'light');
   await page.setViewportSize({ width: 375, height: 900 });
   const blockedContext = await browser.newContext();
   await blockedContext.addInitScript(() => { Object.defineProperty(Storage.prototype, 'setItem', { value() { throw new DOMException('Browser storage disabled', 'SecurityError'); } }); });
   const blockedPage = await blockedContext.newPage();
   await blockedPage.goto(base);
-  await blockedPage.getByLabel('Color theme', { exact: true }).click();
-  await blockedPage.getByRole('button', { name: 'Dark', exact: true }).click();
+  await setTheme(blockedPage, 'dark');
   assert.equal(await blockedPage.locator('html').getAttribute('data-theme'), 'dark');
-  await blockedPage.getByLabel('Color theme', { exact: true }).click();
-  assert.equal(await blockedPage.getByRole('button', { name: 'Dark', exact: true }).getAttribute('aria-pressed'), 'true', 'Applied choice remains accurately selected if saving is blocked');
+  assert.equal(await blockedPage.locator('.theme-toggle').getAttribute('aria-pressed'), 'true', 'Applied choice remains accurately selected if saving is blocked');
   await blockedContext.close();
   await page.goto(base);
   await page.keyboard.press('Tab');
@@ -189,15 +195,22 @@ try {
       for (const width of [320, 768, 1440]) {
         await page.setViewportSize({ width, height: 950 });
         await page.goto(`${base}/${route}`);
-        await page.getByLabel('Color theme', { exact: true }).click();
-        assert(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth), `${route} open theme menu fits ${width}px`);
-        await page.getByRole('button', { name: theme === 'dark' ? 'Dark' : 'Light', exact: true }).click();
+        await setTheme(page, theme);
         assert.equal(await page.locator('html').getAttribute('data-theme'), theme);
         assert(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth), `${route} fits ${width}px in ${theme}`);
         await page.screenshot({ path: `artifacts/acceptance/${route}-${theme}-${width}.png`, fullPage: true });
       }
     }
   }
+  for (const route of ['sign-in', 'sign-up']) {
+    for (const viewport of [{width:1366,height:768},{width:1440,height:900},{width:390,height:844},{width:375,height:667}]) {
+      await page.setViewportSize(viewport);
+      await page.goto(base + '/' + route);
+      assert(await page.evaluate(() => document.documentElement.scrollHeight <= window.innerHeight + 1), route + ' fits ' + viewport.width + 'x' + viewport.height);
+      assert(await page.getByRole('button', {name:'Continue with Google'}).isDisabled(), 'Unverified Google activation stays disabled');
+    }
+  }
+  await page.goto(base + '/sign-up');
   await page.getByRole('link', { name: 'Sign in here' }).click();
   await page.getByRole('heading', { name: 'Make yourself at home.' }).waitFor();
   await page.setViewportSize({ width: 375, height: 900 });
@@ -206,8 +219,7 @@ try {
   assert(await page.locator('main').getByRole('link', { name: /Sign in/ }).isVisible());
   for (const theme of ['Light', 'Dark']) {
     await page.goto(base + '/lab');
-    await page.getByLabel('Color theme', { exact: true }).click();
-    await page.getByRole('button', { name: theme, exact: true }).click();
+    await setTheme(page, theme.toLowerCase());
     for (const width of [320, 768, 1440]) {
       await page.setViewportSize({ width, height: 950 });
       await loadPageImages(page);

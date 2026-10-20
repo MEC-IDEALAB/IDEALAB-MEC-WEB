@@ -18,7 +18,7 @@
   --primary: var(--brand-cobalt);
   --on-primary: #ffffff;
   --primary-hover: var(--brand-cobalt-hover);
-  --paper: #f7f5ed;
+  --paper: #fcfbf7;
   --surface: #fffef9;
   --ink: #1d252c;
   --muted: #52616b;
@@ -37,7 +37,7 @@
   --success-ink: #23523c;
   --danger-bg: #fae6e1;
   --danger-ink: #842f28;
-  --pattern: color-mix(in srgb, var(--ink) 12%, transparent);
+  --pattern: color-mix(in srgb, var(--ink) 7%, transparent);
   --border-width: 2px;
   --hard-shadow: 5px 5px 0 var(--outline);
   --motion-fast: 180ms;

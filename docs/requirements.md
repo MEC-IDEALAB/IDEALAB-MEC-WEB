@@ -1,5 +1,7 @@
 # IDEALAB MEC web requirements
 
+Current UI/auth verification: see [UI audit](ui-audit.md). It supersedes earlier notes about three-option theme menus, repeated boot loading and database timeouts. Supabase read-only connectivity is restored; shared authorization/profile-provisioning defects still block account activation.
+
 Planning baseline: 20 October 2026. This records confirmed direction and release criteria; it does not claim the website, backend workflows or deployment is complete.
 
 ## Confirmed direction and scope

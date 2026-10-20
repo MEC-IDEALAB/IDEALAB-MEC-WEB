@@ -2,6 +2,23 @@
 
 import { redirect } from 'next/navigation';
 import { serverClient } from '@/lib/supabase';
+import { googleAuthConfig } from '@/lib/auth-config';
+
+export async function signInWithGoogle() {
+  const config = googleAuthConfig();
+  const client = await serverClient();
+  if (!config || !client) redirect('/sign-in?notice=configuration');
+  let destination: string | undefined;
+  try {
+    const { data, error } = await client.auth.signInWithOAuth({ provider: 'google', options: { redirectTo: config.callback } });
+    if (!error && data.url) {
+      const url = new URL(data.url);
+      if (url.protocol === 'https:' && url.origin === new URL(process.env.NEXT_PUBLIC_SUPABASE_URL!).origin) destination = url.href;
+    }
+  } catch { /* Keep provider errors and credentials out of the response. */ }
+  if (!destination) redirect('/sign-in?notice=connection');
+  redirect(destination);
+}
 
 export async function signIn(form: FormData) {
   const email = String(form.get('email') ?? '').trim();

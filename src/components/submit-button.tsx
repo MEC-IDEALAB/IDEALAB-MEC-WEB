@@ -1,6 +1,6 @@
 'use client';
 import { useFormStatus } from 'react-dom';
-export function SubmitButton({ children, pendingText = 'Please wait…', disabled = false }: { children: React.ReactNode; pendingText?: string; disabled?: boolean }) {
+export function SubmitButton({ children, pendingText = 'Please wait…', disabled = false, className = 'button button-primary' }: { children: React.ReactNode; pendingText?: string; disabled?: boolean; className?: string }) {
   const { pending } = useFormStatus();
-  return <button className="button button-primary" type="submit" disabled={disabled || pending} aria-disabled={disabled || pending}>{pending ? pendingText : children}</button>;
+  return <button className={className} type="submit" disabled={disabled || pending} aria-disabled={disabled || pending}>{pending ? pendingText : children}</button>;
 }

@@ -16,7 +16,7 @@ The website uses one color system, defined in `src/app/design-tokens.css`. The c
 | `--accent-apricot` | Apricot `#f5bc98` | Supporting warm illustration details. |
 | `--accent-amber` | Yellow alias | Detail accents, not a competing action color. |
 | `--accent-ink` | Charcoal `#1d252c` | Text and outlines on every pastel plate in both themes. |
-| `--paper` / `--surface` | Cream `#f7f5ed` / `#fffef9` | Light canvas / cards. |
+| `--paper` / `--surface` | Cream `#fcfbf7` / `#fffef9` | Light canvas / cards. |
 | Dark `--paper` / `--surface` | Jet black `#000` / `#0b0b0b` | Dark canvas / cards, in explicit and System dark mode. |
 
 Dark mode uses `#f4f4f1` foreground, `#bdbdbd` secondary text, `#4b4b4b` lines, `#111` section tint, `#000` outline and existing `#acc0ff` text links. These tokens apply to explicit dark and OS-driven System dark mode; existing accent plates remain. Primary button fill stays cobalt with white text; pale dark-mode link colors are not button backgrounds. Fixed pastel plates retain charcoal text. Official logos retain a light backing. Warning, success and error tokens are semantic foreground/background pairs; status also needs text/icons, never color alone. Legacy `--lime`, `--coral`, `--yellow` and `--blue` aliases map existing components into this standard.
@@ -32,3 +32,7 @@ Use the notebook cross-grid texture on the neutral canvas; retain cream/jet-blac
 Content is visible in server HTML and remains usable if JavaScript or animation APIs are unavailable. Reduced-motion preference disables these enhancements; changing that preference cancels active animations. Cleanup disconnects observers and releases animations when navigating away. The ordinary page flow, working focus rings and direct links remain available.
 
 Facility reference photographs are native 200 × 200 px and render-capped to avoid upscaling; preserve their proportions and light plates. The notebook/content gate passed before the latest jet-black token adjustment; its current final rerun is pending.
+
+## Audit refinements
+
+Use local Press Start 2P for small accent labels and the MEC badge; retain modern Space Grotesk headings and DM Sans body text. The notebook grid uses seven-percent ink. One direct Light/Dark button replaces the menu; OS preference is only the initial fallback. The wordmark boot screen runs once per browser-tab visit, with no artificial minimum. Phone account pages omit decorative story panels and fit the tested normal viewports while remaining scrollable under zoom/keyboard constraints. See [audit](ui-audit.md) for current evidence and authentication blockers.

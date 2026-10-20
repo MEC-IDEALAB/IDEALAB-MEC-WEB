@@ -46,6 +46,7 @@ The browser acceptance script starts a real local production server and checks t
 - [Requirements](docs/requirements.md)
 - [User/staff flows and wireframes](docs/experience.md)
 - [Color, component and motion standard](docs/design-system.md)
+- [Current UI audit and authentication gate](docs/ui-audit.md)
 - [Architecture and backend compatibility](docs/architecture.md)
 - [Delivery plan and task status](docs/delivery-plan.md)
 - [Content and asset provenance](docs/content-sources.md)

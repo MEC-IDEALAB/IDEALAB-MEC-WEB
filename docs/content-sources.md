@@ -33,3 +33,21 @@ Facility PNGs were downloaded unchanged from the user-supplied URLs to `public/f
 These are supplied institutional reference assets; their presence does not establish a general reuse license or current operational availability.
 
 The three supplied facility PNGs are native 200 × 200 px; render size is capped to avoid upscaling. They are facility reference images, not generated illustrations or current access/stock evidence.
+
+- Facility image `hmt-lathe.png`: https://images.ctfassets.net/gqdozd79aet8/9QIKjHYXwdyhdSqsAbFH1/072b716438d77c30d1272cccf77e62fd/hmt_cnc_lathe.png (user-supplied official-site asset, saved unchanged).
+
+- Facility image `hmt-router.png`: https://images.ctfassets.net/gqdozd79aet8/6go09hHban1BHZyhmb0JYl/7ac280a89674c5c94470c5c278adab8a/hmt_cncrouter.png (user-supplied official-site asset, saved unchanged).
+
+- Facility image `workstation.png`: https://images.ctfassets.net/gqdozd79aet8/2hH4S8ac0wtXGjf70CO6WJ/f75c528122888d7e819ff1c5bffb5ac8/pc1.png (user-supplied official-site asset, saved unchanged).
+
+- Facility image `pcb.png`: https://images.ctfassets.net/gqdozd79aet8/7cck4iLRAnS2goSqPGXlRG/4559f3cfba350e7ea538f54fbb08200c/pvb2.png (user-supplied official-site asset, saved unchanged).
+
+- Facility image `sandblasting.png`: https://images.ctfassets.net/gqdozd79aet8/KUnoLpkEHijOiBQOte9Tb/1a68f38c63a04c2f0ca7a8709259c264/sand_blasting_6.png (user-supplied official-site asset, saved unchanged).
+
+- Facility image `shopbot.png`: https://images.ctfassets.net/gqdozd79aet8/1tN0qrnkYCgfr5Fh6erK1L/6f203d2ef510496549012f4cc4b307bd/shopbotcnc_2.png (user-supplied official-site asset, saved unchanged).
+
+- Facility image `solidworks.png`: https://images.ctfassets.net/gqdozd79aet8/4KSwej8NcnyLriGQTO8trv/ac30fa14a604d4b6bdd25d151ae4cc06/solidworks2.png (user-supplied official-site asset, saved unchanged).
+
+- Facility image `sublimation.png`: https://images.ctfassets.net/gqdozd79aet8/63VyofntmSrlGv3z5mQ4pf/ffb66f9e301fa41da5f7249d248cdc0a/sublimation1.png (user-supplied official-site asset, saved unchanged).
+
+Retro typography: Press Start 2P, official Google Fonts repository at pinned commit `47d54ca1ebb14fd864695f1d39dc734f39017c33`, directory `ofl/pressstart2p`; font-specific OFL retained alongside the local TTF. All eleven facility images now render locally from the supplied source assets.

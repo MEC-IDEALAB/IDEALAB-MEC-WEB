@@ -1,0 +1,56 @@
+name: Website CI
+on:
+  pull_request:
+  push:
+    branches: [main]
+  merge_group:
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: website-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+jobs:
+  verification:
+    name: Public foundation acceptance
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    env:
+      NEXT_TELEMETRY_DISABLED: '1'
+      NEXT_PUBLIC_SUPABASE_URL: ''
+      NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: ''
+      ENABLE_MEMBER_PLATFORM: 'false'
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7
+        with:
+          node-version: '24.19.0'
+          cache: npm
+      - run: npm ci
+      - run: npm run lint
+      - run: npm run typecheck
+      - run: npm run test:boundaries
+      - run: npm audit --audit-level=high
+      - run: npm run build
+      - run: npx playwright install --with-deps chromium
+      - run: npm run test:acceptance
+      - name: Retain public and sample browser evidence
+        if: always()
+        uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6
+        with:
+          name: public-foundation-browser-evidence
+          path: artifacts/acceptance/
+          if-no-files-found: error
+          retention-days: 7
+  required-gate:
+    name: Required gate
+    if: always()
+    needs: [verification]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Reject failed, absent or skipped verification
+        env:
+          RESULT: ${{ needs.verification.result }}
+        run: test "$RESULT" = success

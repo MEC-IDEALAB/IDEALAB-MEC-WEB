@@ -33,13 +33,20 @@ six-field private onboarding contract; `user_education.end_year` represents a
 graduation/batch year, not current study year.
 
 The fresh catalog read confirms `users_read_all` grants authenticated SELECT
-with an unconditional `true` predicate, alongside the own-row SELECT policy.
-`users_update_own` filters by owner but does not restrict which columns the
-owner may update. Effective privileges for both `anon` and `authenticated`
-include SELECT, UPDATE, DELETE and TRUNCATE on `public.users`; effective column
-privileges allow both roles to update `role`, `is_active` and
-`profile_completed`. RLS does not constrain TRUNCATE, and broad grants also
-exist on `user_profiles` and `user_education`.
+with an unconditional `true` predicate. This exposes all selected `users`
+columns—including email, phone, college roll, FCM token, active/ban status and
+profile completion—to any authenticated account. `users_update_own` filters by
+owner but does not restrict which columns the owner may update. Effective
+privileges for both `anon` and `authenticated` include SELECT, UPDATE, DELETE
+and TRUNCATE on `public.users`; effective column privileges allow both roles
+to update `role`, `is_active` and `profile_completed`. Since the live role
+constraint accepts `super_admin` and `users_insert_own` checks only the caller's
+row ID, an authenticated user can self-promote an existing row to `super_admin`
+or provide that role when inserting their own missing row. This is a confirmed
+privilege-escalation path from the catalog rules; no exploit or user-row query
+was performed. RLS does not constrain TRUNCATE; the direct REST/API exposure of
+that privilege was not tested, so treat it as an excessive grant to remove.
+Broad grants also exist on `user_profiles` and `user_education`.
 
 `user_profiles` has a row-level SELECT policy allowing `is_public = true` or
 the owner. Its `show_email`, `show_phone` and `show_stats` flags are ordinary

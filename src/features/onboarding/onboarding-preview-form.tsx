@@ -5,9 +5,9 @@ import { useRef, useState } from 'react';
 const fields = [
   { name: 'name', label: 'Full name', group: 'about' },
   { name: 'phone', label: 'Phone number', type: 'tel', group: 'about' },
-  { name: 'rollNumber', label: 'Roll number', group: 'about' },
+  { name: 'rollNumber', label: 'Roll number', hint: 'Roll numbers are unique within each institution.', group: 'about' },
   { name: 'department', label: 'Department', group: 'study' },
-  { name: 'year', label: 'Current year of study', group: 'study' },
+  { name: 'year', label: 'Current year of study', options: Array.from({ length: 8 }, (_, index) => `Year ${index + 1}`), group: 'study' },
   { name: 'institution', label: 'College / institution', hint: 'Free text. Any institution is welcome; email domain does not verify affiliation.', group: 'study' },
 ] as const;
 
@@ -103,17 +103,32 @@ function PreviewField({
   return (
     <div className="onboarding-field">
       <label htmlFor={`onboarding-${field.name}`}>{field.label}<span aria-hidden="true"> *</span></label>
-      <input
-        autoComplete="off"
-        id={`onboarding-${field.name}`}
-        type={'type' in field ? field.type : 'text'}
-        value={value}
-        required
-        aria-invalid={invalid}
-        aria-describedby={[('hint' in field && field.hint) ? hintId : null, invalid ? errorId : null].filter(Boolean).join(' ') || undefined}
-        onChange={event => onChange(event.target.value)}
-        onBlur={onBlur}
-      />
+      {'options' in field ? (
+        <select
+          id={`onboarding-${field.name}`}
+          value={value}
+          required
+          aria-invalid={invalid}
+          aria-describedby={invalid ? errorId : undefined}
+          onChange={event => onChange(event.target.value)}
+          onBlur={onBlur}
+        >
+          <option value="">Select your current year</option>
+          {field.options.map(option => <option key={option} value={option}>{option}</option>)}
+        </select>
+      ) : (
+        <input
+          autoComplete="off"
+          id={`onboarding-${field.name}`}
+          type={'type' in field ? field.type : 'text'}
+          value={value}
+          required
+          aria-invalid={invalid}
+          aria-describedby={[('hint' in field && field.hint) ? hintId : null, invalid ? errorId : null].filter(Boolean).join(' ') || undefined}
+          onChange={event => onChange(event.target.value)}
+          onBlur={onBlur}
+        />
+      )}
       {'hint' in field && <p className="onboarding-field-hint" id={hintId}>{field.hint}</p>}
       {invalid && <p className="onboarding-field-error" id={errorId}>Enter your {field.label.toLowerCase()}.</p>}
     </div>

@@ -315,8 +315,12 @@ try {
   await page.goto(base + '/design/onboarding');
   await page.getByRole('heading', { name: 'Tell us a little about yourself.' }).waitFor();
   assert.match(await page.locator('meta[name="robots"]').getAttribute('content'), /noindex.*nofollow/);
-  assert.equal(await page.locator('input[required]').count(), 6, 'Preview shows the six required onboarding fields');
+  assert.equal(await page.locator('input[required], select[required]').count(), 6, 'Preview shows the six required onboarding fields');
+  assert.equal(await page.locator('input[name], select[name], textarea[name]').count(), 0, 'Preview fields cannot be submitted through native form names');
+  assert.deepEqual(await page.locator('#onboarding-year option').allTextContents(), ['Select your current year', 'Year 1', 'Year 2', 'Year 3', 'Year 4', 'Year 5', 'Year 6', 'Year 7', 'Year 8'], 'Current study year is restricted to the approved Year 1–8 choices');
+  assert(await page.getByText('Roll numbers are unique within each institution.').isVisible(), 'Roll-number scope is visible in the onboarding preview');
   assert(await page.getByText('Free text. Any institution is welcome; email domain does not verify affiliation.').isVisible(), 'Institution is presented as free text without implying affiliation verification');
+  assert(await page.getByText(/private by default/i).isVisible(), 'Required profile details are described as private by default');
   await setTheme(page, 'dark');
   const storageBeforePreview = await storageSnapshot(page);
   await page.getByRole('button', { name: 'Check preview fields' }).click();
@@ -329,14 +333,16 @@ try {
   await page.getByLabel('Phone number').fill('0000000000');
   await page.getByLabel('Roll number').fill('SAMPLE-001');
   await page.getByLabel('Department').fill('Sample Engineering');
-  await page.getByLabel('Current year of study').fill('Second year');
+  await page.getByLabel('Current year of study').selectOption('Year 2');
   await page.getByLabel('College / institution').fill('Example Institution');
   await page.getByRole('button', { name: 'Check preview fields' }).click();
   await page.locator('.onboarding-preview-result').getByText('Preview check complete. Nothing was sent or saved.').waitFor();
   assert.equal(await storageSnapshot(page), storageBeforePreview, 'Onboarding preview must not persist entered values');
   for (const [width, theme] of [[320, 'light'], [375, 'dark'], [768, 'light'], [1440, 'dark']]) {
+    await page.goto(base + '/design/onboarding');
     await page.setViewportSize({ width, height: 900 });
     await setTheme(page, theme);
+    await page.getByRole('heading', { name: 'Your details' }).waitFor();
     assert(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth), `Onboarding preview fits ${width}px in ${theme} mode`);
     await page.screenshot({ path: `artifacts/acceptance/onboarding-preview-${width}-${theme}.png`, fullPage: true });
   }
@@ -349,7 +355,7 @@ try {
   await noJsPage.getByLabel('Phone number').fill('5550108822');
   await noJsPage.getByLabel('Roll number').fill('WEB-NOJS-CASE');
   await noJsPage.getByLabel('Department').fill('NoJs Engineering');
-  await noJsPage.getByLabel('Current year of study').fill('Second year');
+  await noJsPage.getByLabel('Current year of study').selectOption('Year 3');
   await noJsPage.getByLabel('College / institution').fill('Example University');
   const noJsUrl = noJsPage.url();
   const noJsRequestCount = noJsRequests.length;

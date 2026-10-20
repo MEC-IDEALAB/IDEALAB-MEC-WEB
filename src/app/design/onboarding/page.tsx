@@ -30,7 +30,7 @@ export default function OnboardingDesignPreview() {
         <aside className="onboarding-preview-context" aria-label="Preview information">
           <div className="onboarding-preview-mark" aria-hidden="true">01<span>/01</span></div>
           <h2>Your account, ready for the lab.</h2>
-          <p>In the planned flow, email verification confirms account ownership. These details tell us about your studies and institution; they do not assign a lab role or staff permission.</p>
+          <p>In the planned flow, email verification confirms account ownership. Students will be able to update their own profile, while these details are intended to stay private by default. Study information does not grant a lab role or staff permission.</p>
           <div className="onboarding-preview-safety"><ShieldCheck size={21} aria-hidden="true" /><p>Preview only. Use sample details; this page does not send or save anything.</p></div>
         </aside>
 

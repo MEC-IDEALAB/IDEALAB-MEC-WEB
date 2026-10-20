@@ -7,10 +7,6 @@
 .brand-wordmark small{font-size:.48rem;letter-spacing:.12em;margin-top:9px}
 .eyebrow,.facility-category,.card-index,.loader-label{font-family:var(--font-retro),monospace;font-size:.57rem;line-height:1.9;letter-spacing:0}
 .hero h1{font-family:var(--font-display),sans-serif;letter-spacing:-.065em}
-.loader-wall{transform:none;gap:18px;inset:-40px -180px}
-.loader-row{font-size:clamp(2.6rem,8vw,7rem);animation-duration:4s;animation-timing-function:linear}
-.loader-row:nth-child(3n){opacity:.16}
-.loader-row i{font-size:.4em;margin-inline:30px}
 .reference-auth{min-height:100svh;padding:20px 24px;display:flex;flex-direction:column;justify-content:center;gap:16px}
 .auth-toolbar{margin:0 auto;max-width:1000px;flex-shrink:0}
 .reference-auth .auth-grid{width:100%;max-width:1000px;grid-template-columns:1fr 1fr;min-height:0;margin:0 auto}

@@ -2,7 +2,7 @@
 
 Current UI/auth verification: see [UI audit](ui-audit.md). It supersedes earlier notes about three-option theme menus, repeated boot loading and database timeouts. Supabase read-only connectivity is restored; shared authorization/profile-provisioning defects still block account activation.
 
-Status: local homepage/theme correction prioritized; basic browser request workspace integrated; operational backend contracts proposed, not deployed. Updated 20 October 2026.
+Status: public website and first-visit loader are locally implemented and browser-verified; request workspace remains a browser-only draft; V1 operational backend contracts are not deployed. Updated 21 October 2026.
 
 ## Structure and technology
 
@@ -33,7 +33,7 @@ The maker-spirit eyebrow, hero service-availability footnote and first-card boil
 
 MagicPath project `463330845164449792` was updated with hierarchy/wireframe annotations and earlier accent panels. It is a planning reference, not the high-fidelity source of the implemented interface. No Figma/Penpot/Canva or generated-media artifact is claimed.
 
-Notebook/content validation passed (session 11250, exit 0): lint, production build and real browser coverage of five homepage widths and all three facility photos; the full 11-entry `/lab` directory at 320/768/1440 px in both themes; `/explore` history and public event-theme boundaries; prior contrast, motion, no-JavaScript, draft and guard journeys. Jet-black dark-mode validation subsequently passed in session 7536, including the body and neutral section strip. Backend availability, full V1 and deployment remain unverified.
+Notebook/content validation passed in earlier sessions. The latest loader, current design and public/sample acceptance also passed ESLint, TypeScript, the production build, all 13 boundary tests and real browser E2E on 21 October 2026. Current browser coverage includes five homepage widths, all eleven facility assets, both themes and contrast, auth viewport fit, no-JavaScript rendering, first-load animation lifecycle and reduced motion, protected-route denial, sample draft boundaries, page/card motion, 404 and security headers. This evidence is public/sample only; live member journeys, full V1 and deployment remain unverified.
 
 ## Trust boundaries
 
@@ -62,7 +62,9 @@ Work Requests, Manufacturing Tasks, Machine Queue, inventory and payments remain
 
 Repository schema sources conflict: `users.role` versus `base_role/system_role`, project `lead` versus `owner`, event status vocabularies, and RSVP uniqueness/status assumptions. Existing Flutter event and project writes are multiple calls rather than one transaction. Do not copy these races into the website.
 
-Before persistence: inspect the live migration ledger/schema/grants/RLS/functions, reconcile with canonical migrations, approve the resulting architecture and compatibility plan, then implement reviewed migrations with rollback and negative authorization tests. Shared/production DB writes require specific authorization; the website request itself does not authorize an ad-hoc live migration. Supabase remains installed and connected. Project metadata identified `grow-idealab` (`huftzhfqnnslvnfzvbex`) as `ACTIVE_HEALTHY` on 20 October 2026, while public table/migration/minimal SQL calls and three subsequent database health checks timed out. Attempts to open/access the Chrome SQL dashboard tab also hit CDP timeouts. No live schema or SQL result is established; this is a database/dashboard-access issue, not an uninstalled tool. No restart or compute change was authorized or performed. The [official timeout guide](https://supabase.com/docs/guides/troubleshooting/failed-to-run-sql-query-connection-terminated-due-to-connection-timeout) recommends inspecting project health.
+Read-only reconciliation on 21 October 2026 now succeeds for project `grow-idealab` (`huftzhfqnnslvnfzvbex`). The live migration ledger reports only `20260503073726 create_initial_schema` and `20260503073744 add_rls_policies`; no development branch exists. Live `public.users` uses `role` and `is_active`, while the canonical repository migration defines `base_role`/`system_role`; Flutter reads/writes `role`. The live authenticated `users_read_all` policy is unconditional, own-row INSERT/UPDATE are permitted, broad table grants exist, and no `auth.users` provisioning trigger is present. Auth settings show Google and email enabled with signup/autoconfirm enabled, but successful account journeys remain untested. Security advisors also flag mutable function search paths, public execution of a SECURITY DEFINER role helper, and disabled leaked-password protection; the helper body returns only the caller's own role. No schema/data write, user-row read, test signup or exploit was performed.
+
+Before persistence: reconcile the live contract and short migration ledger with canonical Grow migrations and Flutter auth/profile consumers, approve the architecture and compatibility plan, independently review a migration and rollback, then verify profile privacy, authority-field denial, email signup, Google provisioning and ordinary profile edits in a safe validation environment. The specific shared-project change requires the user's explicit authorization. A new Supabase branch was not created; cost must be checked and explicitly accepted first. Do not claim backend activation, full V1 or a production-ready authenticated workflow based on UI tests or metadata.
 
 ## Current UI boundary
 
@@ -84,4 +86,4 @@ Design evidence: private MagicPath project `463330845164449792` was created and 
 
 ## Branded loading state
 
-The initial page boot and sign-in loading boundary use repeated IDEALAB.MEC wordmarks with alternating row motion, inspired by the existing official-site loader. The overlay clears on hydration without a minimum display duration; a five-second fail-open watchdog prevents a stuck screen if scripts fail. JavaScript-disabled browsers do not show the boot overlay. Reduced motion leaves rows static. The root route has no loading boundary, preserving ordinary 404 HTTP responses. Loader visual and dismissal checks are part of browser acceptance; live backend readiness is unchanged.
+The first visit in a tab shows smaller IDEALAB marks moving continuously across the notebook grid, behind a Neo-brutalist card with an animated circuit, cube, brand lockup and indeterminate progress. Dismissal waits for font readiness and a paint; the 560 ms brand reveal prevents a flash, but a slow load exits as soon as it is ready. A 190 ms fade keeps the content inert through the transition. Reduced-motion users see a static screen that exits without the reveal delay. A 4.8-second watchdog is the fail-open, blocked storage skips the loader, and repeat reloads/client navigation do not repeat it. The ordinary root 404 status remains intact; route and sign-in skeletons stay separate from the first-visit splash.

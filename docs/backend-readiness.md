@@ -7,11 +7,11 @@ below pass.
 
 ## Current evidence
 
-Read-only inspection of `grow-idealab` completed on 21 October 2026. The
-current pass rechecked project health, PostgreSQL version, deployed migration
-ledger, table columns and security advisors. Policy, grant and trigger details
-below are carried forward from the earlier same-day metadata audit; they were
-not re-queried in this pass. The project is healthy on PostgreSQL 17.6.1.166.
+Read-only inspection of `grow-idealab` completed on 21 October 2026. This pass
+rechecked project health, PostgreSQL version, the deployed migration ledger,
+table columns, RLS policies, effective table/column privileges, relevant
+triggers and security advisors. The metadata query inspected catalog records
+only; no user rows were read. The project is healthy on PostgreSQL 17.6.1.166.
 The deployed ledger contains only `20260503073726 create_initial_schema` and
 `20260503073744 add_rls_policies`; it materially differs from the tracked Grow
 migration history and current Flutter auth/profile consumers.
@@ -32,14 +32,26 @@ The database also has `user_profiles.department` and
 six-field private onboarding contract; `user_education.end_year` represents a
 graduation/batch year, not current study year.
 
-The earlier metadata audit found that the live `users_read_all` policy lets
-authenticated users read every `users` row. Own-row insert/update policies
-coexist with broad table privileges, so row ownership alone does not protect
-authority and status fields. That audit found no `auth.users`
-profile-provisioning trigger. Website source code defaults member and Google
-activation off and requires explicit flags; deployed flag values were not
-inspected. Auth provider and callback configuration could not be re-read and
-remain unverified.
+The fresh catalog read confirms `users_read_all` grants authenticated SELECT
+with an unconditional `true` predicate, alongside the own-row SELECT policy.
+`users_update_own` filters by owner but does not restrict which columns the
+owner may update. Effective privileges for both `anon` and `authenticated`
+include SELECT, UPDATE, DELETE and TRUNCATE on `public.users`; effective column
+privileges allow both roles to update `role`, `is_active` and
+`profile_completed`. RLS does not constrain TRUNCATE, and broad grants also
+exist on `user_profiles` and `user_education`.
+
+`user_profiles` has a row-level SELECT policy allowing `is_public = true` or
+the owner. Its `show_email`, `show_phone` and `show_stats` flags are ordinary
+columns; the policy does not apply them as per-column access controls.
+`user_education` has owner-scoped row policies, but its API roles also have
+broad table privileges, including TRUNCATE. No trigger exists on `auth.users`
+or `public.users`; the only triggers on these profile tables update timestamps
+on `user_profiles` and `user_education`.
+
+Website source code defaults member and Google activation off and requires
+explicit flags; deployed flag values were not inspected. Auth provider and
+callback configuration could not be re-read and remain unverified.
 
 The current source now checks Supabase Auth's server-returned
 `email_confirmed_at` before it queries the signed-in profile row. An unconfirmed

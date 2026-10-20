@@ -1,10 +1,12 @@
 # Vercel delivery preparation
 
-Verified against official documentation on 20 October 2026. No Vercel project, account connection, preview URL, domain or production deployment has been verified. GitHub CI is active; continuous deployment is not connected.
+Verified against official documentation on 21 October 2026. No Vercel project, account connection, preview URL, domain or production deployment has been verified. GitHub CI is active; continuous deployment is not connected. The local Vercel CLI also reports that its saved token is invalid; no token value is recorded here.
 
 ## Account prerequisite
 
-The source repository is private and organization-owned. Vercel's Hobby Git integration does not support that combination; an eligible Pro or Enterprise team is required. Private-repository commit authors must also have the appropriate Vercel team membership/login connection. Preserve the chosen private repository. Do not start a paid plan or trial as a setup side effect. See [Vercel Git deployment requirements](https://vercel.com/docs/git#deploying-private-git-repositories).
+The source repository is private and organization-owned. Vercel's [Hobby plan does not connect projects to Git repositories owned by GitHub organizations](https://vercel.com/docs/limits#connecting-a-project-to-a-git-repository), and its [use is limited to personal, non-commercial projects](https://vercel.com/docs/plans/hobby). The institution's plan and eligibility have not been verified, so do not deploy this project under Hobby. A manual GitHub Actions workflow using the Vercel CLI is prepared as a preview-only path; it becomes dispatchable after it reaches the default branch, does not require Vercel's Git integration and never deploys to production. The CLI route does not waive Vercel plan terms. Do not start a paid plan or trial as a setup side effect.
+
+After the reviewed workflow is present on the default branch, dispatch [Manual Vercel preview](../.github/workflows/vercel-preview.yml) from `main`; other refs are rejected. First verify that the institution's Vercel account is eligible for this use and set the repository variable `VERCEL_PLAN` to `pro` or `enterprise`. Configure the GitHub Actions secrets `VERCEL_TOKEN`, `VERCEL_ORG_ID` and `VERCEL_PROJECT_ID`. The workflow reruns lint, typecheck, boundary tests, dependency audit, documentation checks, production build and Chromium acceptance. It pulls the Vercel Preview environment, refuses deployment unless both `ENABLE_MEMBER_PLATFORM` and `ENABLE_DESIGN_PREVIEW` are explicitly `false`, then runs the Vercel build and preview deployment. It contains no production-deploy command. The variable, secrets and Vercel project are not configured or verified in the current environment.
 
 ## Project settings
 
@@ -33,4 +35,4 @@ Future backend activation needs verified shared configuration and the identity/p
 
 Inspect hosted CI for the exact source revision, the actual Vercel build/deployment status and the rendered preview. Repeat the public/access-denial/sample acceptance journeys against that deployment, checking environment isolation and correct asset/font loading. Record its URL, commit and results. A local build or GitHub CI pass does not establish a hosted deployment pass.
 
-The Git integration is not configured here to wait for GitHub CI. Do not assume deployment implies passing checks. Current GitHub-plan limitations also prevent enforcing branch protection, so review and release gates require manual discipline until supported enforcement is available. No merge or deployment is performed by this document.
+Git integration is not configured to wait for GitHub CI. The manual preview workflow runs its own current-source checks before deployment; still inspect the hosted preview and deployment logs. Current GitHub-plan limitations also prevent enforcing branch protection, so review and release gates require manual discipline until supported enforcement is available. No merge or deployment is performed by this document.

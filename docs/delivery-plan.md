@@ -25,7 +25,7 @@ The homepage, two-state Light/Dark toggle and requested neo-brutalist identity a
 | Request workspace | Existing member-local draft contract plus isolated design preview | Local draft composer and hub integrated; authenticated submission and history remain unimplemented | 19 boundary tests and production browser acceptance pass locally; Supabase records are not read or written | Deliver the tested draft UX; implement real submission only after schema, permission and workflow contracts are reviewed. |
 | Design | MagicPath canvas | Verified artifact | Private project 463330845164449792, 11 shapes/two desktop-mobile frames | Reconcile design with rendered homepage; no other design artifact claimed. |
 | Backend | Connected Supabase project | Read-only schema/security evidence available; activation blocked | Live `public.users` lacks institution, department and current study year; current roll constraint is global; broad authenticated profile read/update and grants; no Auth provisioning trigger; migration drift | Plan cross-app schema/security reconciliation. No DDL, signup or permission change performed. |
-| Release | Private org repository and Vercel | Gated | PR #14 is open and draft; request-draft commit `a3b003302be968e523368e18d8feeb9377fcba69` passed hosted Website CI and Documentation CI; private-repository Vercel plan constraint remains; no deployment | Keep PR draft while documented V1 and backend gates remain. Vercel team/domain and production readiness are unverified. |
+| Release | Private org repository and Vercel | Gated | PR #14 is open and draft. A manual preview-only GitHub Actions workflow is prepared on this branch; it requires an institution-eligible Pro/Enterprise plan declaration, Vercel project secrets and explicitly disabled preview feature flags. No Vercel project or valid local CLI login is verified; no deployment occurred. | Keep PR draft while V1/backend gates remain. After reviewed workflow reaches `main`, verify eligible Vercel plan, configure secrets and preview environment, dispatch the manual preview workflow, then inspect the hosted result. |
 
 ## GitHub work tracking
 
@@ -63,7 +63,7 @@ Read-only Supabase access is available for `grow-idealab` (`huftzhfqnnslvnfzvbex
 
 ## Deployment prerequisite
 
-[Deployment preparation](deployment.md) records the intended Vercel settings and release checks. The private organization-owned repository cannot use Vercel Hobby’s Git integration; an eligible Pro or Enterprise team is required, according to the verified [official Vercel Git requirements](https://vercel.com/docs/git#deploying-private-git-repositories). Preserve repository privacy; no account upgrade, paid trial or deployment has been performed. Vercel account/team readiness and an actual rendered hosted preview remain unverified.
+[Deployment preparation](deployment.md) records the intended Vercel settings and release checks. The private organization-owned repository cannot use Vercel Hobby’s Git integration, and the Hobby plan is limited to personal, non-commercial projects ([official plan limits](https://vercel.com/docs/limits#connecting-a-project-to-a-git-repository), [Hobby plan terms](https://vercel.com/docs/plans/hobby)). A manual GitHub Actions/Vercel CLI preview path is prepared with a Pro/Enterprise declaration guard; it does not override account eligibility. Preserve repository privacy and do not start a paid plan or trial as a setup side effect. Vercel project/secrets and an actual rendered hosted preview remain unverified.
 
 ## Delivery sequence and gates
 

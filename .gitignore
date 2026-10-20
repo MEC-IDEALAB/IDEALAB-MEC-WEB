@@ -5,6 +5,7 @@ package-lock.previous.json
 out/
 coverage/
 artifacts/
+.vercel/
 .playwright/
 .playwright-cli/
 *.tsbuildinfo

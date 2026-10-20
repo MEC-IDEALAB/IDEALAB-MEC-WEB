@@ -6,6 +6,14 @@ Planning baseline: 21 October 2026. The user created and confirmed `MEC-IDEALAB`
 
 The owner selected “Continue UI and GitHub setup first.” The current frontend foundation phase covers public UI, sample drafts and access-denial states. `ENABLE_MEMBER_PLATFORM=false` independently disables shared-account activation even when public keys are present; live member/staff/backend acceptance gates remain required before activation and full-V1 release.
 
+The verified-email member-gate follow-up is on application commit
+`d2a310edf80d176bd10768e04dd31cde030b389e`. Node 24.19.0 lint/typecheck,
+26 boundary tests, dependency audit, production build, Chromium acceptance and
+documentation check passed locally. Exact-head [Website CI and required gate](https://github.com/MEC-IDEALAB/IDEALAB-MEC-WEB/actions/runs/39510291937)
+and [Documentation CI](https://github.com/MEC-IDEALAB/IDEALAB-MEC-WEB/actions/runs/39510291938)
+passed. There is no independent GitHub PR review; keep the PR draft and the
+member flag off while full account/backend and V1 journeys remain incomplete.
+
 ## Current priority and coordinated status
 
 Current owner direction uses notebook cross-grid paper and the original yellow `#ffe029`/pink `#ff3994` anchors, coordinated blue `#a8c6ff`, purple `#c4b5f5`, red `#f39488` and green `#a6d9b5`, with cobalt actions and existing apricot/cream/jet-black. See [visual standard](design-system.md). Homepage content now includes Epilog, Snapmaker and Ultimaker facility photos, three broad activity themes and AICTE/CogniCor institutional context. The 11-entry `/lab` directory is published institutional content rather than live inventory; `/explore` uses officially supported March 2022 selection history. See [content provenance](content-sources.md) for verification limits. Individual event records remain signed-in only. Original local SVG artwork and HomeMotion retain progressive enhancement and reduced-motion behavior.

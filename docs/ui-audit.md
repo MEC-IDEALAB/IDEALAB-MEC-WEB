@@ -26,6 +26,10 @@ member identity; Google/email account success, six-field onboarding persistence,
 profile privacy, staff scope and operational workflows remain unverified. Keep
 member activation disabled.
 
+Exact code revision `d2a310edf80d176bd10768e04dd31cde030b389e` passed hosted
+[Website CI and the required gate](https://github.com/MEC-IDEALAB/IDEALAB-MEC-WEB/actions/runs/39510291937)
+and [Documentation CI](https://github.com/MEC-IDEALAB/IDEALAB-MEC-WEB/actions/runs/39510291938).
+
 ## Authentication evidence and blocker
 
 Read-only inspection of the reconnected `grow-idealab` project on 21 October 2026 succeeds, including `select 1`, schema, policies, grants, triggers, migration ledger, branches and security advisors. The ledger contains only `20260503073726 create_initial_schema` and `20260503073744 add_rls_policies`; no development branch exists. Live `public.users` has a `role` field and `is_active`, while the canonical Grow SQL defines `base_role`/`system_role`, and Flutter auth/profile consumers read and write `role`. These are materially different contracts. No schema/data write or test identity was created.

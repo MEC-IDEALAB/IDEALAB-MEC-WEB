@@ -73,6 +73,49 @@ profile source. The final policy must reject direct client writes to role,
 active status, completion state and head assignments, regardless of which UI
 is used.
 
+## Cross-client document drift found during the Grow source review
+
+A read-only review of the parent `F:\kannan\projects\Grow` checkout on 21
+October 2026 found that several current web decisions have not been reconciled
+across the Grow documentation set. The parent checkout contains extensive
+uncommitted changes; those files were inspected but not edited. Resolve and
+commit the cross-client contract before either app enables live account or
+operational writes.
+
+- `docs/01_Product/AUTH_IDENTITY_POLICY.md:13` still says student eligibility
+  beyond verified email needs a future owner decision. The current web
+  decision allows any verified email to create a Student account; eligibility
+  for individual modules, events and services remains separate and unresolved.
+- `docs/02_Product/PROFILE_ECOSYSTEM_DECISION_GATE.md:12-15,86-93` still
+  describes the older three-field minimum (name, optional phone and optional
+  roll number) and broad public-profile wording. The current web contract
+  requires six fields, private by default, with institution-scoped roll
+  uniqueness.
+- `docs/03_Database/ROLE_AND_POSITION_CONTRACT.md:59-63` still leaves
+  assignment scope open. The current V1 web decision is machine/room-scoped
+  heads, with Super Admin-only assignment, revocation and active-work handover;
+  the detailed roster/actions/handover rules remain open.
+- `docs/02_Product/WORK_REQUEST_CONTRACT_DELTA.md:129-133` still calls
+  preferred-time and requester-visible scheduling semantics unresolved. The
+  current web decision is provisional preferred time, head confirmation,
+  requester acceptance of changed time, and another proposal after decline
+  without automatic expiry. Capacity and conflict effects remain open.
+- Clean `docs/01_Product/06_WORK_REQUEST_IMPLEMENTATION_CONTRACT.md:3,13,66-72,136-163`
+  still labels a fabrication-only plan “Approved,” exposes queue position and
+  completion estimates to students, cascades parent cancellation to
+  manufacturing tasks, and defines a 50% deposit plus 50% balance. These
+  directly conflict with the current web requirements. The newer Grow request
+  notes are uncommitted and do not by themselves reconcile this clean contract.
+- `docs/03_Database/BACKEND_SECURITY_BASELINE.md:47` says the live Supabase
+  project was hibernated and not queried; the connected tool successfully
+  returned read-only project, schema, migration and advisor metadata on 21
+  October. Refresh that source status before it is reused as current evidence.
+
+The website requirements record the latest owner decisions but do not
+automatically replace or deploy the shared Flutter/database contracts. Keep
+member activation and operational writes disabled until the document owners
+reconcile the conflicting rules, code consumers and live schema.
+
 ## Safe delivery sequence
 
 1. Reconcile each tracked Grow migration against the live schema, policies,

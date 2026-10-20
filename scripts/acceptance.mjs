@@ -31,6 +31,15 @@ async function loadPageImages(page) {
   for (const image of await page.locator('img').all()) await image.scrollIntoViewIfNeeded();
   await page.waitForFunction(() => [...document.images].every(image => image.complete && image.naturalWidth > 0));
 }
+async function storageSnapshot(page) {
+  return page.evaluate(() => {
+    const entries = (storage) => Array.from({ length: storage.length }, (_, index) => storage.key(index))
+      .filter(key => key !== null)
+      .sort()
+      .map(key => [key, storage.getItem(key)]);
+    return JSON.stringify({ local: entries(localStorage), session: entries(sessionStorage) });
+  });
+}
 const env = { ...process.env, NEXT_PUBLIC_SUPABASE_URL: '', NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: '', ENABLE_MEMBER_PLATFORM: 'false', ENABLE_DESIGN_PREVIEW: 'true' };
 const server = spawn(process.execPath, ['node_modules/next/dist/bin/next', 'start', '--hostname', '127.0.0.1', '--port', String(port)], { env, stdio: ['ignore', 'pipe', 'pipe'] });
 let serverOutput = '';
@@ -302,6 +311,53 @@ try {
   await page.goto(base + '/sign-up');
   await page.getByRole('link', { name: 'Sign in here' }).click();
   await page.getByRole('heading', { name: 'Make yourself at home.' }).waitFor();
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.goto(base + '/design/onboarding');
+  await page.getByRole('heading', { name: 'Tell us a little about yourself.' }).waitFor();
+  assert.match(await page.locator('meta[name="robots"]').getAttribute('content'), /noindex.*nofollow/);
+  assert.equal(await page.locator('input[required]').count(), 6, 'Preview shows the six required onboarding fields');
+  assert(await page.getByText('Free text. Any institution is welcome; email domain does not verify affiliation.').isVisible(), 'Institution is presented as free text without implying affiliation verification');
+  await setTheme(page, 'dark');
+  const storageBeforePreview = await storageSnapshot(page);
+  await page.getByRole('button', { name: 'Check preview fields' }).click();
+  await page.locator('.onboarding-error-summary').waitFor();
+  assert.equal(await page.locator('.onboarding-error-summary li').count(), 6, 'Invalid submit summarizes all missing required fields');
+  assert(await page.locator('.onboarding-error-summary').evaluate(element => element === document.activeElement), 'Validation moves focus to the error summary');
+  await page.getByRole('link', { name: 'College / institution' }).click();
+  assert(await page.getByLabel('College / institution').evaluate(element => element === document.activeElement), 'Error-summary field links move focus to the named input');
+  await page.getByLabel('Full name').fill('Ada Example');
+  await page.getByLabel('Phone number').fill('0000000000');
+  await page.getByLabel('Roll number').fill('SAMPLE-001');
+  await page.getByLabel('Department').fill('Sample Engineering');
+  await page.getByLabel('Current year of study').fill('Second year');
+  await page.getByLabel('College / institution').fill('Example Institution');
+  await page.getByRole('button', { name: 'Check preview fields' }).click();
+  await page.locator('.onboarding-preview-result').getByText('Preview check complete. Nothing was sent or saved.').waitFor();
+  assert.equal(await storageSnapshot(page), storageBeforePreview, 'Onboarding preview must not persist entered values');
+  for (const [width, theme] of [[320, 'light'], [375, 'dark'], [768, 'light'], [1440, 'dark']]) {
+    await page.setViewportSize({ width, height: 900 });
+    await setTheme(page, theme);
+    assert(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth), `Onboarding preview fits ${width}px in ${theme} mode`);
+    await page.screenshot({ path: `artifacts/acceptance/onboarding-preview-${width}-${theme}.png`, fullPage: true });
+  }
+  const noJsContext = await browser.newContext({ javaScriptEnabled: false });
+  const noJsPage = await noJsContext.newPage();
+  const noJsRequests = [];
+  noJsPage.on('request', request => noJsRequests.push(request.url()));
+  await noJsPage.goto(base + '/design/onboarding');
+  await noJsPage.getByLabel('Full name').fill('NoJs Example');
+  await noJsPage.getByLabel('Phone number').fill('5550108822');
+  await noJsPage.getByLabel('Roll number').fill('WEB-NOJS-CASE');
+  await noJsPage.getByLabel('Department').fill('NoJs Engineering');
+  await noJsPage.getByLabel('Current year of study').fill('Second year');
+  await noJsPage.getByLabel('College / institution').fill('Example University');
+  const noJsUrl = noJsPage.url();
+  const noJsRequestCount = noJsRequests.length;
+  await noJsPage.getByRole('button', { name: 'Check preview fields' }).click();
+  assert.equal(noJsPage.url(), noJsUrl, 'No-JavaScript preview controls must not submit or navigate');
+  assert.equal(noJsRequests.length, noJsRequestCount, 'No-JavaScript preview controls must not send any request');
+  assert(noJsRequests.every(url => !/NoJs|WEB-NOJS|5550108822/.test(url)), 'No-JavaScript preview must not send entered details in a request URL');
+  await noJsContext.close();
   await page.setViewportSize({ width: 375, height: 900 });
   await page.goto(base + '/projects');
   await page.getByRole('heading', { name: 'Ideas grow together.' }).waitFor();
@@ -412,7 +468,8 @@ try {
   assert(offReady, 'Preview-off production instance must become ready');
   assert.equal((await fetch(offBase + '/design/request')).status, 404, 'Design preview must be unavailable when disabled');
   assert.equal((await fetch(offBase + '/design/requests')).status, 404, 'Request workspace preview must be unavailable when disabled');
-  console.log('PASS: public journey, 5 widths in light/dark, auth layouts/themes, palette contrast, no-JavaScript content, scroll/card motion and live reduced-motion cancellation, assets, keyboard navigation, route denial, sample draft journeys, 404 and security headers.');
+  assert.equal((await fetch(offBase + '/design/onboarding')).status, 404, 'Onboarding design preview must be unavailable when disabled');
+  console.log('PASS: public journey, 5 widths in light/dark, auth layouts/themes, palette contrast, no-JavaScript content, scroll/card motion and live reduced-motion cancellation, assets, keyboard navigation, gated six-field onboarding preview with validation/no storage, route denial, sample draft journeys, 404 and security headers.');
   console.log('UNVERIFIED: live account success/recovery/OAuth, draft under a real member session, scoped permissions and operational backend workflows.');
 } catch (error) {
   const activePage = browser?.contexts()[0]?.pages()[0];

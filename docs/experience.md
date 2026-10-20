@@ -29,6 +29,7 @@ Notebook/content validation passed (session 11250, exit 0): lint, production bui
 | Public | `/`, `/about`, `/facilities`, `/contact`, `/policies/[slug]` | Understand the lab and participation; enter shared account flow. |
 | Curated public sections | Homepage editorial facilities/participation sections | Individual project/event records are signed-in only; no anonymous record routes. |
 | Account | `/sign-in`, `/sign-up`, `/auth/confirm`, `/forgot-password`, `/reset-password`, `/onboarding` | Verified identity, explicit sign-in and minimum profile. |
+| Design preview | `/design/onboarding` when `ENABLE_DESIGN_PREVIEW=true` | Review the six-field form and required-field feedback; sample-only, no account access or persistence. |
 | Member | `/app`, `/app/lab`, `/app/lab/check-in`, `/app/lab/history`, `/app/lab/catalog` | Home, presence/history and verified services. |
 | Requests | `/app/requests`, `/app/requests/new`, `/app/requests/[id]` | Compose, review, track and resolve requests. |
 | Projects | `/app/projects`, `/app/projects/new`, `/app/projects/[id]`, `/app/projects/[id]/members` | Discovery, ownership and membership requests. |
@@ -44,6 +45,36 @@ Public desktop navigation links to curated homepage sections and sign-in; projec
 Follow [the onboarding requirements](onboarding-requirements.md): any verified-email student account starts as Student, and the member app remains gated until **name, phone, roll number, department, year, and college/institution** are saved successfully. The public `/sign-up` page is currently informational; functional account creation, email confirmation, onboarding persistence and Google acceptance remain gated by the shared-backend review.
 
 The first-time path is `homepage → sign up → email confirmation → intentional sign-in → profile check → onboarding when incomplete → Home when complete`. Existing mobile and website identities must converge on the same Supabase Auth user and `public.users` row. Keep the form one-column on phones, explain why institution details are requested, show required status and progress, validate beside each field, retain safe input across recoverable failures, and keep optional profile enrichment out of the access gate. The mobile design notes request skippable interests/skills, clear privacy copy and resumable errors; they do not make the old avatar/username/bio/five-interest flow mandatory.
+
+The current `/design/onboarding` route is an opt-in review artifact, not that account journey. It renders six required fields, focuses a linked error summary when fields are missing, and reports that successful preview validation did not submit data. Inputs stay in component memory only; the page is `noindex`, warns against entering real details, and returns 404 unless the design-preview flag is enabled.
+
+```text
+ONBOARDING — WIDE PREVIEW
++ Back to sign up ------------------------------------------ Theme +
+| Tell us a little about yourself.                              |
++----------------------------+-----------------------------------+
+| Step / account context     | Required profile                  |
+| Why these details matter  | About you: name | phone           |
+| Preview-only notice        |              roll number          |
+|                            | Your studies: department | study year|
+|                            |              college/institution   |
+|                            | [Check preview fields]             |
++----------------------------+-----------------------------------+
+
+ONBOARDING — PHONE PREVIEW
++ Back / theme                                               +
+| Heading and one-line purpose                               |
+| Account context                                            |
+| Preview-only notice                                        |
++------------------------------------------------------------+
+| About you: name → phone → roll number                      |
+| Your studies: department → current study year → institution|
+| Linked error summary above fields when required values miss|
+| [Full-width check button] · preview-only result if valid   |
++------------------------------------------------------------+
+```
+
+The owner confirmed current year of study and a free-text institution value. The preview explains that institutional entry does not imply email-domain verification; field formats and the cross-app database mapping remain subject to review.
 
 ## Local request-workspace slice
 

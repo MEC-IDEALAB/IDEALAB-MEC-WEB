@@ -76,6 +76,8 @@ Before persistence: reconcile the live contract and short migration ledger with 
 
 The public homepage is curated. Individual project/event records require sign-in, per owner decision. Member operational pages clearly state that their service is not connected. The request composer saves only a browser draft under an account-derived key; it never submits, reserves capacity or notifies staff. Drafts persist after sign-out and should not contain sensitive data on shared devices.
 
+`/design/onboarding` is a separate opt-in preview guarded by `ENABLE_DESIGN_PREVIEW=true`. It renders the six confirmed required fields and local validation only; it keeps values in memory, never calls Supabase, is marked `noindex`, and returns 404 when preview is off. It is not the production onboarding route and does not establish a valid profile. Keep the real `/onboarding` server gate and persistence disabled until the shared schema/provisioning path is approved and tested.
+
 Staff workspace and administrator wireframes are in [experience.md](experience.md). No privileged controls are enabled until backend authority is verified.
 
 ## Theme and homepage implementation

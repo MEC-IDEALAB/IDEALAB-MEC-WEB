@@ -8,6 +8,7 @@ Status: product decisions confirmed; implementation and shared-backend activatio
 - After email ownership is verified, a new account is active with the ordinary `student` account role. Student signup does not wait for Super Admin approval or require an invitation.
 - Email verification and onboarding are separate gates: verify first, then complete onboarding before entering the signed-in member experience. Verification proves control of an email address; it does not prove MEC or other institutional affiliation.
 - Onboarding requires all six fields: **name, phone, roll number, department, year, and college/institution**. Do not mark the profile complete until the server confirms that the required profile update succeeded.
+- The owner clarified that **year means current year of study** and **college/institution is free text**. Any institution name is accepted; email domain does not verify affiliation. Allowed formats and validation limits still need to be specified before persistence.
 - The web and mobile apps share Supabase Auth and the same member identity. Do not create a second account/profile authority for the website.
 - Signup creates an ordinary Student account only. Onboarding must not let a user choose or self-assign an administrator role, an operational head position, or machine/room permissions.
 
@@ -33,11 +34,24 @@ An existing verified account follows the same profile-completion gate. Email/pas
 - Keep sign-in and account creation focused on authentication. Make the required onboarding fields a clearly named follow-up step, with visible progress and an explanation of why institutional details are collected.
 - Use a phone-first, single-column form with all required fields clearly marked, keyboard-appropriate input types, inline field errors, a focused error summary when submission fails, retained safe input, duplicate-submit protection, and explicit Back/Continue/Save behavior.
 - Support interrupted progress and a recoverable retry. The old mobile cache/migration mechanism is not approved as a backend contract; choose a safe draft strategy that does not mark unsaved data complete or leak private data on shared devices.
-- Optional profile enrichment may follow onboarding. Interests, skills, biography, avatar/photo, username, portfolio, experience, volunteering, badges and verification are not required to reach Home unless separately approved. Do not require exactly five interests or fabricate a verification badge.
+- Optional profile enrichment may follow onboarding. Interests, skills, goals, biography, avatar/photo, username, portfolio, experience, volunteering, badges and verification are not required to reach Home unless separately approved. Do not require exactly five interests or fabricate a verification badge.
 - Provide loading, save success, validation, recoverable failure, offline and permission-denied states. Respect reduced motion, enlarged text, visible focus, WCAG contrast and at least 48 dp touch targets. Do not make animation block form completion or navigation.
 - Email, phone, roll number, institution, department, year and audit fields are private by default until a field-by-field visibility contract says otherwise. Do not equate an email domain, a roll number, or a profile label with staff verification.
 
 The Grow mobile design handoff describes a required identity path for MEC and other students, optional skippable interests/skills, clear progress/privacy copy, resumable errors, phone and wide layouts, and no invented verification badge. It is a design candidate, not evidence that the Penpot canvas is current or that those screens are implemented. The website's visual tokens remain in [design-system.md](design-system.md).
+
+### Mobile source reconciliation
+
+The parent Grow repository contains older policy notes and mobile implementations with fields and behavior that differ from the confirmed web contract. Preserve useful presentation ideas, but do not treat those paths as current cross-platform policy:
+
+| Source | Existing mobile behavior | Web interpretation |
+| --- | --- | --- |
+| `docs/02_Product/PROFILE_ECOSYSTEM_DECISION_GATE.md` | The minimum flow lists name, optional phone, optional `college_roll`, then `profile_completed`. | The newer confirmed requirement makes phone and roll required and adds department, year and college/institution. The old minimum does not satisfy onboarding. |
+| `lib/features/auth/presentation/screens/rc5_onboarding_screen.dart` | A nine-step draft includes username, bio, interests, skills, role/department, goals and preview; progress is held in device preferences. Completion sets `profile_completed`. | Keep the clear progress and optional enrichment ideas. Do not require username, bio, interests, skills or goals; local draft state alone must never complete the server profile. |
+| `lib/features/auth/presentation/screens/profile_setup_screen.dart` | The user selects a role and the screen writes `role` with `profile_completed`. | Do not copy self-selected roles. A new account is an ordinary Student and authority is server-managed. |
+| `lib/features/profile/presentation/screens/edit_subpages/rc5_edit_education_screen.dart` | Labels fields “College / University,” “Department / Degree,” and “Graduation Year / Batch”; writes education details and `college_roll` through separate paths. | The owner chose current year of study and free-text institution for required onboarding. The old graduation/batch field and `user_education.end_year` must not be reused as current study year without a reviewed cross-app data contract. The old multi-table writes are not an approved atomic contract. |
+
+The six-field preview at `/design/onboarding` is deliberately non-persistent. It helps review visual hierarchy and basic required-field feedback while the web/mobile contract is reconciled.
 
 ## Shared data and security boundary
 
@@ -60,10 +74,10 @@ The Grow mobile design handoff describes a required identity path for MEC and ot
 
 ## Decisions still needed before field-level implementation
 
-- Allowed values and validation for phone, roll number, department, academic year and institution; in particular, whether institution is a free-text value or a controlled catalog. No list or format should be invented.
+- Allowed values and validation limits for phone, roll number, department, current year of study and free-text institution. The input semantics are confirmed, but field formats/lengths and any institutional affiliation checks are not.
 - Whether a separate professional account path will exist, and which signed-in modules non-MEC participants may use; each event/request still follows its own eligibility contract.
 - Which fields a signed-in public profile may show, and the approved versioned Terms, Privacy Policy and Lab Rules/consent record.
-- How to preserve existing mobile accounts and partial onboarding data while making phone and roll number required and adding department, year and college/institution to the documented minimum profile. Migration ordering and legacy schema compatibility need review.
+- How to preserve existing mobile accounts and partial onboarding data while making phone and roll number required and adding department, current study year and free-text college/institution to the documented minimum profile. Migration ordering and legacy schema compatibility need review.
 - Actual email confirmation delivery, provider callback configuration, Google new/existing-account behavior, and the exact production browser/device acceptance account.
 
 ## Source reconciliation

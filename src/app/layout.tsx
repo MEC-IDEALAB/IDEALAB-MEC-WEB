@@ -7,6 +7,7 @@ import './design-tokens.css';
 import './reference-design.css';
 import './brand-loading.css';
 import './audit-polish.css';
+import './onboarding-preview.css';
 import { BrandLoading } from '@/components/brand-loading';
 import { BootReady } from '@/components/boot-ready';
 

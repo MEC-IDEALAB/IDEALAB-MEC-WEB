@@ -76,7 +76,7 @@ The owner confirmed current year of study (Year 1–8), a free-text institution 
 
 ## Local request-workspace slice
 
-Current local source integrates protected `/app/requests` and opt-in `/design/requests` with basic composer restore-query/return-link and local storage. Enhanced reference validation is not implemented. The member route retains server identity/profile guards. The preview uses separate sample storage, requires `ENABLE_DESIGN_PREVIEW=true`, and cannot establish member/staff authorization. No fictional operational inbox is introduced.
+Current local source integrates protected `/app/requests` and opt-in `/design/requests` with one shared v1 draft parser/writer, restore-query/return-link continuity, local save timestamps, and account-keyed storage for members. Legacy v1 drafts without a `references` field restore as an empty list. Optional references accept up to five complete `http`/`https` URLs (2,048 characters each), reject embedded credentials and unsafe protocols, and open from review with `rel="noreferrer"`. Invalid/corrupt stored data is kept until the user explicitly replaces or deletes it. Validation errors appear on Continue or Save so a blur-triggered rerender cannot swallow the submit click; the invalid field receives focus after the submit event. The member route retains server identity/profile guards. The opt-in preview uses page memory only, requires `ENABLE_DESIGN_PREVIEW=true`, clears on refresh or leaving the app, and cannot establish member/staff authorization. No fictional operational inbox is introduced.
 
 Planned local-draft journey: request hub → prepare or continue the account’s saved draft → type/details/review → save locally → return to hub → continue or confirm deletion. Submitted requests occupy a distinct unavailable section, never a fabricated empty list. Local storage is not an account-security boundary against a user of the same browser; shared-device warnings and account-specific keys remain necessary.
 
@@ -85,11 +85,11 @@ Acceptance before this slice passes:
 - Preserve one draft per account and restore supported legacy saved drafts without overwriting malformed data merely by reading it.
 - Isolate account A/B keys and sample-preview keys; deletion affects only the selected account’s draft.
 - Recover from missing, corrupt, invalid-reference and storage-denied states; retain safe current inputs and provide retry/prepare-without-saving paths.
-- Verify reload and return-link continuity, saved metadata labelled as device-clock data, and confirmation before permanent deletion.
+- Verify member draft reload continuity and browser-clock metadata; verify preview memory survives only in-app navigation, clears on refresh/exit, and never reaches browser storage; confirm permanent deletion.
 - Exercise keyboard/focus/Back and responsive hub/composer at the established widths; preview-disabled routes return 404 and `/app` stays protected.
 - No online submission, manufactured request IDs, assigned heads, operational history, charges or reservations; no backend requests from the isolated design flow.
 
-Basic sample journeys, corrupt-storage state and deletion-focus browser checks now pass in the local acceptance run. Extended reference-validation work remains pending; no live member/staff workflow is established.
+The local production-browser acceptance exercises valid-link review and restore across in-app navigation, unsafe-protocol rejection, focused field errors, delete confirmation/focus, memory-only preview drafts, route-exit cleanup, responsive layouts and the preview-disabled 404. Boundary tests cover legacy-v1 normalization, malformed/out-of-bounds links, unsupported services, memory-scope isolation, storage denial, quota failure and preservation of a previously saved draft. Preview drafts clear on full refresh or leaving the preview and never write to browser storage. These checks use the isolated design preview with Supabase configuration empty; no live member/staff workflow or online submission is established.
 
 ## Journey contracts
 

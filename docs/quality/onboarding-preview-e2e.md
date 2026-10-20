@@ -2,7 +2,7 @@
 
 **Run date:** 2026-10-21
 
-**Repository base:** `6174443` (`Harden web CSP and Supabase session cookies`) plus the onboarding preview working-tree changes.
+**Code and test revision:** `070fc426f5a87801d27b9e52950ead7146cf3a5b` (`Add gated student onboarding design preview`).
 **Target:** Production Next.js build served on loopback with `ENABLE_DESIGN_PREVIEW=true`; the disabled-feature route was checked separately. No shared Supabase account or user data was used.
 
 ## Result
@@ -22,6 +22,8 @@ The no-JavaScript case fills all six fields with synthetic values and activates 
 | `npm run test:acceptance` | Pass; includes onboarding validation, no-storage, no-JavaScript/no-request, feature-disabled 404, responsive light/dark checks, and existing public/member-preview journeys |
 | `node scripts/check-docs.mjs` | Pass; 14 Markdown files and 62 local links |
 | Independent security review | Pass for the no-JavaScript submission issue; reviewer confirmed that the follow-up zero-request assertion closes the remaining test-coverage gap |
+| Hosted Website CI | Pass on the exact code/test revision, including audit, production build, Chromium acceptance and required gate: [run 39485597807](https://github.com/MEC-IDEALAB/IDEALAB-MEC-WEB/actions/runs/39485597807) |
+| Hosted Documentation CI | Pass on the exact code/test revision: [run 39485597721](https://github.com/MEC-IDEALAB/IDEALAB-MEC-WEB/actions/runs/39485597721) |
 
 Browser screenshots from the acceptance run are available locally under `artifacts/acceptance/onboarding-preview-320-light.png`, `onboarding-preview-1440-dark.png`, and the other generated viewport variants. At 320 px the page has no horizontal overflow; the phone layout uses vertical scrolling by design.
 

@@ -190,6 +190,7 @@ try {
     await page.setViewportSize({ width, height: 950 });
     await page.goto(base);
     await page.getByRole('heading', { level: 1 }).waitFor();
+    assert(await page.evaluate(() => getComputedStyle(document.body).backgroundColor !== 'rgba(0, 0, 0, 0)'), 'The global theme stylesheet must be applied');
     assert.match(await page.title(), /IDEALAB MEC/);
     assert.equal(await page.locator('main').count(), 1);
     assert.equal(await page.getByText('THE MAKER SPIRIT, AT MEC.', { exact: true }).count(), 0);
@@ -301,9 +302,10 @@ try {
     }
   }
   for (const route of ['sign-in', 'sign-up']) {
-    for (const viewport of [{width:1366,height:768},{width:1440,height:900},{width:390,height:844},{width:375,height:667}]) {
+    for (const viewport of [{width:1366,height:768},{width:1440,height:900},{width:390,height:844},{width:375,height:667},{width:320,height:568}]) {
       await page.setViewportSize(viewport);
       await page.goto(base + '/' + route);
+      assert(await page.evaluate(() => getComputedStyle(document.body).backgroundColor !== 'rgba(0, 0, 0, 0)'), route + ' must load the global theme stylesheet');
       assert(await page.evaluate(() => document.documentElement.scrollHeight <= window.innerHeight + 1), route + ' fits ' + viewport.width + 'x' + viewport.height);
       assert(await page.getByRole('button', {name:'Continue with Google'}).isDisabled(), 'Unverified Google activation stays disabled');
     }

@@ -25,8 +25,7 @@ export default async function SignIn({ searchParams }: { searchParams: Promise<{
       <form action={signIn} className="form-stack"><label htmlFor="email">Email address</label><input id="email" name="email" type="email" autoComplete="username" required maxLength={254} placeholder="you@example.com" disabled={!configured} />
         <label htmlFor="password">Password</label><PasswordField disabled={!configured} />
         <SubmitButton disabled={!configured} pendingText="Signing in…">Sign in <ArrowUpRight size={18} /></SubmitButton>
-      </form><div className="auth-divider">or</div><GoogleSignIn /><p className="small-copy">Need access or password help? <a href="mailto:idealab@mec.ac.in">Contact the lab team</a>.</p>
-      <p className="small-copy">New to the lab? <Link href="/sign-up">Explore joining</Link>.</p>
+      </form><div className="auth-divider">or</div><GoogleSignIn /><p className="small-copy">Need help? <a href="mailto:idealab@mec.ac.in">Contact the lab</a>. New here? <Link href="/sign-up">Explore joining</Link>.</p>
     </section></div>
   </main>;
 }

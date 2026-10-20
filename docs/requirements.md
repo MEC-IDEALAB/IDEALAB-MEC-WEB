@@ -2,7 +2,9 @@
 
 Current UI/auth verification: see [UI audit](ui-audit.md). It supersedes earlier notes about three-option theme menus, repeated boot loading and database timeouts. Supabase read-only connectivity is restored; shared authorization/profile-provisioning defects still block account activation.
 
-Planning baseline: 20 October 2026. This records confirmed direction and release criteria; it does not claim the website, backend workflows or deployment is complete.
+Planning baseline: 21 October 2026. This records confirmed direction and release criteria; it does not claim the website, backend workflows or deployment is complete.
+
+Student account creation and profile completion follow the updated product-owner decisions in [onboarding requirements](onboarding-requirements.md). These decisions supersede older mobile notes that treated phone and college roll as optional; they do not clear the shared-backend activation gate.
 
 ## Confirmed direction and scope
 
@@ -17,9 +19,9 @@ The documented V1 is the product destination. Delivery is incremental: a working
 | ID | Requirement | Release acceptance |
 | --- | --- | --- |
 | WEB-001 | Curated public introduction, purpose, participation and clear account entry | Accurate editorial content; individual project/event records and details require sign-in. |
-| WEB-002 | Shared account signup, verification, sign-in, recovery and onboarding | Existing account works across platforms; verified identity and affiliation remain distinct; no new duplicate identity store. |
+| WEB-002 | Shared account signup, verification, sign-in, recovery and onboarding | Any verified email may create a Student account without a domain gate; a new account is active as Student and must complete onboarding. Existing account works across platforms; verified identity and institutional affiliation remain distinct; no duplicate identity store. |
 | WEB-003 | Home / Lab / Profile anchors with contextual module links | Stable navigation, direct links and predictable Back; Home shows real next actions. |
-| WEB-004 | Minimum account profile | Required name, optional phone and college roll; private fields never inherit public visibility. Rich profile gated by approved field matrix. |
+| WEB-004 | Minimum account profile | Required name, phone, roll number, department, year and college/institution; private fields never inherit public visibility. Rich profile gated by approved field matrix. |
 | WEB-005 | Public/private projects, signed-in discovery and join requests | Public projects discoverable to signed-in users; project code creates a request; creator approves membership; private records protected server-side. |
 | WEB-006 | Free/paid events and participation | Eligibility and capacity enforced atomically; payment pending holds no seat; Events Head handles event cancellation/refund decisions. |
 | WEB-007 | Manual lab check-in/out and visit history | Purpose and timestamps recorded; outside-hours policy enforced; check-in grants no machine authority. QR remains optional. |

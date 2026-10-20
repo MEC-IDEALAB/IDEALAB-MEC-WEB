@@ -2,7 +2,7 @@
 
 Current UI/auth verification: see [UI audit](ui-audit.md). It supersedes earlier notes about three-option theme menus, repeated boot loading and database timeouts. Supabase read-only connectivity is restored; shared authorization/profile-provisioning defects still block account activation.
 
-Planning baseline: 20 October 2026. Routes, flows and wireframes below are proposed specifications, not claims of implemented screens or deployed API contracts. See [requirements](requirements.md) for scope and open decisions.
+Planning baseline: 21 October 2026. Routes, flows and wireframes below are proposed specifications, not claims of implemented screens or deployed API contracts. See [requirements](requirements.md) for scope and open decisions.
 
 The owner prioritized UI and GitHub setup first. The current foundation review covers the public UI, sample preview and access-denial states. `ENABLE_MEMBER_PLATFORM=false` disables shared-account activation by default even if public keys are configured; the member/staff routes below remain full-V1 design targets pending backend acceptance.
 
@@ -39,6 +39,12 @@ Notebook/content validation passed (session 11250, exit 0): lint, production bui
 
 Public desktop navigation links to curated homepage sections and sign-in; project/event record links enter the signed-in app. Mobile uses a labeled disclosure menu. Online account creation remains planned; `/sign-up` provides honest joining information and a working contact path without implying registration success. Signed-in desktop anchors are Home / Lab / Profile; contextual Projects / Events / Requests and permissioned Workspace follow. Mobile retains three bottom anchors; modules are reached from Home/Lab. Staff section navigation uses a compact menu, breadcrumb and explicit machine/room scope.
 
+## Account creation and onboarding
+
+Follow [the onboarding requirements](onboarding-requirements.md): any verified-email student account starts as Student, and the member app remains gated until **name, phone, roll number, department, year, and college/institution** are saved successfully. The public `/sign-up` page is currently informational; functional account creation, email confirmation, onboarding persistence and Google acceptance remain gated by the shared-backend review.
+
+The first-time path is `homepage → sign up → email confirmation → intentional sign-in → profile check → onboarding when incomplete → Home when complete`. Existing mobile and website identities must converge on the same Supabase Auth user and `public.users` row. Keep the form one-column on phones, explain why institution details are requested, show required status and progress, validate beside each field, retain safe input across recoverable failures, and keep optional profile enrichment out of the access gate. The mobile design notes request skippable interests/skills, clear privacy copy and resumable errors; they do not make the old avatar/username/bio/five-interest flow mandatory.
+
 ## Local request-workspace slice
 
 Current local source integrates protected `/app/requests` and opt-in `/design/requests` with basic composer restore-query/return-link and local storage. Enhanced reference validation is not implemented. The member route retains server identity/profile guards. The preview uses separate sample storage, requires `ENABLE_DESIGN_PREVIEW=true`, and cannot establish member/staff authorization. No fictional operational inbox is introduced.
@@ -61,13 +67,15 @@ Basic sample journeys, corrupt-storage state and deletion-focus browser checks n
 ```mermaid
 flowchart TD
   Public[Public homepage] --> Auth[Shared account sign-in or signup]
-  Auth --> Verify{Verified account?}
+  Auth --> Verify{Email ownership verified?}
   Verify -->|No| Email[Check email and confirm]
   Email --> Login[Explicit sign-in]
   Login --> Minimum
   Verify -->|Yes| Minimum{Minimum profile complete?}
-  Minimum -->|No| Setup[Name required; phone and roll optional]
-  Setup --> Home[Home or eligible intended destination]
+  Minimum -->|No| Setup[Name, phone, roll, department, year, institution required]
+  Setup -->|Save confirmed| Home[Home or eligible intended destination]
+  Setup -->|Save failed| Retry[Keep safe input and retry]
+  Retry --> Setup
   Minimum -->|Yes| Home
   Home --> Lab[Lab presence and services]
   Home --> Projects[Project discovery and membership requests]

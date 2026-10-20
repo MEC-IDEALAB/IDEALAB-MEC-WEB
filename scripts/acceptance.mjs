@@ -326,6 +326,7 @@ try {
   await page.getByRole('button', { name: 'Check preview fields' }).click();
   await page.locator('.onboarding-error-summary').waitFor();
   assert.equal(await page.locator('.onboarding-error-summary li').count(), 6, 'Invalid submit summarizes all missing required fields');
+  await page.waitForFunction(() => document.querySelector('.onboarding-error-summary') === document.activeElement);
   assert(await page.locator('.onboarding-error-summary').evaluate(element => element === document.activeElement), 'Validation moves focus to the error summary');
   await page.getByRole('link', { name: 'College / institution' }).click();
   assert(await page.getByLabel('College / institution').evaluate(element => element === document.activeElement), 'Error-summary field links move focus to the named input');

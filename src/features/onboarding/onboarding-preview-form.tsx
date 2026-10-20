@@ -1,6 +1,6 @@
 'use client';
 
-import { useRef, useState } from 'react';
+import { useLayoutEffect, useRef, useState } from 'react';
 
 const fields = [
   { name: 'name', label: 'Full name', group: 'about' },
@@ -28,16 +28,21 @@ export function OnboardingPreviewForm() {
   const [touched, setTouched] = useState<Partial<Record<FieldName, boolean>>>({});
   const [submitted, setSubmitted] = useState(false);
   const [validPreview, setValidPreview] = useState(false);
+  const [focusRequest, setFocusRequest] = useState(0);
   const summaryRef = useRef<HTMLDivElement>(null);
 
   const missing = fields.filter(({ name }) => !values[name].trim());
   const showFieldError = (name: FieldName) => Boolean((submitted || touched[name]) && !values[name].trim());
 
+  useLayoutEffect(() => {
+    if (focusRequest > 0) summaryRef.current?.focus();
+  }, [focusRequest]);
+
   function checkFields() {
     setSubmitted(true);
     setValidPreview(false);
     if (missing.length) {
-      requestAnimationFrame(() => summaryRef.current?.focus());
+      setFocusRequest(request => request + 1);
       return;
     }
     setValidPreview(true);

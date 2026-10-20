@@ -3,7 +3,7 @@
 **Run date:** 2026-10-21
 
 **Base commit:** `c56665ba890c236f868be9f727200cbc58f8cea3` (`feat(onboarding): define six-field student profile`).
-**Verification target:** working-tree focus-timing correction and decision-document updates based on that pushed source; hosted rerun is pending.
+**Verification target:** code revision `ca08645bf6e129698d413270707389033abf38dd`. The report and other decision documents are subsequently updated with its check results.
 **Target:** Production Next.js build served on loopback with `ENABLE_DESIGN_PREVIEW=true`; the disabled-feature route was checked separately. No shared Supabase account or user data was used.
 
 ## Result
@@ -27,7 +27,8 @@ The no-JavaScript case fills the six controls with synthetic values and activate
 | Independent security review | Pass for the non-persistent preview boundary and no-JavaScript request assertion; the current review also checked planned-policy wording and the single-stage scope. |
 | Hosted Website CI on base `c56665b` | Failed at the focus assertion before the summary focus callback completed ([run 39490312810](https://github.com/MEC-IDEALAB/IDEALAB-MEC-WEB/actions/runs/39490312810)); this exposed a real timing race. |
 | Hosted Documentation CI on base `c56665b` | Pass ([run 39490312814](https://github.com/MEC-IDEALAB/IDEALAB-MEC-WEB/actions/runs/39490312814)). |
-| Current hosted Website / Documentation CI | Unverified for the focus-timing correction; rerun after the correction is pushed. |
+| Hosted Website CI on corrected source | Pass, including full Chromium acceptance, retained browser evidence and required gate ([run 39491072209](https://github.com/MEC-IDEALAB/IDEALAB-MEC-WEB/actions/runs/39491072209)). |
+| Hosted Documentation CI on corrected source | Pass ([run 39491072246](https://github.com/MEC-IDEALAB/IDEALAB-MEC-WEB/actions/runs/39491072246)). |
 
 Browser screenshots from the acceptance run are available locally under `artifacts/acceptance/onboarding-preview-320-light.png`, `onboarding-preview-1440-dark.png`, and the other generated viewport variants. At 320 px the page has no horizontal overflow; the phone layout uses vertical scrolling by design.
 

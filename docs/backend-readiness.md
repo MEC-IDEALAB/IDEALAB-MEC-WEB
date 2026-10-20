@@ -34,6 +34,13 @@ activation off and requires explicit flags; deployed flag values were not
 inspected. Auth provider and callback configuration could not be re-read and
 remain unverified.
 
+The current source now checks Supabase Auth's server-returned
+`email_confirmed_at` before it queries the signed-in profile row. An unconfirmed
+session receives a separate verification-required state. This closes the
+source-level email-confirmation gap but does not establish completed onboarding:
+the six-field profile mapping, trusted provisioning, and safe field-level RLS
+remain unresolved. The member activation flag remains off by default.
+
 Security advisors report mutable search paths on `get_user_role` and
 `set_updated_at`, public execution of the SECURITY DEFINER `get_user_role`,
 disabled leaked-password protection, and `btree_gist` installed in `public`.
@@ -91,8 +98,10 @@ only by default, make onboarding completion a trusted server/database result,
 and make provisioning idempotent across email and Google creation. Fix
 function search paths and execution grants as part of the reviewed security
 scope.
-7. Update the website's `requireMember` gate to verify email confirmation and
-all six server-loaded profile fields before opening member routes. Run forward
+7. The website's `requireMember` gate now checks Supabase's server-confirmed
+   email timestamp before profile lookup. Extend it to require all six
+   server-loaded profile fields only after their canonical shared mapping is
+   approved. Run forward
 migration, compatibility, rollback/recovery and negative
 authorization tests in a production-faithful non-production database. Verify
 email verification, Google and email account convergence, existing accounts,

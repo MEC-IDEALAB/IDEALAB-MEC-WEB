@@ -15,6 +15,17 @@ On 21 October 2026, the current UI and preview-guard source passed ESLint, TypeS
 
 The 21 October follow-up fixed multiline reference entry without changing the draft schema. The production-browser test now types two URLs with the keyboard and checks review, automatic restore and manual replacement of unsaved text. Local lint, typecheck, all 23 boundary tests, dependency audit (zero findings), production build, Chromium acceptance, and documentation validation (15 files and 70 local links) passed on this follow-up source. On application commit `2e103d9292c5892841d82a6d4b46075fd0cf1cd6`, exact-head [Website CI and required gate](https://github.com/MEC-IDEALAB/IDEALAB-MEC-WEB/actions/runs/39507554000) and [Documentation CI](https://github.com/MEC-IDEALAB/IDEALAB-MEC-WEB/actions/runs/39507553977) passed. Live account success, recovery and OAuth; real-member draft behavior; scoped permissions; and operational backend workflows remain unverified.
 
+The email-verification gate follow-up checks Supabase's server-returned
+`email_confirmed_at` before loading the member's profile and displays a distinct
+confirmation-required state. Node 24.19.0 lint, typecheck, 26 boundary tests,
+`npm audit --audit-level=high` (zero findings), optimized production build,
+real Chromium acceptance and documentation validation (15 files/70 local
+links) passed on the current source. The independent security review found no
+material defect in this scoped change. Browser acceptance still uses no live
+member identity; Google/email account success, six-field onboarding persistence,
+profile privacy, staff scope and operational workflows remain unverified. Keep
+member activation disabled.
+
 ## Authentication evidence and blocker
 
 Read-only inspection of the reconnected `grow-idealab` project on 21 October 2026 succeeds, including `select 1`, schema, policies, grants, triggers, migration ledger, branches and security advisors. The ledger contains only `20260503073726 create_initial_schema` and `20260503073744 add_rls_policies`; no development branch exists. Live `public.users` has a `role` field and `is_active`, while the canonical Grow SQL defines `base_role`/`system_role`, and Flutter auth/profile consumers read and write `role`. These are materially different contracts. No schema/data write or test identity was created.

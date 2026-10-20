@@ -49,6 +49,13 @@ Nonce-based CSP makes matched pages dynamically rendered. The 21 October product
 
 The owner prioritized UI and GitHub setup before backend work. Shared-account activation is off by default (`ENABLE_MEMBER_PLATFORM=false`), independently of public key configuration. Existing email/password source is present but its live acceptance is unverified. Signup, recovery, browser Google OAuth and onboarding need provider/schema acceptance before enablement. Auth success, profile reads and permission behavior against the shared service remain unverified without a designated acceptance session.
 
+The server-side member guard checks Supabase `auth.getUser()`'s
+`email_confirmed_at` before querying the member's profile. This prevents an
+unconfirmed session from entering the member shell, but it does not validate
+the six required onboarding fields. Keep member activation disabled until the
+shared profile contract and private authorization rules are implemented and
+tested.
+
 ## Shared business API proposal
 
 One Postgres authority serves Next.js and Flutter. Each business mutation should use a transactional RPC, with actor derived from `auth.uid()`, ownership/scoped position checks, row locks where needed, idempotent retries and atomic history/audit/notification updates. These are proposed contracts, not callable API claims:

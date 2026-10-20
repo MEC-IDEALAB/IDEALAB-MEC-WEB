@@ -61,6 +61,7 @@ try {
     await page.waitForFunction(() => [...document.images].every(image => image.complete && image.naturalWidth > 0));
     assert(await page.locator('img').evaluateAll(images => images.length >= 2 && images.every(image => image.complete && image.naturalWidth > 0)), 'Every displayed logo/image must load');
     await page.evaluate(() => window.scrollTo(0, 0));
+    await page.locator('.hero-copy').evaluate(element => Promise.all(element.getAnimations().map(animation => animation.finished)));
     assert(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth), `No horizontal overflow at ${width}px`);
     await page.screenshot({ path: `artifacts/acceptance/home-${width}.png`, fullPage: true });
   }
@@ -85,6 +86,7 @@ try {
     await page.locator('.site-footer').scrollIntoViewIfNeeded();
     await page.waitForFunction(() => [...document.images].every(image => image.complete && image.naturalWidth > 0));
     await page.evaluate(() => window.scrollTo(0, 0));
+    await page.locator('.hero-copy').evaluate(element => Promise.all(element.getAnimations().map(animation => animation.finished)));
     assert.equal(await page.evaluate(() => getComputedStyle(document.documentElement).colorScheme), 'dark');
     assert(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth), `No dark-mode horizontal overflow at ${width}px`);
     await page.screenshot({ path: `artifacts/acceptance/home-dark-${width}.png`, fullPage: true });
@@ -132,6 +134,23 @@ try {
   assert(await page.getByLabel('Email address').isDisabled());
   assert(await page.getByText('Account access is being connected.').isVisible());
   await page.screenshot({ path: 'artifacts/acceptance/sign-in-mobile.png', fullPage: true });
+  for (const route of ['sign-in', 'sign-up']) {
+    for (const theme of ['light', 'dark']) {
+      for (const width of [320, 768, 1440]) {
+        await page.setViewportSize({ width, height: 950 });
+        await page.goto(`${base}/${route}`);
+        await page.getByLabel('Color theme', { exact: true }).click();
+        assert(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth), `${route} open theme menu fits ${width}px`);
+        await page.getByRole('button', { name: theme === 'dark' ? 'Dark' : 'Light', exact: true }).click();
+        assert.equal(await page.locator('html').getAttribute('data-theme'), theme);
+        assert(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth), `${route} fits ${width}px in ${theme}`);
+        await page.screenshot({ path: `artifacts/acceptance/${route}-${theme}-${width}.png`, fullPage: true });
+      }
+    }
+  }
+  await page.getByRole('link', { name: 'Sign in here' }).click();
+  await page.getByRole('heading', { name: 'Make yourself at home.' }).waitFor();
+  await page.setViewportSize({ width: 375, height: 900 });
   await page.goto(base + '/projects');
   await page.getByRole('heading', { name: 'Ideas grow together.' }).waitFor();
   assert(await page.getByRole('link', { name: /Sign in/ }).isVisible());
@@ -191,6 +210,7 @@ try {
   await page.emulateMedia({ reducedMotion: 'reduce' });
   await page.goto(base);
   assert.equal(await page.evaluate(() => getComputedStyle(document.documentElement).scrollBehavior), 'auto');
+  assert.equal(await page.locator('.hero-star').evaluate(element => getComputedStyle(element).animationName), 'none');
   assert.deepEqual(errors, [], 'No browser runtime errors');
   const offPort = await availablePort();
   const offBase = `http://127.0.0.1:${offPort}`;

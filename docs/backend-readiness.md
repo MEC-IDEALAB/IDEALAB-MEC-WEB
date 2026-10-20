@@ -16,6 +16,13 @@ The deployed ledger contains only `20260503073726 create_initial_schema` and
 `20260503073744 add_rls_policies`; it materially differs from the tracked Grow
 migration history and current Flutter auth/profile consumers.
 
+The branch-list API returned no development branches. The fresh performance
+advisor also reports eight unindexed foreign keys, 62 RLS auth-function
+initplan findings, three pairs of duplicate permissive `SELECT` policies, and
+21 indexes with no recorded use. These require workload-aware cleanup after
+the authorization design is corrected; an unused-index notice alone is not a
+safe instruction to drop an index.
+
 The live `public.users` table has 19 columns, including `role`, `is_active`,
 `profile_completed`, `name`, `phone` and `college_roll`. It lacks the approved
 `institution`, `department` and current `study_year` fields. `college_roll` is

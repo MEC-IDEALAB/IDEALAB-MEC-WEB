@@ -72,6 +72,8 @@ Read-only reconciliation on 21 October 2026 now succeeds for project `grow-ideal
 
 Before persistence: reconcile the live contract and short migration ledger with canonical Grow migrations and Flutter auth/profile consumers, approve the architecture and compatibility plan, independently review a migration and rollback, then verify profile privacy, authority-field denial, email signup, Google provisioning and ordinary profile edits in a safe validation environment. The specific shared-project change requires the user's explicit authorization. A new Supabase branch was not created; cost must be checked and explicitly accepted first. Do not claim backend activation, full V1 or a production-ready authenticated workflow based on UI tests or metadata.
 
+The scoped cross-client checklist, actor/operation acceptance matrix and current evidence are recorded in [backend readiness](backend-readiness.md). It is a review plan, not approved SQL or authorization to create a billable branch or change the shared project.
+
 ## Current UI boundary
 
 The public homepage is curated. Individual project/event records require sign-in, per owner decision. Member operational pages clearly state that their service is not connected. The request composer saves only a browser draft under an account-derived key; it never submits, reserves capacity or notifies staff. Drafts persist after sign-out and should not contain sensitive data on shared devices.

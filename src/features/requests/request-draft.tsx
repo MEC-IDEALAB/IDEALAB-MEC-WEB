@@ -8,7 +8,7 @@ import { deleteSavedDraft, DraftData, DraftStorageScope, readSavedDraft, referen
 import Link from 'next/link';
 
 const emptyDraft: DraftData = { kind: 'machine', serviceId: '', title: '', details: '', preferredTime: '', references: [] };
-const referenceText = (references: string[]) => references.join('\n');
+const referencesToText = (references: string[]) => references.join('\n');
 const parseReferenceText = (value: string) => value.split(/\r?\n/).map(reference => reference.trim()).filter(Boolean);
 
 export function RequestDraft({ accountId, restoreOnOpen = false, returnHref, storageScope = 'local' }: { accountId: string; restoreOnOpen?: boolean; returnHref?: string; storageScope?: DraftStorageScope }) {
@@ -16,6 +16,7 @@ export function RequestDraft({ accountId, restoreOnOpen = false, returnHref, sto
   const [step, setStep] = useState(0);
   const [notice, setNotice] = useState('');
   const [referenceErrorMessage, setReferenceErrorMessage] = useState('');
+  const [referencesValue, setReferencesValue] = useState('');
   const formRef = useRef<HTMLFormElement>(null);
   const referencesRef = useRef<HTMLTextAreaElement>(null);
   const initialRender = useRef(true);
@@ -28,7 +29,7 @@ export function RequestDraft({ accountId, restoreOnOpen = false, returnHref, sto
     if (!restoreOnOpen) return;
     queueMicrotask(() => {
       const result = readSavedDraft(accountId, undefined, storageScope);
-      if (result.status === 'found') { setDraft(result.draft); setNotice('Saved draft restored. This request has not been submitted.'); }
+      if (result.status === 'found') { setDraft(result.draft); setReferencesValue(referencesToText(result.draft.references)); setNotice('Saved draft restored. This request has not been submitted.'); }
       else if (result.status === 'empty') setNotice(`No saved draft was found in ${storageScope === 'memory' ? 'this preview session' : 'this browser'}.`);
       else if (result.status === 'invalid') setNotice('The saved draft can’t be opened. Your current text has been kept.');
       else setNotice('Your browser couldn’t open the saved draft. Your current text has been kept.');
@@ -36,6 +37,7 @@ export function RequestDraft({ accountId, restoreOnOpen = false, returnHref, sto
   }, [accountId, restoreOnOpen, storageScope]);
   const update = (field: 'serviceId' | 'title' | 'details' | 'preferredTime', value: string) => { setDraft(previous => ({ ...previous, [field]: value })); setNotice(''); };
   const updateReferences = (value: string) => {
+    setReferencesValue(value);
     const references = parseReferenceText(value);
     setDraft(previous => ({ ...previous, references }));
     if (referenceErrorMessage) setReferenceErrorMessage(referenceError(references) ?? '');
@@ -55,7 +57,7 @@ export function RequestDraft({ accountId, restoreOnOpen = false, returnHref, sto
   }
   function restore() {
     const result = readSavedDraft(accountId, undefined, storageScope);
-    if (result.status === 'found') { setDraft(result.draft); setStep(0); setReferenceErrorMessage(''); setNotice('Saved draft restored. This request has not been submitted.'); }
+    if (result.status === 'found') { setDraft(result.draft); setReferencesValue(referencesToText(result.draft.references)); setStep(0); setReferenceErrorMessage(''); setNotice('Saved draft restored. This request has not been submitted.'); }
     else if (result.status === 'empty') setNotice(`No saved draft was found in ${storageScope === 'memory' ? 'this preview session' : 'this browser'}.`);
     else if (result.status === 'invalid') setNotice('The saved draft can’t be opened. Your current text has been kept.');
     else setNotice('Your browser couldn’t open the saved draft. Your current text has been kept.');
@@ -103,7 +105,7 @@ export function RequestDraft({ accountId, restoreOnOpen = false, returnHref, sto
         <input id="preferred-time" type="datetime-local" value={draft.preferredTime} onChange={event => update('preferredTime', event.target.value)} />
         <p className="small-copy">Enter lab local time (India Standard Time). Your head must confirm scheduling. A preferred time is not a reservation.</p>
         <label htmlFor="request-references">Reference links (optional)</label>
-        <textarea id="request-references" ref={referencesRef} value={referenceText(draft.references)} onChange={event => updateReferences(event.target.value)} rows={4} maxLength={10245} aria-invalid={Boolean(referenceErrorMessage)} aria-describedby={referenceErrorMessage ? 'reference-help reference-error' : 'reference-help'} />
+        <textarea id="request-references" ref={referencesRef} value={referencesValue} onChange={event => updateReferences(event.target.value)} rows={4} maxLength={10245} aria-invalid={Boolean(referenceErrorMessage)} aria-describedby={referenceErrorMessage ? 'reference-help reference-error' : 'reference-help'} />
         <p id="reference-help" className="small-copy">Add up to 5 links, one per line. Use http:// or https:// links. Avoid links that reveal private or sensitive information.</p>
         {referenceErrorMessage && <p id="reference-error" className="field-error" role="alert">{referenceErrorMessage}</p>}
       </>}

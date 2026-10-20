@@ -397,10 +397,15 @@ try {
   await page.getByLabel('Sample service (optional)').selectOption('sample-3d');
   await page.getByLabel('Request title').fill('Sample prototype fixture');
   await page.getByLabel('What do you need?').fill('Design preview only: discuss a prototype enclosure with the lab team.');
-  await page.getByLabel('Reference links (optional)').fill('https://idealab.mec.ac.in/\nhttps://mec.ac.in/');
+  const keyboardReferenceField = page.getByLabel('Reference links (optional)');
+  await keyboardReferenceField.pressSequentially('https://idealab.mec.ac.in/');
+  await keyboardReferenceField.press('Enter');
+  await keyboardReferenceField.pressSequentially('https://mec.ac.in/');
+  assert.equal(await keyboardReferenceField.inputValue(), 'https://idealab.mec.ac.in/\nhttps://mec.ac.in/', 'Typing a second URL keeps the line break in the controlled textarea');
   await page.getByRole('button', { name: 'Continue' }).click();
   await page.getByRole('heading', { name: 'Review your draft.' }).waitFor();
   assert.equal(await page.getByRole('link', { name: 'https://idealab.mec.ac.in/' }).getAttribute('rel'), 'noreferrer');
+  assert(await page.getByRole('link', { name: 'https://mec.ac.in/' }).isVisible(), 'The second keyboard-entered URL is present in the review');
   await page.getByRole('button', { name: 'Save draft', exact: true }).click();
   assert.match(await page.getByRole('status').innerText(), /has not been sent to the lab/);
   const originalAccountKey = 'idealab-mec:request-draft:v1:design-preview';
@@ -419,9 +424,11 @@ try {
   await page.getByRole('button', { name: 'Continue', exact: true }).click();
   assert.equal(await page.getByLabel('Request title').inputValue(), 'Sample prototype fixture');
   assert.equal(await page.getByLabel('Reference links (optional)').inputValue(), 'https://idealab.mec.ac.in/\nhttps://mec.ac.in/');
+  await page.getByLabel('Reference links (optional)').fill('https://unsaved.example/');
   await page.getByRole('button', { name: 'Restore saved draft' }).click();
   await page.getByRole('button', { name: 'Continue', exact: true }).click();
   assert.equal(await page.getByLabel('Request title').inputValue(), 'Sample prototype fixture');
+  assert.equal(await page.getByLabel('Reference links (optional)').inputValue(), 'https://idealab.mec.ac.in/\nhttps://mec.ac.in/', 'Manual restore replaces unsaved URL text with saved references');
   await page.reload();
   await page.getByRole('button', { name: 'Restore saved draft' }).click();
   assert.match(await page.getByRole('status').innerText(), /No saved draft was found/);

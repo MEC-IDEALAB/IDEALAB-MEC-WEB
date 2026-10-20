@@ -10,6 +10,7 @@ These records describe product requirements, UX plans, integration boundaries an
 - [Content and asset provenance](content-sources.md)
 - [UI audit and corrections](ui-audit.md)
 - [Security review and hardening evidence](security-review.md)
+- [Shared backend readiness and onboarding gate](backend-readiness.md)
 - [Delivery plan](delivery-plan.md)
 - [Deployment plan](deployment.md)
 - [GitHub setup result](github-setup.json)

@@ -33,7 +33,7 @@ The maker-spirit eyebrow, hero service-availability footnote and first-card boil
 
 MagicPath project `463330845164449792` was updated with hierarchy/wireframe annotations and earlier accent panels. It is a planning reference, not the high-fidelity source of the implemented interface. No Figma/Penpot/Canva or generated-media artifact is claimed.
 
-The current source passed Node 24.19.0 lint, TypeScript, 19 boundary tests, dependency audit (zero reported vulnerabilities), production build, documentation/link checks and real production-browser acceptance on 21 October 2026. The draft slice covers validated reference links, account-local member draft behavior, page-memory-only preview drafts with route-exit cleanup, accessibility/focus and responsive states. Browser coverage is public/sample only; live member journeys, full V1 and deployment remain unverified.
+On 21 October 2026, the website and preview-guard source passed Node 24.19.0 lint, TypeScript, 23 boundary tests, dependency audit (zero findings), production build and real production-browser acceptance. Documentation validation passed for 14 files and 67 local links. The draft slice covers validated reference links, account-local member draft behavior, page-memory-only preview drafts with route-exit cleanup, accessibility/focus and responsive states. Browser coverage is public/sample only; live member journeys, full V1 and deployment remain unverified. The manual Vercel preview workflow is present on the draft PR branch and has not been dispatched.
 
 ## Trust boundaries
 

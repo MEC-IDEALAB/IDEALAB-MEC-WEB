@@ -4,6 +4,12 @@ Planning baseline: 20 October 2026. Routes, flows and wireframes below are propo
 
 The owner prioritized UI and GitHub setup first. The current foundation review covers the public UI, sample preview and access-denial states. `ENABLE_MEMBER_PLATFORM=false` disables shared-account activation by default even if public keys are configured; the member/staff routes below remain full-V1 design targets pending backend acceptance.
 
+## Current homepage priority
+
+The owner’s current priority is correcting the homepage, adding dark mode and restoring the intended neo-brutalist identity before further request-workspace development. Existing request-hub work is preserved. Light, Dark and System themes are implemented locally with pre-paint initialization, OS preference handling, persisted/cross-tab choice and an in-memory fallback when storage is blocked. Semantic theme colors retain 2 px borders, hard shadows, readable availability text and literal artwork plates. Theme controls must retain keyboard focus, work without storage permission, follow OS preference in System mode and update consistently across tabs. Literal artwork and logos keep readable plates in both modes rather than being blindly inverted. The local theme picker uses 44 px minimum targets; the wider 48 px touch-target criterion below remains the design target.
+
+Design evidence: private MagicPath project `463330845164449792` was created and opened; an actual canvas read verified 11 shapes across two desktop/mobile frames. No Figma, Penpot, Canva or generated-media artifact is established. MobileMockup was inspected but its image-only mobile-app concept workflow did not fit this website task. Firebase was not selected; no additional backend stack was introduced.
+
 ## Information architecture
 
 | Surface | Proposed routes | Goal |
@@ -20,6 +26,23 @@ The owner prioritized UI and GitHub setup first. The current foundation review c
 | Admin | `/app/admin`, `/app/admin/members`, `/app/admin/assignments`, `/app/admin/master-data`, `/app/admin/audit` | Trusted administration and audit. |
 
 Public desktop navigation links to curated homepage sections and sign-in; project/event record links enter the signed-in app. Mobile uses a labeled disclosure menu. Account creation remains planned until its real flow is available; do not expose a dead Join control. Signed-in desktop anchors are Home / Lab / Profile; contextual Projects / Events / Requests and permissioned Workspace follow. Mobile retains three bottom anchors; modules are reached from Home/Lab. Staff section navigation uses a compact menu, breadcrumb and explicit machine/room scope.
+
+## Local request-workspace slice
+
+Current local source integrates protected `/app/requests` and opt-in `/design/requests` with basic composer restore-query/return-link and local storage. Enhanced reference validation is not implemented. The member route retains server identity/profile guards. The preview uses separate sample storage, requires `ENABLE_DESIGN_PREVIEW=true`, and cannot establish member/staff authorization. No fictional operational inbox is introduced.
+
+Planned local-draft journey: request hub → prepare or continue the account’s saved draft → type/details/review → save locally → return to hub → continue or confirm deletion. Submitted requests occupy a distinct unavailable section, never a fabricated empty list. Local storage is not an account-security boundary against a user of the same browser; shared-device warnings and account-specific keys remain necessary.
+
+Acceptance before this slice passes:
+
+- Preserve one draft per account and restore supported legacy saved drafts without overwriting malformed data merely by reading it.
+- Isolate account A/B keys and sample-preview keys; deletion affects only the selected account’s draft.
+- Recover from missing, corrupt, invalid-reference and storage-denied states; retain safe current inputs and provide retry/prepare-without-saving paths.
+- Verify reload and return-link continuity, saved metadata labelled as device-clock data, and confirmation before permanent deletion.
+- Exercise keyboard/focus/Back and responsive hub/composer at the established widths; preview-disabled routes return 404 and `/app` stays protected.
+- No online submission, manufactured request IDs, assigned heads, operational history, charges or reservations; no backend requests from the isolated design flow.
+
+Basic sample journeys, corrupt-storage state and deletion-focus browser checks now pass in the local acceptance run. Extended reference-validation work remains pending; no live member/staff workflow is established.
 
 ## Journey contracts
 
@@ -169,4 +192,4 @@ Forms: one column, named step/progress, Back / Continue.
 
 The canonical website decisions are recorded in [requirements](requirements.md), these experience specifications and [architecture](architecture.md). Historical parent Grow inputs include `docs/01_Design/PENPOT_ACCEPTANCE_MATRIX.md`, `docs/01_Product/PRODUCT_DECISION_DELTA_2026-09-17.md`, `docs/02_Product/WORK_REQUEST_CONTRACT_DELTA.md` and `docs/02_Product/PROFILE_ECOSYSTEM_DECISION_GATE.md`; these provenance paths are not dependencies of the standalone repository. Wireframes remain specifications; browser and assistive-technology acceptance need their own evidence.
 
-Current implemented foundation: curated public homepage, existing-account email/password sign-in source, protected member surfaces with unavailable states, and account-scoped browser-only request composition. Member activation is disabled by default. The flows above describe full-V1 targets; live account acceptance, operational writes and all remaining modules are not established. The opt-in `/design/request` route renders the request composer using a separate sample storage key when `ENABLE_DESIGN_PREVIEW=true`, and returns not found otherwise. It provides local design inspection without bypassing `/app` authentication or accessing member data. Sample categories are design-only; no sample submits an operational request. Latest coordinator-verified lint, typecheck and build passed; dependency audit reported zero vulnerabilities. Real browser acceptance failed waiting for the lazy-loaded MEC logo and is under investigation. Current-source independent review found no blocking defect and requested configuration-boundary fixture tests plus preview-disabled 404 coverage; those are being added, not recorded as passing. These results do not establish complete UI acceptance, live authentication or production readiness.
+Current implemented foundation: curated public homepage, local Light/Dark/System themes, disabled-by-default existing-account sign-in source, protected member routes and browser-only request workspace/composition. Current local homepage/theme validation: Node 24 production build passed (session 41612). Full browser acceptance passed after correcting explicit browser-context ownership in the test setup (session 24659, exit 0): five light and five dark responsive widths, Light/Dark/System selection, persistence, OS preference, cross-tab changes, blocked storage fallback, keyboard navigation, request-hub corrupt-storage/deletion-focus cases and sample draft journeys. Nine native boundary tests and ESLint passed (session a33399). These local results do not establish hosted CI for the unpushed changes, live account acceptance or full V1. The last pushed `4e0b79d` baseline passed Website/Documentation CI; current local changes require their own post-push hosted checks. Full V1 and backend activation remain gated.

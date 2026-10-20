@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from 'react';
 import { ArrowLeft, ArrowRight, Check, Save } from 'lucide-react';
 import './request-draft.css';
 import { sampleCatalog } from './sample-catalog';
+import Link from 'next/link';
 
 type Draft = { kind: 'machine' | 'operations'; serviceId: string; title: string; details: string; preferredTime: string };
 const emptyDraft: Draft = { kind: 'machine', serviceId: '', title: '', details: '', preferredTime: '' };
@@ -13,7 +14,7 @@ function validDraft(value: unknown): value is Draft {
   return ['machine', 'operations'].includes(item.kind) && typeof item.serviceId === 'string' && (item.serviceId === '' || sampleCatalog[item.kind].some(service => service.id === item.serviceId)) && typeof item.title === 'string' && item.title.length <= 120 && typeof item.details === 'string' && item.details.length <= 5000 && typeof item.preferredTime === 'string' && item.preferredTime.length <= 32;
 }
 
-export function RequestDraft({ accountId }: { accountId: string }) {
+export function RequestDraft({ accountId, restoreOnOpen = false, returnHref }: { accountId: string; restoreOnOpen?: boolean; returnHref?: string }) {
   const [draft, setDraft] = useState<Draft>(emptyDraft);
   const [step, setStep] = useState(0);
   const [notice, setNotice] = useState('');
@@ -25,6 +26,18 @@ export function RequestDraft({ accountId }: { accountId: string }) {
     if (heading) { heading.tabIndex = -1; heading.focus(); }
   }, [step]);
   const key = `idealab-mec:request-draft:v1:${accountId}`;
+  useEffect(() => {
+    if (!restoreOnOpen) return;
+    queueMicrotask(() => {
+      try {
+        const raw = localStorage.getItem(`idealab-mec:request-draft:v1:${accountId}`);
+        if (!raw) { setNotice('No saved draft was found for this account in this browser.'); return; }
+        const saved = JSON.parse(raw);
+        if (saved.version === 1 && validDraft(saved.draft)) { setDraft(saved.draft); setNotice('Saved draft restored. This request has not been submitted.'); }
+        else setNotice('The saved draft can’t be opened. Your current text has been kept.');
+      } catch { setNotice('Your browser couldn’t open the saved draft. Your current text has been kept.'); }
+    });
+  }, [accountId, restoreOnOpen]);
   const update = (field: keyof Draft, value: string) => { setDraft(previous => ({ ...previous, [field]: value, ...(field === 'kind' ? { serviceId: '' } : {}) })); setNotice(''); };
   function save() {
     try { localStorage.setItem(key, JSON.stringify({ version: 1, draft })); setNotice('Draft saved on this browser for your account. It has not been sent to the lab.'); }
@@ -51,5 +64,6 @@ export function RequestDraft({ accountId }: { accountId: string }) {
       {step === 2 && <><h2>Review your draft.</h2><dl className="review-list"><dt>Request type</dt><dd>{draft.kind === 'machine' ? 'Machine work' : 'Operations support'}</dd><dt>Sample service</dt><dd>{sampleCatalog[draft.kind].find(service => service.id === draft.serviceId)?.label || 'Not selected'}</dd><dt>Title</dt><dd>{draft.title}</dd><dt>Details</dt><dd>{draft.details}</dd><dt>Preferred time (IST)</dt><dd>{draft.preferredTime.replace('T', ' · ') || 'Not specified'}</dd></dl><p>The service catalog and online review workflow are being connected. Contact the lab team if you need support now.</p><a className="text-link" href="mailto:idealab@mec.ac.in">idealab@mec.ac.in</a></>}
       <div className="button-row">{step > 0 && <button className="button" type="button" onClick={() => { setStep(value => value - 1); setNotice(''); }}><ArrowLeft size={18} /> Back</button>}{step < 2 && <button className="button button-primary" type="submit">Continue <ArrowRight size={18} /></button>}{step === 2 && <button className="button button-primary" type="button" onClick={save}><Save size={18} /> Save draft</button>}</div>
     </form><div className="draft-toolbar"><button className="text-link" type="button" onClick={restore}>Restore saved draft</button>{step !== 2 && <button className="text-link" type="button" onClick={save}>Save for later</button>}<button className="text-link" type="button" onClick={deleteSaved}>Delete saved draft</button></div><p className="small-copy">Local drafts stay in this browser after sign-out. Avoid saving private details on a shared device.</p>{notice && <div className="notice" role="status">{notice}</div>}
+    {returnHref && <Link className="text-link" href={returnHref}>Return to work requests</Link>}
   </section>;
 }

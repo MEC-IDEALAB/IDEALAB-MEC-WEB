@@ -38,7 +38,7 @@ try {
   assert.equal(home.headers.get('x-content-type-options'), 'nosniff');
   assert.equal(home.headers.get('x-frame-options'), 'DENY');
   assert.match(home.headers.get('content-security-policy'), /frame-ancestors 'none'/);
-  for (const path of ['/app', '/app/profile', '/app/requests/new', '/app/workspace']) {
+  for (const path of ['/app', '/app/profile', '/app/requests', '/app/requests/new', '/app/workspace']) {
     const response = await fetch(base + path, { redirect: 'manual' });
     assert.equal(response.status, 307, `${path} must not be accessible without auth`);
     assert.match(response.headers.get('location'), /\/sign-in\?notice=configuration$/);
@@ -46,7 +46,8 @@ try {
   }
   assert.equal((await fetch(base + '/unknown-page')).status, 404);
   browser = await chromium.launch({ headless: true });
-  const page = await browser.newPage();
+  const context = await browser.newContext();
+  const page = await context.newPage();
   const errors = [];
   page.on('pageerror', error => errors.push(error.message));
   await mkdir('artifacts/acceptance', { recursive: true });
@@ -64,6 +65,50 @@ try {
     await page.screenshot({ path: `artifacts/acceptance/home-${width}.png`, fullPage: true });
   }
   await page.setViewportSize({ width: 375, height: 900 });
+  await page.goto(base);
+  await page.getByLabel('Color theme', { exact: true }).click();
+  await page.getByRole('button', { name: 'Dark', exact: true }).click();
+  assert.equal(await page.locator('html').getAttribute('data-theme'), 'dark');
+  const secondTab = await page.context().newPage();
+  await secondTab.goto(base);
+  await secondTab.getByLabel('Color theme', { exact: true }).click();
+  await secondTab.getByRole('button', { name: 'Light', exact: true }).click();
+  await page.waitForFunction(() => document.documentElement.getAttribute('data-theme') === 'light');
+  await secondTab.close();
+  await page.getByLabel('Color theme', { exact: true }).click();
+  await page.getByRole('button', { name: 'Dark', exact: true }).click();
+  await page.reload();
+  assert.equal(await page.locator('html').getAttribute('data-theme'), 'dark', 'Explicit dark theme survives reload');
+  for (const width of [320, 375, 768, 1024, 1440]) {
+    await page.setViewportSize({ width, height: 950 });
+    await page.goto(base);
+    await page.locator('.site-footer').scrollIntoViewIfNeeded();
+    await page.waitForFunction(() => [...document.images].every(image => image.complete && image.naturalWidth > 0));
+    await page.evaluate(() => window.scrollTo(0, 0));
+    assert.equal(await page.evaluate(() => getComputedStyle(document.documentElement).colorScheme), 'dark');
+    assert(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth), `No dark-mode horizontal overflow at ${width}px`);
+    await page.screenshot({ path: `artifacts/acceptance/home-dark-${width}.png`, fullPage: true });
+  }
+  await page.getByLabel('Color theme', { exact: true }).click();
+  await page.getByRole('button', { name: 'System', exact: true }).click();
+  await page.emulateMedia({ colorScheme: 'light' });
+  assert.equal(await page.evaluate(() => getComputedStyle(document.documentElement).colorScheme), 'light');
+  await page.emulateMedia({ colorScheme: 'dark' });
+  assert.equal(await page.evaluate(() => getComputedStyle(document.documentElement).colorScheme), 'dark', 'System theme follows OS changes');
+  await page.getByLabel('Color theme', { exact: true }).click();
+  await page.getByRole('button', { name: 'Light', exact: true }).click();
+  await page.emulateMedia({ colorScheme: 'light' });
+  await page.setViewportSize({ width: 375, height: 900 });
+  const blockedContext = await browser.newContext();
+  await blockedContext.addInitScript(() => { Object.defineProperty(Storage.prototype, 'setItem', { value() { throw new DOMException('Browser storage disabled', 'SecurityError'); } }); });
+  const blockedPage = await blockedContext.newPage();
+  await blockedPage.goto(base);
+  await blockedPage.getByLabel('Color theme', { exact: true }).click();
+  await blockedPage.getByRole('button', { name: 'Dark', exact: true }).click();
+  assert.equal(await blockedPage.locator('html').getAttribute('data-theme'), 'dark');
+  await blockedPage.getByLabel('Color theme', { exact: true }).click();
+  assert.equal(await blockedPage.getByRole('button', { name: 'Dark', exact: true }).getAttribute('aria-pressed'), 'true', 'Applied choice remains accurately selected if saving is blocked');
+  await blockedContext.close();
   await page.goto(base);
   await page.keyboard.press('Tab');
   const skip = page.getByRole('link', { name: 'Skip to content' });
@@ -102,6 +147,15 @@ try {
   await page.getByRole('heading', { name: 'Review your draft.' }).waitFor();
   await page.getByRole('button', { name: 'Save draft', exact: true }).click();
   assert.match(await page.getByRole('status').innerText(), /has not been sent to the lab/);
+  await page.goto(base + '/design/requests');
+  await page.getByRole('heading', { name: 'Sample prototype fixture', exact: true }).waitFor();
+  assert(await page.getByText('UNSUBMITTED DRAFT', { exact: true }).isVisible());
+  assert(await page.getByText('We can’t check your submitted requests here yet.', { exact: false }).isVisible());
+  await page.screenshot({ path: 'artifacts/acceptance/request-workspace-mobile.png', fullPage: true });
+  await page.getByRole('link', { name: 'Continue saved draft' }).click();
+  await page.getByRole('button', { name: 'Continue', exact: true }).click();
+  assert.equal(await page.getByLabel('Request title').inputValue(), 'Sample prototype fixture');
+  await page.goto(base + '/design/request');
   await page.reload();
   await page.getByRole('button', { name: 'Restore saved draft' }).click();
   await page.getByRole('button', { name: 'Continue' }).click();
@@ -110,6 +164,28 @@ try {
   await page.reload();
   await page.getByRole('button', { name: 'Restore saved draft' }).click();
   assert.match(await page.getByRole('status').innerText(), /No saved draft was found/);
+  await page.goto(base + '/design/requests');
+  await page.getByRole('heading', { name: 'Start with what you have.' }).waitFor();
+  const originalAccountKey = 'idealab-mec:request-draft:v1:design-preview';
+  await page.evaluate(key => localStorage.setItem(key, '{broken-json'), originalAccountKey);
+  await page.reload();
+  assert(await page.getByText('The saved draft can’t be opened.', { exact: false }).isVisible());
+  assert.equal(await page.evaluate(key => localStorage.getItem(key), originalAccountKey), '{broken-json', 'Opening corrupt draft must preserve stored data');
+  await page.getByRole('button', { name: 'Delete browser draft' }).click();
+  assert(await page.getByRole('button', { name: 'Keep draft' }).evaluate(element => element === document.activeElement), 'Delete confirmation focuses safe action');
+  await page.getByRole('button', { name: 'Keep draft' }).click();
+  assert(await page.getByRole('button', { name: 'Check again' }).evaluate(element => element === document.activeElement), 'Closing confirmation preserves keyboard position');
+  assert.equal(await page.evaluate(key => localStorage.getItem(key), originalAccountKey), '{broken-json');
+  await page.getByRole('button', { name: 'Delete browser draft' }).click();
+  await page.getByRole('button', { name: 'Delete draft permanently' }).click();
+  assert.equal(await page.evaluate(key => localStorage.getItem(key), originalAccountKey), null);
+  await page.goto(base + '/design/request');
+  await page.getByRole('button', { name: 'Continue' }).click();
+  await page.getByLabel('Request title').fill('Unsaved current fixture');
+  await page.evaluate(key => localStorage.setItem(key, '{broken-json'), originalAccountKey);
+  await page.getByRole('button', { name: 'Restore saved draft' }).click();
+  assert.equal(await page.getByLabel('Request title').inputValue(), 'Unsaved current fixture', 'Corrupt restore must preserve current inputs');
+  await page.evaluate(key => localStorage.removeItem(key), originalAccountKey);
   assert(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth), 'Draft preview must fit on mobile');
   await page.screenshot({ path: 'artifacts/acceptance/request-preview-mobile.png', fullPage: true });
   await page.emulateMedia({ reducedMotion: 'reduce' });
@@ -132,6 +208,7 @@ try {
   }
   assert(offReady, 'Preview-off production instance must become ready');
   assert.equal((await fetch(offBase + '/design/request')).status, 404, 'Design preview must be unavailable when disabled');
+  assert.equal((await fetch(offBase + '/design/requests')).status, 404, 'Request workspace preview must be unavailable when disabled');
   console.log('PASS: production public journey, 5 responsive widths, assets, keyboard skip navigation, mobile menu, missing-config sign-in, protected-route denial, sample browser draft save/restore/delete, 404, security headers and reduced motion.');
   console.log('UNVERIFIED: live account success/recovery/OAuth, draft under a real member session, scoped permissions and operational backend workflows.');
 } catch (error) {

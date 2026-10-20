@@ -51,12 +51,20 @@ try {
   const errors = [];
   page.on('pageerror', error => errors.push(error.message));
   await mkdir('artifacts/acceptance', { recursive: true });
+  const noScriptContext = await browser.newContext({ javaScriptEnabled: false });
+  const noScriptPage = await noScriptContext.newPage();
+  await noScriptPage.goto(base);
+  assert(await noScriptPage.getByRole('heading', { name: 'Big ideas. Real things. Your move.' }).isVisible(), 'Homepage remains visible without JavaScript');
+  assert(await noScriptPage.getByRole('link', { name: 'Discover projects', exact: true }).isVisible(), 'Server-rendered card links remain usable without animation enhancement');
+  await noScriptContext.close();
   for (const width of [320, 375, 768, 1024, 1440]) {
     await page.setViewportSize({ width, height: 950 });
     await page.goto(base);
     await page.getByRole('heading', { level: 1 }).waitFor();
     assert.match(await page.title(), /IDEALAB MEC/);
     assert.equal(await page.locator('main').count(), 1);
+    assert.equal(await page.getByText('THE MAKER SPIRIT, AT MEC.', { exact: true }).count(), 0);
+    assert.equal(await page.locator('.hero-footnote').count(), 0);
     await page.locator('.site-footer').scrollIntoViewIfNeeded();
     await page.waitForFunction(() => [...document.images].every(image => image.complete && image.naturalWidth > 0));
     assert(await page.locator('img').evaluateAll(images => images.length >= 2 && images.every(image => image.complete && image.naturalWidth > 0)), 'Every displayed logo/image must load');
@@ -100,6 +108,24 @@ try {
   await page.getByLabel('Color theme', { exact: true }).click();
   await page.getByRole('button', { name: 'Light', exact: true }).click();
   await page.emulateMedia({ colorScheme: 'light' });
+  for (const theme of ['light', 'dark']) {
+    await page.getByLabel('Color theme', { exact: true }).click();
+    await page.getByRole('button', { name: theme === 'dark' ? 'Dark' : 'Light', exact: true }).click();
+    const ratios = await page.evaluate(() => {
+      function rgb(value) { return value.match(/[\d.]+/g).slice(0, 3).map(Number); }
+      function luminance(color) { return rgb(color).map(channel => { const value = channel / 255; return value <= .04045 ? value / 12.92 : ((value + .055) / 1.055) ** 2.4; }).reduce((sum, value, index) => sum + value * [.2126, .7152, .0722][index], 0); }
+      function contrast(a, b) { const values = [luminance(a), luminance(b)].sort((a, b) => b - a); return (values[0] + .05) / (values[1] + .05); }
+      const canvas = getComputedStyle(document.body);
+      const primary = getComputedStyle(document.querySelector('.hero-actions .button-primary'));
+      const plate = getComputedStyle(document.querySelector('.about-mark'));
+      return { primary: contrast(primary.color, primary.backgroundColor), plate: contrast(plate.color, plate.backgroundColor), secondary: contrast(getComputedStyle(document.querySelector('.hero-description')).color, canvas.backgroundColor) };
+    });
+    assert(ratios.primary >= 4.5, `${theme} primary action contrast`);
+    assert(ratios.plate >= 4.5, `${theme} accent plate contrast`);
+    assert(ratios.secondary >= 4.5, `${theme} secondary copy contrast`);
+  }
+  await page.getByLabel('Color theme', { exact: true }).click();
+  await page.getByRole('button', { name: 'Light', exact: true }).click();
   await page.setViewportSize({ width: 375, height: 900 });
   const blockedContext = await browser.newContext();
   await blockedContext.addInitScript(() => { Object.defineProperty(Storage.prototype, 'setItem', { value() { throw new DOMException('Browser storage disabled', 'SecurityError'); } }); });
@@ -211,6 +237,16 @@ try {
   await page.goto(base);
   assert.equal(await page.evaluate(() => getComputedStyle(document.documentElement).scrollBehavior), 'auto');
   assert.equal(await page.locator('.hero-star').evaluate(element => getComputedStyle(element).animationName), 'none');
+  assert.equal(await page.locator('[data-reveal]').evaluateAll(elements => elements.every(element => getComputedStyle(element).opacity === '1')), true, 'Reduced-motion content stays fully visible');
+  await page.emulateMedia({ reducedMotion: 'no-preference' });
+  await page.setViewportSize({ width: 1440, height: 800 });
+  await page.goto(base);
+  await page.locator('.hero-copy').evaluate(element => Promise.all(element.getAnimations().map(animation => animation.finished)));
+  await page.locator('.path-grid').evaluate(element => element.scrollIntoView({ block: 'center', behavior: 'instant' }));
+  await page.waitForFunction(() => [...document.querySelectorAll('.path-card')].some(element => element.getAnimations().some(animation => animation.playState === 'running')));
+  await page.emulateMedia({ reducedMotion: 'reduce' });
+  await page.waitForFunction(() => document.getAnimations().every(animation => animation.playState !== 'running'));
+  assert(await page.getByRole('link', { name: 'Discover projects', exact: true }).isVisible(), 'Changing motion preference preserves card access');
   assert.deepEqual(errors, [], 'No browser runtime errors');
   const offPort = await availablePort();
   const offBase = `http://127.0.0.1:${offPort}`;
@@ -229,7 +265,7 @@ try {
   assert(offReady, 'Preview-off production instance must become ready');
   assert.equal((await fetch(offBase + '/design/request')).status, 404, 'Design preview must be unavailable when disabled');
   assert.equal((await fetch(offBase + '/design/requests')).status, 404, 'Request workspace preview must be unavailable when disabled');
-  console.log('PASS: production public journey, 5 responsive widths, assets, keyboard skip navigation, mobile menu, missing-config sign-in, protected-route denial, sample browser draft save/restore/delete, 404, security headers and reduced motion.');
+  console.log('PASS: public journey, 5 widths in light/dark, auth layouts/themes, palette contrast, no-JavaScript content, scroll/card motion and live reduced-motion cancellation, assets, keyboard navigation, route denial, sample draft journeys, 404 and security headers.');
   console.log('UNVERIFIED: live account success/recovery/OAuth, draft under a real member session, scoped permissions and operational backend workflows.');
 } catch (error) {
   const activePage = browser?.contexts()[0]?.pages()[0];

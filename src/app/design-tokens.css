@@ -1,0 +1,80 @@
+/* IDEALAB MEC color standard. See docs/design-system.md for roles and usage. */
+:root {
+  --brand-cobalt: #3159db;
+  --brand-cobalt-hover: #2547b7;
+  --accent-mint: #b9e6ce;
+  --accent-lavender: #d2c9f2;
+  --accent-apricot: #f5bc98;
+  --accent-amber: #f3d788;
+  --accent-ink: #1d252c;
+  --art-paper: #fffef9;
+  --art-neutral: #dbe3dd;
+  --primary: var(--brand-cobalt);
+  --on-primary: #ffffff;
+  --primary-hover: var(--brand-cobalt-hover);
+  --paper: #f7f5ed;
+  --surface: #fffef9;
+  --ink: #1d252c;
+  --muted: #52616b;
+  --line: #b9c3c3;
+  --blue: var(--brand-cobalt);
+  --lime: var(--accent-mint);
+  --coral: var(--accent-apricot);
+  --yellow: var(--accent-amber);
+  --outline: var(--accent-ink);
+  --focus: var(--brand-cobalt);
+  --section-tint: #eaf0eb;
+  --notice-bg: #f5e9c6;
+  --notice-ink: #51421e;
+  --success-bg: #e0f1e6;
+  --success-ink: #23523c;
+  --danger-bg: #fae6e1;
+  --danger-ink: #842f28;
+  --pattern: color-mix(in srgb, var(--ink) 12%, transparent);
+  --border-width: 2px;
+  --hard-shadow: 5px 5px 0 var(--outline);
+  --motion-fast: 180ms;
+  --motion-enter: 520ms;
+  --motion-ease: cubic-bezier(.2, .7, .2, 1);
+  color-scheme: light;
+}
+
+html[data-theme=dark] {
+  --paper: #151c23;
+  --surface: #202a33;
+  --ink: #eef1ed;
+  --muted: #b7c4c8;
+  --line: #586974;
+  --blue: #acc0ff;
+  --outline: #060b10;
+  --focus: #b9e6ce;
+  --section-tint: #1b252d;
+  --notice-bg: #342f21;
+  --notice-ink: #f1dfae;
+  --success-bg: #1b352b;
+  --success-ink: #bee8ce;
+  --danger-bg: #3c2527;
+  --danger-ink: #f4bab0;
+  color-scheme: dark;
+}
+
+@media (prefers-color-scheme: dark) {
+  html:not([data-theme=light]):not([data-theme=dark]) {
+    --paper: #151c23;
+    --surface: #202a33;
+    --ink: #eef1ed;
+    --muted: #b7c4c8;
+    --line: #586974;
+    --blue: #acc0ff;
+    --outline: #060b10;
+    --focus: #b9e6ce;
+    --section-tint: #1b252d;
+    --notice-bg: #342f21;
+    --notice-ink: #f1dfae;
+    --success-bg: #1b352b;
+    --success-ink: #bee8ce;
+    --danger-bg: #3c2527;
+    --danger-ink: #f4bab0;
+    color-scheme: dark;
+  }
+}

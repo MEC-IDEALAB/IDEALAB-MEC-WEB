@@ -51,19 +51,34 @@ try {
   const home = await fetch(base);
   assert.equal(home.headers.get('x-content-type-options'), 'nosniff');
   assert.equal(home.headers.get('x-frame-options'), 'DENY');
-  assert.match(home.headers.get('content-security-policy'), /frame-ancestors 'none'/);
+  const policy = home.headers.get('content-security-policy');
+  assert.match(policy, /frame-ancestors 'none'/);
+  const nonce = policy.match(/(?:^|;)\s*script-src[^;]*'nonce-([^']+)'/)?.[1];
+  assert(nonce, 'Every rendered HTML response must carry a nonce-based script policy');
+  assert.match(policy, /object-src 'none'/);
+  assert.doesNotMatch(policy.match(/script-src[^;]+/)?.[0] ?? '', /unsafe-inline|unsafe-eval/);
+  const html = await home.text();
+  const inlineScripts = [...html.matchAll(/<script\b([^>]*)>([\s\S]*?)<\/script>/gi)].filter(([, attributes]) => !/\bsrc=/.test(attributes));
+  assert(inlineScripts.length > 0, 'Rendered page should include framework and application scripts');
+  assert(inlineScripts.every(([, attributes]) => attributes.match(/\bnonce=["']([^"']+)["']/)?.[1] === nonce), 'Inline scripts must receive the response nonce');
+  const repeatedHome = await fetch(base);
+  const repeatedNonce = repeatedHome.headers.get('content-security-policy')?.match(/(?:^|;)\s*script-src[^;]*'nonce-([^']+)'/)?.[1];
+  assert(repeatedNonce && repeatedNonce !== nonce, 'Each page response must use a fresh nonce');
   for (const path of ['/app', '/app/profile', '/app/requests', '/app/requests/new', '/app/workspace']) {
     const response = await fetch(base + path, { redirect: 'manual' });
     assert.equal(response.status, 307, `${path} must not be accessible without auth`);
     assert.match(response.headers.get('location'), /\/sign-in\?notice=configuration$/);
     assert.match(response.headers.get('cache-control'), /private.*no-store/);
+    assert.match(response.headers.get('content-security-policy'), /script-src[^;]*'nonce-/);
   }
   assert.equal((await fetch(base + '/unknown-page')).status, 404);
   browser = await chromium.launch({ headless: true });
   const context = await browser.newContext();
   const page = await context.newPage();
   const errors = [];
+  const cspErrors = [];
   page.on('pageerror', error => errors.push(error.message));
+  page.on('console', message => { if (message.type() === 'error' && /content security policy|refused to/i.test(message.text())) cspErrors.push(message.text()); });
   await mkdir('artifacts/acceptance', { recursive: true });
   const loaderContext = await browser.newContext();
   const loaderPage = await loaderContext.newPage();
@@ -379,6 +394,7 @@ try {
   await page.waitForFunction(() => document.getAnimations().every(animation => animation.playState !== 'running'));
   assert(await page.getByRole('link', { name: 'Discover projects', exact: true }).isVisible(), 'Changing motion preference preserves card access');
   assert.deepEqual(errors, [], 'No browser runtime errors');
+  assert.deepEqual(cspErrors, [], 'CSP allows the application scripts, styles and assets needed for the public journey');
   const offPort = await availablePort();
   const offBase = `http://127.0.0.1:${offPort}`;
   let offOutput = '';

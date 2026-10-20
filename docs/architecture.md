@@ -17,8 +17,8 @@ src/
     fonts/                Verified local fonts and their licenses
   components/             Brand, navigation and shared interface primitives
   features/requests/      Account-scoped browser draft composer and request hub
-  lib/                    Product configuration, session client and member guard
-  proxy.ts                Session refresh and signed-out route protection
+  lib/                    Product configuration, session client, security policy and member guard
+  proxy.ts                Request CSP nonce, session refresh and signed-out route protection
 public/brand/             Official IDEA Lab and MEC logo files
 docs/                     Requirements, flows, wireframes, architecture and evidence
 ```
@@ -33,13 +33,19 @@ The maker-spirit eyebrow, hero service-availability footnote and first-card boil
 
 MagicPath project `463330845164449792` was updated with hierarchy/wireframe annotations and earlier accent panels. It is a planning reference, not the high-fidelity source of the implemented interface. No Figma/Penpot/Canva or generated-media artifact is claimed.
 
-Notebook/content validation passed in earlier sessions. The latest loader, current design and public/sample acceptance also passed ESLint, TypeScript, the production build, all 13 boundary tests and real browser E2E on 21 October 2026. Current browser coverage includes five homepage widths, all eleven facility assets, both themes and contrast, auth viewport fit, no-JavaScript rendering, first-load animation lifecycle and reduced motion, protected-route denial, sample draft boundaries, page/card motion, 404 and security headers. This evidence is public/sample only; live member journeys, full V1 and deployment remain unverified.
+Notebook/content validation passed in earlier sessions. The current source passed ESLint, TypeScript, the production build, all 16 boundary tests and real browser E2E on 21 October 2026. Browser coverage includes five homepage widths, all eleven facility assets, both themes and contrast, auth viewport fit, no-JavaScript rendering, first-load animation lifecycle and reduced motion, protected-route denial, sample draft boundaries, page/card motion, 404, fresh CSP nonces on each response and no browser CSP violations on the public journey. This evidence is public/sample only; live member journeys, full V1 and deployment remain unverified.
 
 ## Trust boundaries
 
 Next.js validates the session on the server. `/app` refreshes cookies and is not publicly cached. Member profile reads select only the authenticated account's minimum fields. Missing/inactive profiles do not open the member workspace. The web app does not create a parallel user database or confer authority from client metadata.
 
 Only a publishable/legacy anon key belongs in the public web configuration. Privileged keys are rejected. No privileged server key is required for the foundation. Backend error text and tokens must never appear in UI or logs. Server Actions use the user's session, not a service-role bypass.
+
+## Response security and rendering
+
+The Next.js Proxy generates a fresh 128-bit nonce for each matched page request and sends a nonce-based Content Security Policy both to the renderer and in the response. The root layout attaches that nonce to its two fixed bootstrap scripts; Next.js attaches it to framework scripts. Production `script-src` has no `unsafe-inline` or `unsafe-eval`. `style-src-attr 'unsafe-inline'` is scoped to CSS attributes because the production browser acceptance run showed Next/Image layout styles are blocked by a style-element nonce alone; CSS style elements remain nonce-restricted. Other directives restrict default sources, frames, forms, objects and base URLs. Supabase auth cookies are `HttpOnly`, keep `SameSite=Lax`, and receive `Secure` in production. This repository currently uses only server-side Supabase clients; if browser-side Supabase auth is introduced, revisit `HttpOnly`, since [Supabase's SSR guidance](https://supabase.com/docs/guides/auth/server-side/advanced-guide) says browser clients need access to refresh tokens.
+
+Nonce-based CSP makes matched pages dynamically rendered. The 21 October production build confirms the homepage and user-facing pages are on-demand routes; static asset paths and prefetch requests are excluded from Proxy. This trades static-page/CDN caching for per-response script nonces. No hosted latency or traffic cost measurement has been performed. See the [security review](security-review.md) for test evidence and remaining live-auth limits. Cookie flags were verified in code and boundary tests, but no real Supabase `Set-Cookie` response was generated because member activation remains disabled.
 
 The owner prioritized UI and GitHub setup before backend work. Shared-account activation is off by default (`ENABLE_MEMBER_PLATFORM=false`), independently of public key configuration. Existing email/password source is present but its live acceptance is unverified. Signup, recovery, browser Google OAuth and onboarding need provider/schema acceptance before enablement. Auth success, profile reads and permission behavior against the shared service remain unverified without a designated acceptance session.
 

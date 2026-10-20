@@ -2,10 +2,16 @@
 :root {
   --brand-cobalt: #3159db;
   --brand-cobalt-hover: #2547b7;
-  --accent-mint: #b9e6ce;
-  --accent-lavender: #d2c9f2;
+  --accent-yellow: #ffe029;
+  --accent-pink: #ff3994;
+  --accent-blue: #a8c6ff;
+  --accent-purple: #c4b5f5;
+  --accent-red: #f39488;
+  --accent-green: #a6d9b5;
+  --accent-mint: var(--accent-green);
+  --accent-lavender: var(--accent-purple);
   --accent-apricot: #f5bc98;
-  --accent-amber: #f3d788;
+  --accent-amber: var(--accent-yellow);
   --accent-ink: #1d252c;
   --art-paper: #fffef9;
   --art-neutral: #dbe3dd;
@@ -19,9 +25,10 @@
   --line: #b9c3c3;
   --blue: var(--brand-cobalt);
   --lime: var(--accent-mint);
-  --coral: var(--accent-apricot);
+  --coral: var(--accent-red);
   --yellow: var(--accent-amber);
   --outline: var(--accent-ink);
+  --strip-bg: var(--accent-ink);
   --focus: var(--brand-cobalt);
   --section-tint: #eaf0eb;
   --notice-bg: #f5e9c6;
@@ -40,15 +47,16 @@
 }
 
 html[data-theme=dark] {
-  --paper: #151c23;
-  --surface: #202a33;
-  --ink: #eef1ed;
-  --muted: #b7c4c8;
-  --line: #586974;
+  --paper: #000000;
+  --surface: #0b0b0b;
+  --ink: #f4f4f1;
+  --muted: #bdbdbd;
+  --line: #4b4b4b;
   --blue: #acc0ff;
-  --outline: #060b10;
+  --outline: #000000;
+  --strip-bg: #0b0b0b;
   --focus: #b9e6ce;
-  --section-tint: #1b252d;
+  --section-tint: #111111;
   --notice-bg: #342f21;
   --notice-ink: #f1dfae;
   --success-bg: #1b352b;
@@ -60,15 +68,16 @@ html[data-theme=dark] {
 
 @media (prefers-color-scheme: dark) {
   html:not([data-theme=light]):not([data-theme=dark]) {
-    --paper: #151c23;
-    --surface: #202a33;
-    --ink: #eef1ed;
-    --muted: #b7c4c8;
-    --line: #586974;
+    --paper: #000000;
+    --surface: #0b0b0b;
+    --ink: #f4f4f1;
+    --muted: #bdbdbd;
+    --line: #4b4b4b;
     --blue: #acc0ff;
-    --outline: #060b10;
+    --outline: #000000;
+    --strip-bg: #0b0b0b;
     --focus: #b9e6ce;
-    --section-tint: #1b252d;
+    --section-tint: #111111;
     --notice-bg: #342f21;
     --notice-ink: #f1dfae;
     --success-bg: #1b352b;

@@ -17,6 +17,10 @@ async function availablePort() {
 }
 const port = await availablePort();
 const base = `http://127.0.0.1:${port}`;
+async function loadPageImages(page) {
+  for (const image of await page.locator('img').all()) await image.scrollIntoViewIfNeeded();
+  await page.waitForFunction(() => [...document.images].every(image => image.complete && image.naturalWidth > 0));
+}
 const env = { ...process.env, NEXT_PUBLIC_SUPABASE_URL: '', NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: '', ENABLE_MEMBER_PLATFORM: 'false', ENABLE_DESIGN_PREVIEW: 'true' };
 const server = spawn(process.execPath, ['node_modules/next/dist/bin/next', 'start', '--hostname', '127.0.0.1', '--port', String(port)], { env, stdio: ['ignore', 'pipe', 'pipe'] });
 let serverOutput = '';
@@ -51,6 +55,19 @@ try {
   const errors = [];
   page.on('pageerror', error => errors.push(error.message));
   await mkdir('artifacts/acceptance', { recursive: true });
+  const loaderContext = await browser.newContext({ reducedMotion: 'reduce' });
+  const loaderPage = await loaderContext.newPage();
+  let releaseScripts;
+  const scriptsReady = new Promise(resolve => { releaseScripts = resolve; });
+  await loaderPage.route('**/_next/static/**/*.js', async route => { await scriptsReady; await route.continue(); });
+  await loaderPage.goto(base, { waitUntil: 'commit' });
+  await loaderPage.locator('.boot-loader').waitFor({ state: 'visible' });
+  assert.equal(await loaderPage.locator('.loader-row').first().evaluate(element => getComputedStyle(element).animationName), 'none', 'Wordmark loading respects reduced motion');
+  await loaderPage.screenshot({ path: 'artifacts/acceptance/wordmark-loading.png' });
+  releaseScripts();
+  await loaderPage.locator('.boot-loader').waitFor({ state: 'hidden' });
+  await loaderPage.getByRole('heading', { level: 1 }).waitFor();
+  await loaderContext.close();
   const noScriptContext = await browser.newContext({ javaScriptEnabled: false });
   const noScriptPage = await noScriptContext.newPage();
   await noScriptPage.goto(base);
@@ -65,13 +82,17 @@ try {
     assert.equal(await page.locator('main').count(), 1);
     assert.equal(await page.getByText('THE MAKER SPIRIT, AT MEC.', { exact: true }).count(), 0);
     assert.equal(await page.locator('.hero-footnote').count(), 0);
+    assert.equal(await page.locator('.facility-card').count(), 3, 'Homepage shows three curated facility highlights');
+    assert.equal(await page.locator('.activity-card').count(), 3, 'Homepage introduces three activity themes');
+    assert(await page.locator('.playful-site').evaluate(element => getComputedStyle(element).backgroundImage.includes('linear-gradient') && !getComputedStyle(element).backgroundImage.includes('radial-gradient')), 'Notebook cross grid replaces dotted page background');
     await page.locator('.site-footer').scrollIntoViewIfNeeded();
-    await page.waitForFunction(() => [...document.images].every(image => image.complete && image.naturalWidth > 0));
+    await loadPageImages(page);
     assert(await page.locator('img').evaluateAll(images => images.length >= 2 && images.every(image => image.complete && image.naturalWidth > 0)), 'Every displayed logo/image must load');
     await page.evaluate(() => window.scrollTo(0, 0));
     await page.locator('.hero-copy').evaluate(element => Promise.all(element.getAnimations().map(animation => animation.finished)));
     assert(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth), `No horizontal overflow at ${width}px`);
     await page.screenshot({ path: `artifacts/acceptance/home-${width}.png`, fullPage: true });
+    if (width === 1440) await page.screenshot({ path: 'artifacts/acceptance/home-hero-1440.png' });
   }
   await page.setViewportSize({ width: 375, height: 900 });
   await page.goto(base);
@@ -92,12 +113,15 @@ try {
     await page.setViewportSize({ width, height: 950 });
     await page.goto(base);
     await page.locator('.site-footer').scrollIntoViewIfNeeded();
-    await page.waitForFunction(() => [...document.images].every(image => image.complete && image.naturalWidth > 0));
+    await loadPageImages(page);
     await page.evaluate(() => window.scrollTo(0, 0));
     await page.locator('.hero-copy').evaluate(element => Promise.all(element.getAnimations().map(animation => animation.finished)));
     assert.equal(await page.evaluate(() => getComputedStyle(document.documentElement).colorScheme), 'dark');
+    assert.equal(await page.evaluate(() => getComputedStyle(document.body).backgroundColor), 'rgb(0, 0, 0)', 'Dark canvas is jet black');
+    assert.equal(await page.locator('.principles-strip').evaluate(element => getComputedStyle(element).backgroundColor), 'rgb(11, 11, 11)', 'Dark section strip uses neutral black');
     assert(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth), `No dark-mode horizontal overflow at ${width}px`);
     await page.screenshot({ path: `artifacts/acceptance/home-dark-${width}.png`, fullPage: true });
+    if (width === 1440) await page.screenshot({ path: 'artifacts/acceptance/home-dark-hero-1440.png' });
   }
   await page.getByLabel('Color theme', { exact: true }).click();
   await page.getByRole('button', { name: 'System', exact: true }).click();
@@ -179,7 +203,28 @@ try {
   await page.setViewportSize({ width: 375, height: 900 });
   await page.goto(base + '/projects');
   await page.getByRole('heading', { name: 'Ideas grow together.' }).waitFor();
-  assert(await page.getByRole('link', { name: /Sign in/ }).isVisible());
+  assert(await page.locator('main').getByRole('link', { name: /Sign in/ }).isVisible());
+  for (const theme of ['Light', 'Dark']) {
+    await page.goto(base + '/lab');
+    await page.getByLabel('Color theme', { exact: true }).click();
+    await page.getByRole('button', { name: theme, exact: true }).click();
+    for (const width of [320, 768, 1440]) {
+      await page.setViewportSize({ width, height: 950 });
+      await loadPageImages(page);
+      assert.equal(await page.locator('.facility-card').count(), 11, 'Published facility directory contains eleven entries');
+      assert(await page.getByRole('heading', { name: 'Epilog laser engraver', exact: true }).isVisible());
+      assert(await page.getByRole('heading', { name: 'SolidWorks software', exact: true }).isVisible());
+      assert(await page.getByText('This directory does not show live availability or reserve equipment.', { exact: false }).isVisible());
+      assert(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth), `${theme} facility directory fits ${width}px`);
+      await page.screenshot({ path: `artifacts/acceptance/lab-${theme.toLowerCase()}-${width}.png`, fullPage: true });
+    }
+  }
+  await page.goto(base + '/explore');
+  assert(await page.getByRole('heading', { name: 'Engage. Explore. Experience. Express. Excel.' }).isVisible());
+  await page.goto(base + '/events');
+  assert.equal(await page.getByText('TRIAD', { exact: true }).count(), 0, 'Individual event records remain outside the public page');
+  assert(await page.getByRole('heading', { name: 'A culture of hands-on learning.' }).isVisible());
+  await page.setViewportSize({ width: 375, height: 900 });
   await page.goto(base + '/app/requests/new');
   assert.match(page.url(), /\/sign-in\?notice=configuration$/);
   await page.goto(base + '/design/request');
@@ -214,7 +259,7 @@ try {
   const originalAccountKey = 'idealab-mec:request-draft:v1:design-preview';
   await page.evaluate(key => localStorage.setItem(key, '{broken-json'), originalAccountKey);
   await page.reload();
-  assert(await page.getByText('The saved draft can’t be opened.', { exact: false }).isVisible());
+  await page.getByText('The saved draft can’t be opened.', { exact: false }).waitFor({ state: 'visible' });
   assert.equal(await page.evaluate(key => localStorage.getItem(key), originalAccountKey), '{broken-json', 'Opening corrupt draft must preserve stored data');
   await page.getByRole('button', { name: 'Delete browser draft' }).click();
   assert(await page.getByRole('button', { name: 'Keep draft' }).evaluate(element => element === document.activeElement), 'Delete confirmation focuses safe action');

@@ -4,6 +4,9 @@ import "./globals.css";
 import './theme.css';
 import './design-tokens.css';
 import './reference-design.css';
+import './brand-loading.css';
+import { BrandLoading } from '@/components/brand-loading';
+import { BootReady } from '@/components/boot-ready';
 
 const display = localFont({ src: [{ path: "./fonts/SpaceGrotesk-Regular.ttf", weight: "400" }, { path: "./fonts/SpaceGrotesk-Bold.ttf", weight: "700" }], variable: "--font-display", display: "swap" });
 const body = localFont({ src: [{ path: "./fonts/DMSans-Regular.ttf", weight: "400" }, { path: "./fonts/DMSans-Medium.ttf", weight: "500" }], variable: "--font-body", display: "swap" });
@@ -14,5 +17,5 @@ export const metadata: Metadata = {
 };
 
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
-  return <html lang="en" suppressHydrationWarning className={`${display.variable} ${body.variable}`}><head><script dangerouslySetInnerHTML={{ __html: "try{var t=localStorage.getItem('idealab-mec:theme');document.documentElement.dataset.theme=t==='dark'||t==='light'?t:'system'}catch{document.documentElement.dataset.theme='system'}" }} /></head><body><a className="skip-link" href="#main-content">Skip to content</a>{children}</body></html>;
+  return <html lang="en" suppressHydrationWarning className={`${display.variable} ${body.variable}`}><head><script dangerouslySetInnerHTML={{ __html: "try{var t=localStorage.getItem('idealab-mec:theme');document.documentElement.dataset.theme=t==='dark'||t==='light'?t:'system'}catch{document.documentElement.dataset.theme='system'}document.documentElement.dataset.boot='loading';setTimeout(function(){document.documentElement.removeAttribute('data-boot')},5000)" }} /></head><body><a className="skip-link" href="#main-content">Skip to content</a><BrandLoading boot /><BootReady />{children}</body></html>;
 }

@@ -71,6 +71,7 @@ try {
   const skipBox = await skip.boundingBox();
   assert(skipBox && skipBox.width > 1 && skipBox.height > 1 && skipBox.y >= 0, 'Focused skip link must be visible');
   await page.keyboard.press('Enter');
+  await page.waitForURL(`${base}/#main-content`);
   assert.equal(new URL(page.url()).hash, '#main-content');
   await page.keyboard.press('Tab');
   assert(await page.evaluate(() => Boolean(document.activeElement?.closest('main'))), 'Skip link must move keyboard navigation into main content');

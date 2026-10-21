@@ -1,0 +1,517 @@
+{
+  "captured_at_utc": "2026-10-21 04:00:53 UTC",
+  "project_id": "huftzhfqnnslvnfzvbex",
+  "scope": "Metadata-only SELECT of public.users/profile columns, constraints, policies, API table grants, non-internal auth.users triggers, table RLS flags, server version and database encoding/collation. No account rows or Auth configuration read.",
+  "catalog": {
+    "columns": [
+      {
+        "name": "id",
+        "type": "uuid",
+        "default": null,
+        "nullable": "NO"
+      },
+      {
+        "name": "name",
+        "type": "text",
+        "default": null,
+        "nullable": "NO"
+      },
+      {
+        "name": "email",
+        "type": "text",
+        "default": null,
+        "nullable": "NO"
+      },
+      {
+        "name": "phone",
+        "type": "text",
+        "default": null,
+        "nullable": "YES"
+      },
+      {
+        "name": "college_roll",
+        "type": "text",
+        "default": null,
+        "nullable": "YES"
+      },
+      {
+        "name": "role",
+        "type": "text",
+        "default": "'student'::text",
+        "nullable": "NO"
+      },
+      {
+        "name": "club_id",
+        "type": "uuid",
+        "default": null,
+        "nullable": "YES"
+      },
+      {
+        "name": "xp",
+        "type": "integer",
+        "default": "0",
+        "nullable": "YES"
+      },
+      {
+        "name": "level",
+        "type": "integer",
+        "default": "1",
+        "nullable": "YES"
+      },
+      {
+        "name": "reputation_score",
+        "type": "integer",
+        "default": "100",
+        "nullable": "YES"
+      },
+      {
+        "name": "qr_code_data",
+        "type": "text",
+        "default": null,
+        "nullable": "YES"
+      },
+      {
+        "name": "fcm_token",
+        "type": "text",
+        "default": null,
+        "nullable": "YES"
+      },
+      {
+        "name": "created_at",
+        "type": "timestamp with time zone",
+        "default": "now()",
+        "nullable": "YES"
+      },
+      {
+        "name": "updated_at",
+        "type": "timestamp with time zone",
+        "default": "now()",
+        "nullable": "YES"
+      },
+      {
+        "name": "profile_completed",
+        "type": "boolean",
+        "default": "false",
+        "nullable": "YES"
+      },
+      {
+        "name": "avatar_url",
+        "type": "text",
+        "default": null,
+        "nullable": "YES"
+      },
+      {
+        "name": "is_active",
+        "type": "boolean",
+        "default": "true",
+        "nullable": "YES"
+      },
+      {
+        "name": "ban_reason",
+        "type": "text",
+        "default": null,
+        "nullable": "YES"
+      },
+      {
+        "name": "banned_at",
+        "type": "timestamp with time zone",
+        "default": null,
+        "nullable": "YES"
+      }
+    ],
+    "policies": [
+      {
+        "name": "user_education_delete",
+        "check": null,
+        "roles": [
+          "authenticated"
+        ],
+        "table": "user_education",
+        "using": "(user_id = auth.uid())",
+        "command": "DELETE"
+      },
+      {
+        "name": "user_education_insert",
+        "check": "(user_id = auth.uid())",
+        "roles": [
+          "authenticated"
+        ],
+        "table": "user_education",
+        "using": null,
+        "command": "INSERT"
+      },
+      {
+        "name": "user_education_select",
+        "check": null,
+        "roles": [
+          "authenticated"
+        ],
+        "table": "user_education",
+        "using": "(user_id = auth.uid())",
+        "command": "SELECT"
+      },
+      {
+        "name": "user_education_update",
+        "check": "(user_id = auth.uid())",
+        "roles": [
+          "authenticated"
+        ],
+        "table": "user_education",
+        "using": "(user_id = auth.uid())",
+        "command": "UPDATE"
+      },
+      {
+        "name": "user_profiles_delete",
+        "check": null,
+        "roles": [
+          "authenticated"
+        ],
+        "table": "user_profiles",
+        "using": "(user_id = auth.uid())",
+        "command": "DELETE"
+      },
+      {
+        "name": "user_profiles_insert",
+        "check": "(user_id = auth.uid())",
+        "roles": [
+          "authenticated"
+        ],
+        "table": "user_profiles",
+        "using": null,
+        "command": "INSERT"
+      },
+      {
+        "name": "user_profiles_select",
+        "check": null,
+        "roles": [
+          "authenticated"
+        ],
+        "table": "user_profiles",
+        "using": "((is_public = true) OR (user_id = auth.uid()))",
+        "command": "SELECT"
+      },
+      {
+        "name": "user_profiles_update",
+        "check": "(user_id = auth.uid())",
+        "roles": [
+          "authenticated"
+        ],
+        "table": "user_profiles",
+        "using": "(user_id = auth.uid())",
+        "command": "UPDATE"
+      },
+      {
+        "name": "users_insert_own",
+        "check": "(auth.uid() = id)",
+        "roles": [
+          "public"
+        ],
+        "table": "users",
+        "using": null,
+        "command": "INSERT"
+      },
+      {
+        "name": "users_read_all",
+        "check": null,
+        "roles": [
+          "authenticated"
+        ],
+        "table": "users",
+        "using": "true",
+        "command": "SELECT"
+      },
+      {
+        "name": "users_select_own",
+        "check": null,
+        "roles": [
+          "public"
+        ],
+        "table": "users",
+        "using": "(auth.uid() = id)",
+        "command": "SELECT"
+      },
+      {
+        "name": "users_update_own",
+        "check": null,
+        "roles": [
+          "public"
+        ],
+        "table": "users",
+        "using": "(auth.uid() = id)",
+        "command": "UPDATE"
+      }
+    ],
+    "api_grants": [
+      {
+        "role": "anon",
+        "table": "user_profiles",
+        "privilege": "INSERT"
+      },
+      {
+        "role": "anon",
+        "table": "user_profiles",
+        "privilege": "SELECT"
+      },
+      {
+        "role": "anon",
+        "table": "user_profiles",
+        "privilege": "UPDATE"
+      },
+      {
+        "role": "anon",
+        "table": "user_profiles",
+        "privilege": "DELETE"
+      },
+      {
+        "role": "anon",
+        "table": "user_profiles",
+        "privilege": "TRUNCATE"
+      },
+      {
+        "role": "anon",
+        "table": "user_profiles",
+        "privilege": "REFERENCES"
+      },
+      {
+        "role": "anon",
+        "table": "user_profiles",
+        "privilege": "TRIGGER"
+      },
+      {
+        "role": "authenticated",
+        "table": "user_profiles",
+        "privilege": "INSERT"
+      },
+      {
+        "role": "authenticated",
+        "table": "user_profiles",
+        "privilege": "SELECT"
+      },
+      {
+        "role": "authenticated",
+        "table": "user_profiles",
+        "privilege": "UPDATE"
+      },
+      {
+        "role": "authenticated",
+        "table": "user_profiles",
+        "privilege": "DELETE"
+      },
+      {
+        "role": "authenticated",
+        "table": "user_profiles",
+        "privilege": "TRUNCATE"
+      },
+      {
+        "role": "authenticated",
+        "table": "user_profiles",
+        "privilege": "REFERENCES"
+      },
+      {
+        "role": "authenticated",
+        "table": "user_profiles",
+        "privilege": "TRIGGER"
+      },
+      {
+        "role": "anon",
+        "table": "user_education",
+        "privilege": "INSERT"
+      },
+      {
+        "role": "anon",
+        "table": "user_education",
+        "privilege": "SELECT"
+      },
+      {
+        "role": "anon",
+        "table": "user_education",
+        "privilege": "UPDATE"
+      },
+      {
+        "role": "anon",
+        "table": "user_education",
+        "privilege": "DELETE"
+      },
+      {
+        "role": "anon",
+        "table": "user_education",
+        "privilege": "TRUNCATE"
+      },
+      {
+        "role": "anon",
+        "table": "user_education",
+        "privilege": "REFERENCES"
+      },
+      {
+        "role": "anon",
+        "table": "user_education",
+        "privilege": "TRIGGER"
+      },
+      {
+        "role": "authenticated",
+        "table": "user_education",
+        "privilege": "INSERT"
+      },
+      {
+        "role": "authenticated",
+        "table": "user_education",
+        "privilege": "SELECT"
+      },
+      {
+        "role": "authenticated",
+        "table": "user_education",
+        "privilege": "UPDATE"
+      },
+      {
+        "role": "authenticated",
+        "table": "user_education",
+        "privilege": "DELETE"
+      },
+      {
+        "role": "authenticated",
+        "table": "user_education",
+        "privilege": "TRUNCATE"
+      },
+      {
+        "role": "authenticated",
+        "table": "user_education",
+        "privilege": "REFERENCES"
+      },
+      {
+        "role": "authenticated",
+        "table": "user_education",
+        "privilege": "TRIGGER"
+      },
+      {
+        "role": "anon",
+        "table": "users",
+        "privilege": "INSERT"
+      },
+      {
+        "role": "anon",
+        "table": "users",
+        "privilege": "SELECT"
+      },
+      {
+        "role": "anon",
+        "table": "users",
+        "privilege": "UPDATE"
+      },
+      {
+        "role": "anon",
+        "table": "users",
+        "privilege": "DELETE"
+      },
+      {
+        "role": "anon",
+        "table": "users",
+        "privilege": "TRUNCATE"
+      },
+      {
+        "role": "anon",
+        "table": "users",
+        "privilege": "REFERENCES"
+      },
+      {
+        "role": "anon",
+        "table": "users",
+        "privilege": "TRIGGER"
+      },
+      {
+        "role": "authenticated",
+        "table": "users",
+        "privilege": "INSERT"
+      },
+      {
+        "role": "authenticated",
+        "table": "users",
+        "privilege": "SELECT"
+      },
+      {
+        "role": "authenticated",
+        "table": "users",
+        "privilege": "UPDATE"
+      },
+      {
+        "role": "authenticated",
+        "table": "users",
+        "privilege": "DELETE"
+      },
+      {
+        "role": "authenticated",
+        "table": "users",
+        "privilege": "TRUNCATE"
+      },
+      {
+        "role": "authenticated",
+        "table": "users",
+        "privilege": "REFERENCES"
+      },
+      {
+        "role": "authenticated",
+        "table": "users",
+        "privilege": "TRIGGER"
+      }
+    ],
+    "constraints": [
+      {
+        "name": "fk_users_club",
+        "definition": "FOREIGN KEY (club_id) REFERENCES clubs(id)"
+      },
+      {
+        "name": "users_college_roll_key",
+        "definition": "UNIQUE (college_roll)"
+      },
+      {
+        "name": "users_email_key",
+        "definition": "UNIQUE (email)"
+      },
+      {
+        "name": "users_id_fkey",
+        "definition": "FOREIGN KEY (id) REFERENCES auth.users(id) ON DELETE CASCADE"
+      },
+      {
+        "name": "users_pkey",
+        "definition": "PRIMARY KEY (id)"
+      },
+      {
+        "name": "users_qr_code_data_key",
+        "definition": "UNIQUE (qr_code_data)"
+      },
+      {
+        "name": "users_role_check",
+        "definition": "CHECK ((role = ANY (ARRAY['student'::text, 'lab_admin'::text, 'super_admin'::text])))"
+      }
+    ],
+    "auth_triggers": []
+  },
+  "environment_metadata": {
+    "tables": [
+      {
+        "name": "user_education",
+        "owner": "postgres",
+        "force_rls": false,
+        "rls_enabled": true
+      },
+      {
+        "name": "user_profiles",
+        "owner": "postgres",
+        "force_rls": false,
+        "rls_enabled": true
+      },
+      {
+        "name": "users",
+        "owner": "postgres",
+        "force_rls": false,
+        "rls_enabled": true
+      }
+    ],
+    "encoding": "UTF8",
+    "postgres_version": "17.6",
+    "database_collation": {
+      "ctype": "en_US.UTF-8",
+      "collation": "en_US.UTF-8"
+    }
+  },
+  "environment_captured_at_utc": "2026-10-21 04:09:01 UTC"
+}

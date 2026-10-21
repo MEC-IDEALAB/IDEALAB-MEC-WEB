@@ -5,6 +5,12 @@ change, or permission to create a billable Supabase branch. Account activation
 must remain disabled until the compatibility, privacy and account journeys
 below pass.
 
+The [shared profile contract proposal](shared-profile-contract-proposal.md) turns
+this gate into a concrete mapping, state/API/permission design, rollout sequence
+and 14-journey acceptance matrix. It includes a fresh [metadata-only catalog
+snapshot](research/shared-profile-catalog-2026-10-21.json). No SQL migration or
+application persistence is implemented by that proposal.
+
 ## Current evidence
 
 Read-only inspection of `grow-idealab` completed on 21 October 2026. This pass

@@ -11,6 +11,7 @@ These records describe product requirements, UX plans, integration boundaries an
 - [UI audit and corrections](ui-audit.md)
 - [Security review and hardening evidence](security-review.md)
 - [Shared backend readiness and onboarding gate](backend-readiness.md)
+- [Shared profile implementation proposal and rollout matrix](shared-profile-contract-proposal.md)
 - [Delivery plan](delivery-plan.md)
 - [Deployment plan](deployment.md)
 - [GitHub setup result](github-setup.json)

@@ -77,6 +77,12 @@ The six-field preview at `/design/onboarding` is deliberately non-persistent. It
 
 ## Decisions still needed before field-level implementation
 
+See the [shared profile implementation proposal](shared-profile-contract-proposal.md)
+for the recommended existing-row mapping, field/comparison rules, server state
+machine, own-profile API, privacy boundary and cross-client rollout. Those
+recommendations remain a review candidate until the listed decisions are settled;
+they do not change the confirmed product requirements above.
+
 - Validation formats and length limits for phone, roll number, department, and free-text institution, plus the normalization rule for institution-scoped roll uniqueness. Study year is confirmed as Year 1–8; institution remains unrestricted free text without affiliation verification.
 - The reviewed shared-data mapping for institution, department and current study year, and the safe migration away from the current global roll-number uniqueness constraint. Student self-edit is approved for their own required fields; keep all six private by default and reject cross-user edits.
 - Project roster display-name opt-in and the requester identity visible to an assigned machine/room head. Until this field-level privacy policy is approved and implemented, use a generic member label in cross-user views.

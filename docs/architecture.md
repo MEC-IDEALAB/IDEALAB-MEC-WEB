@@ -91,6 +91,13 @@ Before persistence: reconcile the live contract and short migration ledger with 
 
 The scoped cross-client checklist, actor/operation acceptance matrix and current evidence are recorded in [backend readiness](backend-readiness.md). It is a review plan, not approved SQL or authorization to create a billable branch or change the shared project.
 
+The next review candidate is the [shared profile contract proposal](shared-profile-contract-proposal.md).
+It specifies the six-field mapping on the existing account row, completion states,
+an intended own-profile API/privilege boundary, resumable saves, compatible client
+rollout and actual database/Auth acceptance. Proposed API names are not deployed.
+Comparison/phone rules, supported old-client behavior and the validation environment
+remain unresolved; the proposal does not clear the shared-project change gate.
+
 ## Current UI boundary
 
 The public homepage is curated. Individual project/event records require sign-in, per owner decision. Member operational pages clearly state that their service is not connected. The request composer saves only a browser draft under an account-derived key; it never submits, reserves capacity or notifies staff. Drafts persist after sign-out and should not contain sensitive data on shared devices.

@@ -29,10 +29,38 @@ Use the notebook cross-grid texture on the neutral canvas; retain cream/jet-blac
 
 `HomeMotion` progressively enhances the homepage with native IntersectionObserver and Web Animations. Sections enter over 520 ms; the three cards stagger by 85 ms. Doodles lift gently for two 2.2-second cycles; the connection arrow draws over 850 ms. Each element runs once per mounted page. Hover/focus styles remain separate from scroll movement. No scroll hijacking, perpetual motion, layout-dimension animation or animation dependency is used.
 
+The homepage also uses two transform-only information tickers. The upper band
+sits below public navigation; it is slightly tilted black with yellow facts
+divided by a double-backslash mark, without repeating the header logo. The lower
+band uses the neutral section surface with small color-coded activity/facility
+labels. Both use duplicated, aria-hidden visual tracks with a concise
+screen-reader summary. One pause/resume control stops both tracks; hover/focus
+pauses incidentally until the visitor explicitly resumes. A native checkbox
+backs the Pause/Resume label, so it works even when hydration is delayed.
+Reduced-motion and no-JavaScript layouts wrap the full copy into still,
+readable rows. A nonce-protected inline script primes motion before paint on
+repeat visits, so hydration and returning to the homepage do not switch from
+the taller static layout after content is visible.
+Ticker copy is curated historical/institutional context, not live status or
+breaking-news content.
+
 Content is visible in server HTML and remains usable if JavaScript or animation APIs are unavailable. Reduced-motion preference disables these enhancements; changing that preference cancels active animations. Cleanup disconnects observers and releases animations when navigating away. The ordinary page flow, working focus rings and direct links remain available.
 
 Facility reference photographs are native 200 × 200 px and render-capped to avoid upscaling; preserve their proportions and light plates. The final notebook/content and jet-black dark-mode gates passed in local browser validation; the current request-draft browser suite also checks both themes and five widths. Hosted acceptance passed on the current application and docs-only revisions recorded in [delivery evidence](delivery-plan.md#verification-and-evidence-checklist).
 
+The homepage activity section uses an editorial, event-poster-inspired list:
+color-coded vector marks, compact retro labels, serif italic activity titles,
+thin separators and short descriptions. It presents published learning themes,
+not scheduled event records; current event details and registration remain in the
+signed-in experience. At phone widths, descriptions move beneath each title and
+the list keeps its readable order without horizontal scrolling.
+
 ## Audit refinements
 
 Use local Press Start 2P for small accent labels and the MEC badge; retain modern Space Grotesk headings and DM Sans body text. The notebook grid uses seven-percent ink. One direct Light/Dark button replaces the menu; OS preference is only the initial fallback. The branded boot screen runs once per browser-tab visit: fast loads get a 560 ms reveal, slow loads exit as soon as the ready checks finish, and a 190 ms fade hands off to the page. Page content is inert from the first body paint until the loader exits; the 4.8-second no-hydration watchdog also releases it. Reduced motion exits immediately. Phone account pages omit decorative story panels and fit the tested normal viewports while remaining scrollable under zoom/keyboard constraints. See [audit](ui-audit.md) for current evidence and authentication blockers.
+
+UI/UX Pro Max's query for an engineering makerspace/student platform recommended a
+Hero + Features + CTA page pattern and a Brutalism style direction. Those choices
+reinforce the existing editorial homepage and hard-outline treatment. Its generic
+teal palette was not adopted: the owner-approved IDEALAB yellow/pink anchors,
+supporting accents and cobalt action color remain the product source of truth.

@@ -12,7 +12,7 @@ const notices: Record<string, string> = {
   invalid: 'We couldn’t sign you in. Check your email and password, and make sure your email is verified.',
   connection: 'We couldn’t reach the account service. Please try again shortly.',
   session: 'Please sign in to continue to your workspace.',
-  configuration: 'Account access is being connected. Please check back soon.',
+  configuration: 'Sign-in is unavailable in this release. Contact the lab team for account-access information.',
   'password-updated': 'Your password is ready. Sign in with your new password.',
 };
 export const metadata = { title: 'Sign in' };

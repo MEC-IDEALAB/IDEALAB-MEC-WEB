@@ -1,5 +1,45 @@
 # UI audit and corrections
 
+## Homepage editorial activity list — 21 October 2026
+
+Reworked the homepage activity cards into a reference-inspired editorial list:
+colored vector marks, numbered metadata, compact retro category labels, serif
+italic titles, fine separators and short descriptions. It uses published
+learning themes rather than exposing scheduled event records; current event
+details and registration stay behind sign-in. Responsive browser acceptance
+checks all three rows at the five homepage widths in both themes, and the 320px
+layout remains within the viewport. The list keeps its motion subtle and turns
+off row movement when reduced motion is preferred.
+
+## Homepage highlights tickers — 21 October 2026
+
+Added two responsive editorial tickers to the public homepage. The slightly
+tilted black/yellow strip now sits below the public navigation; it omits the
+repeated logo and divides institutional highlights with a double-backslash
+separator. A muted grey band near the footer pairs activity/facility highlights
+with color-coded labels and a dedicated pause/resume control. The control pauses
+both tracks; hover/focus pauses incidentally until explicit resume.
+No-JavaScript and reduced-motion layouts wrap all copy into still, readable
+rows. A nonce-protected head script primes the animated state before paint on
+repeat visits. A native checkbox keeps Pause/Resume operable when hydration is
+delayed or fails. Browser acceptance measures the ticker regions and hero
+before and after hydration, then checks client navigation away and back to
+catch reflow. Each moving visual has a screen-reader summary.
+Copy describes published institutional context; it is not presented as live or
+breaking news.
+
+The production build and full Chromium acceptance passed on this source. Browser
+coverage checked five widths in light/dark themes, no horizontal overflow,
+repeat-visit and client-navigation geometry stability, reduced-motion still
+rows, all static ticker copy at 320px, pause/resume while focus and hover
+remain, the header-to-ticker order, and the lower control's reserved space.
+Desktop, mobile, no-JavaScript and reduced-motion captures were
+inspected in `artifacts/acceptance/`. Lint, TypeScript, boundary tests (28/28)
+and the 18-file/112-link documentation check also passed. Penpot was unavailable
+in this session because the connected MCP reported no Penpot instance; this UI
+pass was reviewed against the local design-system source and real-browser
+captures instead.
+
 ## Public navigation follow-up — 21 October 2026
 
 UI UX Pro Max is installed locally and was used for this keyboard-navigation
@@ -72,6 +112,30 @@ The earlier email-verification gate revision `d2a310edf80d176bd10768e04dd31cde03
 [Website CI and the required gate](https://github.com/MEC-IDEALAB/IDEALAB-MEC-WEB/actions/runs/39510291937)
 and [Documentation CI](https://github.com/MEC-IDEALAB/IDEALAB-MEC-WEB/actions/runs/39510291938).
 
+## MEC pilot preview — 21 October 2026
+
+The opt-in onboarding preview now reflects the owner-approved MEC-only pilot
+for both clients: six required values with read-only Model Engineering College
+and five editable fields. Phone feedback requires a leading country code; the
+registration preview accepts the supplied MDL/LMDL prefixes plus an alphanumeric
+suffix without inventing course codes or exact lateral-entry suffix lengths.
+Neither check establishes ownership, eligibility, availability or reachability.
+
+Independent source review identified the earlier exact-suffix assumption; it
+was removed and the reviewer confirmed the correction. Node 24.19.0 lint,
+typecheck, 28 boundary tests, dependency audit (zero vulnerabilities), isolated
+production build and the full Chromium acceptance passed locally. Browser
+checks cover the canonical read-only college, five missing-field errors,
+invalid phone/number feedback, linked summary focus, both prefixes, responsive
+320/375/768/1440 px screenshots, memory-only values, no-JavaScript non-submission
+and disabled-preview 404. Desktop dark and phone light artifacts were visually
+inspected; screenshots finish finite theme transitions before capture.
+
+These are preview/public-boundary results. Production signup, admission,
+shared profile persistence, Google, account recovery and staff operations
+remain unverified. First-claim ownership and the actual shared contract remain
+gated; no live schema, account or permission was changed.
+
 ## Authentication evidence and blocker
 
 Read-only inspection of the reconnected `grow-idealab` project on 21 October 2026 succeeds, including `select 1`, schema, policies, grants, triggers, migration ledger, branches and security advisors. The ledger contains only `20260503073726 create_initial_schema` and `20260503073744 add_rls_policies`; no development branch exists. Live `public.users` has a `role` field and `is_active`, while the canonical Grow SQL defines `base_role`/`system_role`, and Flutter auth/profile consumers read and write `role`. These are materially different contracts. No schema/data write or test identity was created.
@@ -95,3 +159,41 @@ References: [Supabase Google auth](https://supabase.com/docs/guides/auth/social-
 Tracked remediation: [backend activation gate #15](https://github.com/MEC-IDEALAB/IDEALAB-MEC-WEB/issues/15).
 
 The 21 October manual preview check found that the existing port-3015 `next start` process was serving a previous build manifest: its CSS and JavaScript chunk URLs returned HTTP 500 and the page rendered as unstyled HTML. Restarting the local server against the current production build restored the styles; this was a stale preview process, not a source stylesheet failure. The same audit found sign-in overflowed a compact 320×568 viewport by 79 px. The short-height auth layout now fits while retaining 44 px fields/actions, and its support/join links share a compact footer line. The browser acceptance suite now asserts themed styles are applied and that both sign-in and sign-up fit 320×568 with no page scroll; these checks passed with the full Chromium acceptance run. The source still keeps real account/provider entry disabled pending backend compatibility and live auth verification.
+
+## Student V1, onboarding and staff wireframe audit — 21 October 2026
+
+The student preview now exposes nine no-data destinations: Home, Lab, Profile,
+Projects, Events, Requests, Notifications, Visits and Borrowing. The separate
+MEC onboarding preview shows the confirmed six-value profile and self-declared
+pilot without implying roster verification or data submission. The staff preview
+maps Machine/Room, Operations, Events and Super Admin scopes without assigning
+roles or enabling records/actions. MagicPath project `463330845164449792` now
+includes onboarding desktop/mobile and staff workspace desktop/mobile frames in
+addition to the homepage and student workspace. The account-access wireframe is
+documented in `experience.md`; MagicPath's API quota was exhausted before its
+extra frame could be created.
+
+Independent read-only wireframe review found no remaining P1/P2 UX, accessibility
+or responsive issue in the student workspace preview. The intentional notebook
+cross-grid remains the Impeccable detector's only advisory. A system-theme edge
+case was corrected: Home notes, Profile summary and privacy panels now remain
+near-black with readable text on a first visit when the OS is dark and no theme
+choice is stored. The production-browser journey emulates OS dark and light on
+Home and OS dark on Profile, verifies the `system` setting and theme-toggle
+state, and checks near-black surfaces and text contrast. The theme helper waits
+for finite CSS transitions before measuring contrast, avoiding false failures
+mid-transition.
+
+Current local web source passed Node 24.19.0 `npm run lint`, `npm run typecheck`,
+all 28 `npm run test:boundaries` checks, dependency audit (zero vulnerabilities),
+`npm run build:acceptance`, full `npm run test:acceptance`, documentation validation
+(18 Markdown files/112 local links) and `git diff --check`. Chromium covers
+320–1440 px layout widths, the 761–980 px tablet card behavior, mobile safe-area
+clearance, navigation semantics, both explicit themes, system theme fallback,
+reduced motion and no-data/API isolation. The independent reviewer inspected the
+page map and current source; the rendered mobile Home and dark Profile previews
+were also inspected manually. These results validate local layout previews, not
+live member data, authentication, database persistence, staff authorization or
+operational V1 workflows; the member feature flag remains off.
+
+The public sign-in and sign-up pages now state that account access is unavailable in this release and direct students to the lab team, replacing the old “being connected” notice. Both routes remain gated until the shared database, Auth and coordinated-client checks pass.

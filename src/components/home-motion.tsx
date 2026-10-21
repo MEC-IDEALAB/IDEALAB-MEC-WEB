@@ -49,7 +49,7 @@ export function HomeMotion() {
           }
         }
       }, { threshold: .12, rootMargin: '0px 0px -24px 0px' });
-      document.querySelectorAll('.playful-site [data-reveal], .playful-site .doodle').forEach(element => {
+      document.querySelectorAll('.playful-site [data-reveal], .playful-site .doodle, .student-preview-app [data-reveal]').forEach(element => {
         if (!seen.has(element)) observer?.observe(element);
       });
     }

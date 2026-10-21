@@ -1,0 +1,35 @@
+{
+  "observedAt": "2026-10-21 05:25:06 UTC",
+  "environment": "isolated Supabase validation project",
+  "project": {
+    "id": "gvvqlfachzbufstzoiwi",
+    "name": "idealab-mec-validation",
+    "organizationId": "yhhsdxbhpsyovqlvdoha",
+    "region": "ap-south-1",
+    "status": "ACTIVE_HEALTHY"
+  },
+  "authorization": "Owner approved fresh Free-plan test project; no paid upgrade or production data copy",
+  "quote": {
+    "currency": "USD",
+    "amount": 0,
+    "recurrence": "monthly"
+  },
+  "metadata": {
+    "connectivity": 1,
+    "postgresVersion": "17.11",
+    "encoding": "UTF8",
+    "collation": "en_US.UTF-8",
+    "ctype": "en_US.UTF-8",
+    "publicTableCount": 0,
+    "migrationCount": 0
+  },
+  "changes": [
+    "Created approved isolated project"
+  ],
+  "limits": [
+    "Metadata-only read checks",
+    "No application migration, account, Auth provider change or production data copied",
+    "Not a production clone or migration/account acceptance result",
+    "Shared grow-idealab project and existing paused validation project unchanged"
+  ]
+}

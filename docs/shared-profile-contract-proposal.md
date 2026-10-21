@@ -7,7 +7,9 @@ approval to change the shared project, or evidence of working account creation.
 The confirmed product requirements remain in [onboarding requirements](onboarding-requirements.md).
 The proposal uses the existing Supabase Auth identity and `public.users` row.
 It does not introduce a separate website account or move required fields into a
-legacy rich-profile table.
+legacy rich-profile table. The latest [MEC pilot admission contract](mec-pilot-admission.md)
+restricts student workspace admission in both clients; email verification and
+profile completion alone do not establish admission.
 
 ## Evidence and scope
 
@@ -21,7 +23,9 @@ The snapshot confirms:
 - `users` has `name`, `phone`, `college_roll`, `role`, `is_active` and
   `profile_completed`, but no institution, department or current study year.
 - `users_college_roll_key` is globally unique. The approved product rule is
-  uniqueness within an institution.
+  uniqueness within an institution in the earlier multi-institution design. The
+  current pilot requires one normalized MEC registration claim, independent of
+  institution display aliases; it does not admit students from other institutions.
 - `users_read_all` permits authenticated reads of every row. Own-row updates
   do not restrict columns, and both API roles have broad table privileges.
 - The role constraint accepts `student`, `lab_admin` and `super_admin`.
@@ -44,7 +48,7 @@ records to decide whether onboarding is complete.
 | Name | existing `users.name` | text; retain existing NOT NULL; empty new-account value is incomplete | Member edits own value |
 | Phone | existing `users.phone` | text, nullable until supplied | Member edits own value |
 | Roll number | existing `users.college_roll` | text, nullable until supplied | Member edits own value |
-| College/institution | new `users.institution` | text, nullable for unreconciled existing accounts | Member edits own value |
+| College/institution | new `users.institution` | text, nullable for unreconciled legacy accounts; canonical MEC value for pilot claims | Server-constrained pilot value; no alias bypass |
 | Department | new `users.department` | text, nullable for unreconciled existing accounts | Member edits own value |
 | Current study year | new `users.study_year` | smallint, nullable or integer 1–8 | Member edits own value |
 | Completion contract | new `users.profile_contract_version` | smallint, default 0 | Database only |
@@ -61,45 +65,52 @@ trusted completion result. A legacy true boolean with missing required fields
 must resolve to incomplete, never Home.
 
 The version is a profile-contract marker, not an authorization role. A revision
-is concurrency control, not proof of completion.
+is concurrency control, not proof of completion. Pilot admission is separate from
+profile completion and follows the owner's MEC student self-declaration plus one
+unique registration-number claim. The pilot has no roster or document verification;
+another person could make the first claim. Its storage/API design must be reviewed
+before SQL; neither `role=student` nor a valid-looking number alone may synthesize
+the declaration or claim.
 
-## Recommended field rules to settle before SQL
+## Confirmed product rules and proposed technical validation
 
-These are proposed engineering rules; they are not a claim that current records
-already comply. Do not rewrite existing values automatically.
+The owner confirmed case/space-insensitive comparison, country-code phone entry
+and the MEC-only pilot. Lengths, exact Unicode/collation behavior, complete number
+formats and validation implementation below remain technical review candidates.
+Existing records are not assumed compliant and must not be silently rewritten.
 
 | Field | Proposed rule |
 | --- | --- |
 | Name | Trim surrounding whitespace; preserve Unicode spelling; 1–120 Unicode code points; reject control characters |
-| Phone | Collect country code and store a parsed international phone number in E.164 form; validate national length with maintained phone metadata rather than a guessed global minimum; no SMS-verification claim |
-| Roll | Trim surrounding whitespace; preserve display spelling; 1–64 code points; reject control characters |
-| Institution | Free text, 1–200 code points after trimming; preserve display spelling; reject control characters |
+| Phone | Required `+country-code` entry is confirmed. Proposed storage is parsed E.164; validate national length with maintained phone metadata rather than a guessed global minimum; no SMS-verification claim |
+| Roll | MEC registration number, preserving display text; proposed 1–64 code-point limit and control-character denial. Supplied `MDL24CS219` and lateral-entry `LMDL` are examples, not an exhaustive format directory |
+| Institution | Canonical Model Engineering College value for the pilot; proposed 1–200 code-point storage limit; preserve legacy display text during reconciliation without using aliases as separate claim scopes |
 | Department | Free text, 1–120 code points after trimming; preserve display spelling; reject control characters |
 | Study year | JSON integer / SQL smallint 1–8; reject coercion from fractions, booleans or arbitrary strings |
 
-Recommended uniqueness comparison: Unicode-normalized, case-insensitive institution
-and roll keys with surrounding/repeated whitespace normalized. Display text remains
-separate. Do not strip punctuation, transliterate names or merge aliases:
-“MEC” and “Model Engineering College” remain different entered institution names
-unless an approved institution directory is introduced later. This limitation is
-inherent in the approved free-text design.
+The approved comparison ignores case and repeated/surrounding spaces while
+preserving entered display text. During the pilot, the claim scope is canonical
+MEC: “MEC” and “Model Engineering College” cannot hold separate claims for the same
+normalized registration number. The earlier free-text alias distinction is
+superseded for pilot admission, not an approved bypass. Do not strip punctuation
+or invent format rules from the two supplied prefix examples.
 
-This recommendation enforces uniqueness within a normalized entered label, not a
-canonical real-world institution. That is narrower than an unconditional
-institution-wide guarantee. Owner acceptance of this limitation is still required;
-the pending comparison question explicitly states the alias behavior. If true
-institution identity is required, first approve a canonical institution identifier
-and alias-resolution workflow while retaining free-text display. Until then this
-proposal does not claim WEB-004's uniqueness acceptance is settled.
+`MDL24CS219` explains college, admission year, course and student number; `LMDL`
+identifies lateral entry. Neither format nor uniqueness proves number ownership.
+The owner chose explicit self-declared MEC eligibility for the pilot, not a
+lab-team review or number-bound invitation. A one-time lab-team check without ID
+upload is not part of the approved pilot. Current study year stays an explicit
+Year 1–8 value rather than being inferred from admission year.
 
 The SQL implementation must specify its Unicode/collation behavior and test the
 same comparison vectors in Postgres and clients. Do not substitute JavaScript
 case conversion for the database's uniqueness decision. The database unique index
 is the final concurrent-write authority.
 
-Before implementing those rules, settle whether international-format phone entry
-and the proposed institution/roll comparison match the intended user experience.
-Changing comparison semantics later requires another duplicate/collation review.
+Before SQL, settle the exhaustive registration-format/course coverage and exact
+normalization/validation and attestation/claim implementation. The assurance policy
+is settled as self-declared MEC eligibility without college-record verification;
+changing comparison semantics later requires another duplicate/collation review.
 
 ## Account and profile states
 
@@ -112,16 +123,23 @@ Evaluate identity before profile data. Each state has a distinct recovery path.
 | Unavailable | Auth/profile lookup failed, row missing, unknown future/negative contract version, or malformed response | Retry/support; do not label the profile incomplete |
 | Inactive | Server-loaded `is_active` is not true | Account-unavailable guidance; no onboarding write or member entry |
 | Incomplete | Verified active owner row with legacy contract version 0, or version 1 with trusted completion false / a missing required field | Onboarding with existing own values |
-| Complete | Verified active owner row, contract version 1 and all six valid stored fields; trusted completion true | Member Home and permitted deep links |
+| Profile complete, declaration or claim missing | Verified active Student with version-1 six-field completion but no required self-declaration or unique claim | Admission guidance; no student workspace access |
+| Pilot Student | Verified active owner, complete version-1 profile, MEC student self-declaration and one unique claim | Member Home and permitted student deep links; admission is self-declared, not college-record verified |
+| Existing staff | Trusted existing staff role and current scope, subject to verification/active checks | Preserve the reviewed staff access path; do not require a Student claim or invent staff authority |
 
 An incomplete existing account must be able to load its own saved values without
 entering operational pages. Backend failure is never converted into a successful
-empty profile. Direct links use the same server gate.
+empty profile. Direct links and operational Data API policies use the same
+independent admission boundary. Profile completion must not auto-admit a Student;
+existing staff and inactive identities retain their separate trusted states.
 
 ## Proposed API and permission boundary
 
 The following names describe the intended versioned API; none is currently
-implemented or callable.
+implemented or callable. These profile operations need a reviewed self-declaration
+and unique-claim admission read/transition boundary before either client can
+authorize entry. That boundary records an attestation; it does not claim that a
+college roster or document was checked.
 
 | Proposed operation | Input | Successful output / atomic behavior |
 | --- | --- | --- |
@@ -152,8 +170,13 @@ writer is justified by server-controlled completion/revision and atomic concurre
 checks while API roles have no table UPDATE privilege. It derives `auth.uid()`,
 checks the current verified non-anonymous Auth identity, locks that same owner's row,
 requires `is_active=true`, rejects unknown contract versions and stale revision,
-validates the exact payload, then writes only the six profile fields and derived
-completion/version/revision. It cannot edit another ID, role, status or other field.
+validates the exact payload and canonical MEC institution, then writes only the
+six profile fields and derived completion/version/revision. It cannot edit another
+ID, role, active status or eligibility authority. Registration-number self-edit
+needs an atomic reviewed claim transition: it cannot transfer another claim,
+auto-approve a replacement number or leave the self-declared admission attached to
+an old number. The precise attestation record, claim transition and replacement
+behavior still need a technical design.
 Use fixed search paths, qualified static SQL, minimal function privileges and no
 caller-selected relation, column, actor or dynamic SQL. No elevated function may
 simply return a client-provided completion result.
@@ -215,11 +238,13 @@ account, lost verification and retryable backend failure. Do not expose raw uniq
 constraint details or another account's identity. There is no roll-availability
 lookup endpoint. A uniqueness failure uses a generic cannot-save/review response,
 and repeated authenticated saves need an enforceable abuse limit before launch.
-Even with generic feedback, success versus failure can reveal whether a guessed
-institution/roll pair is occupied. Record owner acceptance of that limited inference
-or design a non-enumerating private-review flow; generic wording alone is not proof
-that enumeration is impossible. Do not return raw Postgres/provider errors or write
-profile values into logs.
+The owner accepted limited occupied-registration inference with generic errors
+and save limits, along with self-declared first-claim eligibility. This is not
+independent ownership verification or an assertion that enumeration is impossible.
+Define and test the limit/window and enforcement path
+for direct API calls too; a client-only throttle or a failed transaction that
+rolls back its attempt counter is insufficient. No availability lookup, other
+profile disclosure, raw provider errors or profile-value logging is permitted.
 
 ## Save, resume and self-edit behavior
 
@@ -239,7 +264,9 @@ not always exactly representable as a JavaScript number.
 
 Version-0 progress remains incomplete until all six saved values are valid; that
 accepted save derives completion/version 1 on the server. The UI labels that complete
-operation “Finish setup” and enters Home only from the returned saved profile.
+operation “Finish setup”; student Home additionally requires a stored MEC student
+self-declaration and one unique registration claim. A missing declaration or claim
+stays outside the student workspace even when all six fields are complete.
 Once version 1 is complete, clearing any required value is rejected atomically and
 retains the last valid server profile. A legacy true completion boolean alone never
 upgrades the profile version. Unknown future versions cannot be downgraded by this API.
@@ -284,23 +311,27 @@ are different acceptance cases.
 1. Capture a metadata baseline and reconcile the two-entry live migration ledger
    against every checked-in migration. Do not replay 001–008 or replace the live
    role model with `base_role/system_role` as part of this profile change.
-2. Settle field/comparison rules, the supported old-app window and the exact safe
-   validation environment. Obtain architecture/security review of this contract.
+2. Implement the approved self-declaration/unique-claim policy; resolve
+   registration-format coverage, technical normalization/save-limit design and
+   acceptance in the available isolated validation environment.
+   Obtain architecture/security review of this contract and admission API.
 3. Prepare expand-only SQL in the canonical Grow migration chain: nullable new
    fields, contract/revision columns and approved validation helpers. Do not
    activate a new completion gate or tighten deployed writes yet.
 4. Update all supported Flutter and web consumers to the same versioned own-profile
    contract. Remove separate profile inserts, client authority/completion updates
    and full-row arbitrary update maps. Update Flutter's model/router to require
-   server-loaded version-1 completeness. Test each auth and repair path.
+   server-loaded version-1 completeness and separate trusted pilot admission.
+   Preserve staff access. Test each auth, claim, self-edit and repair path.
 5. Reconcile existing rows in the safe environment. Keep unknown institution/year
-   values null; let verified owners supply them. Preserve existing IDs, roles and
-   inactive/ban states. Missing account rows need an explicit repair path; no
+   values null until the reviewed MEC claim path and owner-supplied current year
+   establish them. Preserve existing IDs, roles and inactive/ban states. Missing account rows need an explicit repair path; no
    automatic elevated role or guessed institution is allowed.
-6. Add the approved composite institution/roll unique index only after normalized
-   duplicates and collation behavior are checked. Keep the global roll constraint
-   until the composite check and supported-client rollout pass; remove it in the
-   reviewed switch transaction, not as an unverified cleanup.
+6. Add the reviewed normalized MEC claim uniqueness boundary only after existing
+   claims, duplicate comparisons and collation behavior are checked. Institution
+   aliases cannot split the pilot scope. Preserve legacy constraints until the
+   replacement and supported-client rollout pass; any constraint change belongs
+   in the reviewed switch, not an unverified cleanup.
 7. In the tested switch, enable trusted provisioning, owner-only reads, allowlisted
    writes, derived completion and versioned functions. Older plain INSERT clients
    are incompatible with a trigger-created row; trigger idempotency alone does not
@@ -310,11 +341,10 @@ are different acceptance cases.
    repair, partial resume, self-edit and every denial case below. Enable the website
    member flag only after the shared change and compatibility journeys pass.
 
-Recommended deployment policy is a coordinated Flutter update before activation,
-rather than retaining unsafe role/completion writes for old versions. If old
-installed versions must stay fully writable, design and test a separate bounded
-compatibility bridge before choosing the switch date. This remains an owner rollout
-decision; it cannot be inferred from “share the existing backend.”
+The owner approved a coordinated Flutter update before activation. Define the
+supported build/cutover and recovery procedure; older direct INSERT/completion
+writers must not retain unsafe permissions to preserve apparent compatibility.
+Both clients require the same pilot admission and privacy acceptance.
 
 For recovery, disable new web writes first, preserve the expanded columns/data and
 forward-fix the contract. Do not restore permissive profile reads or role writes as
@@ -326,29 +356,48 @@ staff roles or guess replacement institutions during recovery.
 
 | ID | Journey / adversarial condition | Required evidence |
 | --- | --- | --- |
-| SP-01 | New email from any domain, confirmation and intentional sign-in | One Auth identity/one ordinary Student profile; six-field onboarding before Home |
+| SP-01 | New verified-email identity, intentional sign-in and MEC admission | One Auth identity/ordinary Student profile; six-field completion, explicit MEC self-declaration and one unique claim before Home; no college-record verification or invented email-domain restriction |
 | SP-02 | Google new/existing identity and cancellation | Same profile authority; configured provider/callback; no duplicate row or stranded client |
-| SP-03 | Legacy true completion with missing new fields | Onboarding, not Home; existing role and saved values preserved |
-| SP-04 | Save partial progress, reload and finish; omit/unknown keys, null/empty, wrong types and invalid non-empty values | Full replacement rules are enforced; own saved progress resumes; only six valid persisted values allow completion; no silent merge/clear |
+| SP-03 | Legacy true completion, missing new fields or absent MEC claim; existing staff | Student onboarding/admission remains gated; IDs, saved values, roles and inactive state preserved; trusted staff access is not removed by Student eligibility |
+| SP-04 | Save partial progress, reload and finish; omit/unknown keys, null/empty, wrong types, phone format and invalid non-empty values | Full replacement and +country-code rules enforced; own progress resumes; only six valid persisted values allow profile completion, which alone does not admit; no silent merge/clear |
 | SP-05 | Anonymous Auth session carrying authenticated role, unverified/deleted Auth identity, inactive owner and another user; direct REST reads and excluded-column selection | Anonymous/unverified/deleted/cross-user private reads and all writes denied by DB; inactive verified owners may read the allowlisted own profile/status only but cannot save/Home; excluded columns and `SELECT *` denied; helper grants and failure states verified |
-| SP-06 | Direct profile/role/status/completion/position/ID update, insert or alternate writable RPC/view | Direct member writes are denied; only the reviewed own-profile writer changes six fields and derives completion/version/revision |
-| SP-07 | Two concurrent same approved institution/roll-key saves; repeated guessed pairs | At most one succeeds; failed save is atomic; generic feedback, enforceable abuse limit and accepted privacy-inference/private-review policy |
-| SP-08 | Same roll at different entered institutions and aliases of one institution | Approved label-vs-canonical identity rule is tested explicitly; do not claim alias-level uniqueness from label normalization; global roll constraint no longer rejects permitted pairs after the switch |
-| SP-09 | Self-edit, concurrent/stale revision, lost response and direct six-field Data API update bypass attempt | Row-lock/revision compare prevents supported-client overwrite races; bypass writes denied; preserve last valid profile and recoverable retry |
-| SP-10 | New signup trigger failure; anonymous/phone-only exclusion and eligible conversion; separately, missing legacy row/staff/inactive repair | Signup transaction and conversion obey eligibility; operator repair preserves authoritative role/status, is idempotent and refuses ambiguous classification; no claimed account success without readiness |
-| SP-11 | Supported Flutter auth/Google/profile/router flows | Actual supported app versions pass the same contract and privacy denials |
+| SP-06 | Direct profile/role/status/completion/eligibility/position/ID update, insert or alternate writable RPC/view | Direct member authority writes denied; reviewed own-profile writer derives completion/version/revision only; chosen admission path cannot be bypassed |
+| SP-07 | Concurrent same normalized MEC-number claims and repeated guesses via both clients/direct API | At most one claim succeeds; failed save atomic; generic errors and enforceable attempt limits; no other profile disclosed |
+| SP-08 | MDL/LMDL examples, case/spaces, MEC display aliases and invalid/unknown format | One canonical MEC claim scope; aliases cannot duplicate a number; full format policy tested without inventing branch coverage; self-declaration is not college-record verification |
+| SP-09 | Self-edit including registration change, stale revision, lost response and direct six-field Data API bypass | Atomic reviewed claim transition plus revision checks prevent overwrite/transfer races; no automatic admission of a replacement number; last valid profile and recoverable retry preserved |
+| SP-10 | New signup trigger failure; anonymous/phone-only exclusion and eligible conversion; separately, missing legacy row/staff/inactive repair | Signup transaction and conversion obey verified-email provisioning rules without auto-admission; operator repair preserves authoritative role/status, is idempotent and refuses ambiguous classification; no claimed account success without readiness |
+| SP-11 | Coordinated supported Flutter and Next.js auth/Google/profile/admission/router flows | Both real clients pass the same completion, admission and privacy denials before activation; unsafe old writers are not retained |
 | SP-12 | Connection failure, cancelled provider, expired/revoked session | Retryable UI; no fake completion, password update or operational success |
 | SP-13 | Failed migration/switch and recovery | Restore/recovery exercise preserves identities and private data without reopening vulnerabilities |
 | SP-14 | Cross-user projects/booking display after privacy tightening | No required personal fields leak; approved scope or generic label works |
 
 Run these with real Auth, Postgres RLS/Data API and both clients in the approved
 safe environment. Unit tests or a simulated auth schema cannot establish this
-acceptance. No local PostgreSQL, Docker or Supabase CLI executable was discoverable
-on PATH in the 21 October inspection; no tooling was installed or database created.
-The connected branch-list tool also returned no development branches, and the
-organization remains Free. The owner has been asked to confirm the organization
-for a branch quote or identify a safe alternative; no quote, billable resource or
-test identity has been created.
+acceptance. A later [native runtime smoke check](database-validation.md) used the
+existing Node 24.19.0/PostgreSQL 16.1 installation and a fresh UTF8/C cluster,
+verifying isolated identity, wrong-password denial, transaction rollback and
+stop/removal. Its [sanitized result](research/local-pg-runtime-2026-10-21.json)
+is runtime preparation only: no app SQL, migration, Auth, RLS or Data API was tested.
+It does not match the shared PostgreSQL 17.6/en_US.UTF8 environment.
+
+The confirmed Free organization `yhhsdxbhpsyovqlvdoha` has no development branch.
+The retrieved branch quote was $0.01344/hour, but branching also requires Pro;
+no upgrade or branch creation was authorized. A separate project quote returned
+$0 monthly. The owner subsequently approved creation of the fresh Free project
+`idealab-mec-validation` (`gvvqlfachzbufstzoiwi`) in the same organization,
+Mumbai (`ap-south-1`), now `ACTIVE_HEALTHY`. Management metadata reports PostgreSQL
+`17.11.0.003`; read-only SQL confirms 17.11/UTF8/`en_US.UTF-8`, zero public tables
+and zero migrations. The [actual metadata baseline](research/isolated-supabase-baseline-2026-10-21.json)
+is connectivity/environment evidence, not app SQL, Auth, RLS, migration or
+both-client acceptance. Target-version differences from the shared 17.6 project
+still need assessment.
+
+This environment serves non-production acceptance only; production remains one
+shared Supabase identity/database authority. Existing paused
+`grow-security-validation` is preserved. No paid upgrade, production-data copy,
+account, application migration, Auth-setting or shared-project change was made. See
+[Supabase deployment](https://supabase.com/docs/guides/deployment) and
+[branch usage](https://supabase.com/docs/guides/platform/manage-your-usage/branching).
 
 ## Current source map and research
 
@@ -398,7 +447,9 @@ explicit replacement semantics and separate legacy/unsupported states. The secur
 review required a mandatory current-Auth read boundary, non-anonymous provisioning,
 an operator repair procedure, accurate alias/inference limitations, exact read
 allowlist and private-helper execution grants. Its final re-review confirmed those
-technical proposal gaps are resolved. The owner decisions below remain open.
+technical proposal gaps were resolved for that earlier candidate. The later MEC
+pilot and owner answers in this revision still require technical re-review; the
+earlier reviews do not approve the new admission design.
 
 These are document/metadata reviews, not an independent pass of a migration or
 application. Neither reviewer ran database/Auth tests or changed the shared service.
@@ -414,8 +465,11 @@ This contract is a review candidate. No migration, profile API, six-field produc
 form, client patch or live permission fix has been implemented by this document.
 The [backend readiness gate](backend-readiness.md) remains open.
 
-Next: resolve the comparison/phone and supported-client decisions, review the
-permission/trigger design independently, then implement and test one coordinated
-migration and client slice in the chosen safe environment. The exact shared-project
+Next: design the approved self-declaration and unique-claim record/transition,
+finish registration-format coverage and specify enforceable save limits. The
+isolated Free test project is available; prepare and review its test implementation
+without treating empty-project connectivity as acceptance.
+Review the resulting permission/trigger/admission design independently, then
+implement and test a coordinated migration/client slice. The exact shared-project
 change still needs explicit authorization after the concrete SQL and acceptance
 evidence are available.

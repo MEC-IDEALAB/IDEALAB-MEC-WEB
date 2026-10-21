@@ -11,7 +11,7 @@ export default function SignUp() {
     <div className="auth-toolbar"><Link className="text-link" href="/"><ArrowLeft size={18} aria-hidden="true" /> Back to IDEALAB MEC</Link><ThemePicker /></div>
     <div className="auth-grid">
       <section className="auth-card" aria-labelledby="join-title"><span className="eyebrow">MAKE ROOM FOR YOUR NEXT IDEA</span><h2 id="join-title">Join the makers.</h2><p>Projects, practical learning and a place to begin at Model Engineering College.</p>
-        <div className="notice" role="status">Online registration is being connected. Contact the lab team to ask about joining and account access.</div>
+        <div className="notice" role="status">Student registration is not available in this release. Contact the lab team for account-access information.</div>
         <a className="button button-ink" href="mailto:idealab@mec.ac.in">Contact the lab team <ArrowUpRight size={18} aria-hidden="true" /></a>
         <div className="auth-divider">or</div><GoogleSignIn />
         <p className="small-copy">Already have a Grow or lab account? <Link href="/sign-in">Sign in here</Link>.</p>

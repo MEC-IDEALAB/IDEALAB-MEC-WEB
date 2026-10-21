@@ -43,6 +43,11 @@ npm run test:acceptance
 
 ## Product and delivery records
 
+For isolated native SQL runtime preparation, an optional `npm run test:db-runtime`
+command starts and removes only a fresh scratch cluster. It requires an existing
+PostgreSQL installation and never accepts a shared database URL. Its success is
+not Supabase Auth, RLS or migration acceptance. See [database validation](docs/database-validation.md).
+
 - [Requirements](docs/requirements.md)
 - [User/staff flows and wireframes](docs/experience.md)
 - [Color, component and motion standard](docs/design-system.md)

@@ -52,9 +52,9 @@ The owner prioritized UI and GitHub setup before backend work. Shared-account ac
 The server-side member guard checks Supabase `auth.getUser()`'s
 `email_confirmed_at` before querying the member's profile. This prevents an
 unconfirmed session from entering the member shell, but it does not validate
-the six required onboarding fields. Keep member activation disabled until the
-shared profile contract and private authorization rules are implemented and
-tested.
+the six required onboarding fields or MEC pilot admission. Keep member activation
+disabled until the shared profile/admission contract and private authorization
+rules are implemented and tested in both supported clients.
 
 The password-recovery slice uses the same gated server-side Supabase client.
 Email requests return generic feedback to avoid account enumeration; callback
@@ -81,13 +81,42 @@ One Postgres authority serves Next.js and Flutter. Each business mutation should
 
 Work Requests, Manufacturing Tasks, Machine Queue, inventory and payments remain separate records and lifecycles. Cancelling a request must not silently refund, consume/release stock or stop an executing task.
 
+## MEC student pilot and shared identity
+
+The owner restricted the initial student platform to Model Engineering College
+students in **both Next.js and Flutter**. The [admission contract](mec-pilot-admission.md)
+supersedes unrestricted student admission. Use a canonical MEC institution and
+one claim per normalized MEC registration number, ignoring case and repeated/
+surrounding spaces while preserving display text. `MDL24CS219` and lateral-entry
+`LMDL` are supplied examples, not an exhaustive official format directory or proof
+that a claimant owns the number. The owner approved self-declared MEC eligibility
+for the pilot: a student attests to current MEC attendance and that the number is
+theirs, then makes one unique claim. No roster, document or email-domain check is
+part of this pilot. Uniqueness cannot stop another person from making the first
+claim; that assurance limit is accepted for the pilot, not an independent
+verification result.
+
+Keep email verification, account role/active status, six-field profile completion
+and the self-declared pilot admission state separate in database/API and both route gates. A
+complete Student profile cannot grant admission without the explicit declaration and unique claim. Required phone entry includes
+`+country-code`; year remains selected current study year 1–8. Preserve existing
+identities, staff roles/access paths and inactive states. No new verification badge
+or role/eligibility authority is inferred from a number or email domain.
+
+Production remains **one shared Supabase Auth/database authority**. A free isolated
+validation project is for non-production migration/Auth/Data API and both-client
+acceptance only; it is not a second production identity store or a production-data
+copy. The owner approved coordinated Flutter updates before activation. The web
+and mobile clients must consume the reviewed versioned contract together, rather
+than preserving unsafe old direct authority writes.
+
 ## Compatibility gate
 
 Repository schema sources conflict: `users.role` versus `base_role/system_role`, project `lead` versus `owner`, event status vocabularies, and RSVP uniqueness/status assumptions. Existing Flutter event and project writes are multiple calls rather than one transaction. Do not copy these races into the website.
 
 Read-only reconciliation on 21 October 2026 now succeeds for project `grow-idealab` (`huftzhfqnnslvnfzvbex`). The live migration ledger reports only `20260503073726 create_initial_schema` and `20260503073744 add_rls_policies`; no development branch exists. Live `public.users` uses `role` and `is_active`, while the canonical repository migration defines `base_role`/`system_role`; Flutter reads/writes `role`. The live authenticated `users_read_all` policy is unconditional, own-row INSERT/UPDATE are permitted, and the grant view lists broad DML/TRUNCATE/trigger privileges for both API roles across the profile tables. No `auth.users` provisioning trigger is present. A previous dashboard read reported Google/email signup and email autoconfirm enabled, but the current connector cannot re-read Auth provider settings; treat them as unverified. Security advisors also flag mutable function search paths, public execution of a SECURITY DEFINER role helper, and disabled leaked-password protection; the helper body returns only the caller's own role. No schema/data write, user-row read, test signup or exploit was performed.
 
-Before persistence: reconcile the live contract and short migration ledger with canonical Grow migrations and Flutter auth/profile consumers, approve the architecture and compatibility plan, independently review a migration and rollback, then verify profile privacy, authority-field denial, email signup, Google provisioning and ordinary profile edits in a safe validation environment. The specific shared-project change requires the user's explicit authorization. A new Supabase branch was not created; cost must be checked and explicitly accepted first. Do not claim backend activation, full V1 or a production-ready authenticated workflow based on UI tests or metadata.
+Before persistence: reconcile the live contract and short migration ledger with canonical Grow migrations and Flutter auth/profile consumers, approve the architecture and compatibility plan, independently review a migration and rollback, then verify profile privacy, authority-field denial, email signup, Google provisioning and ordinary profile edits in a safe validation environment. The specific shared-project change requires the user's explicit authorization. No Supabase branch was created. The confirmed Free organization received a branch quote of $0.01344/hour, but branching also requires Pro. A separate project quote returned $0 monthly; the owner then explicitly approved the fresh isolated Free project `idealab-mec-validation` (`gvvqlfachzbufstzoiwi`) in Mumbai (`ap-south-1`), now `ACTIVE_HEALTHY`. Its [metadata baseline](research/isolated-supabase-baseline-2026-10-21.json) records PostgreSQL 17.11, UTF8, `en_US.UTF-8`, zero public tables and zero migrations; management metadata reports build `17.11.0.003`. This is an empty non-production validation environment, not a production clone or acceptance pass. No paid upgrade, production-data copy, account, application migration or Auth-setting change was made; production and the old paused validation project remain unchanged. Do not claim backend activation, full V1 or a production-ready authenticated workflow based on UI tests or metadata.
 
 The scoped cross-client checklist, actor/operation acceptance matrix and current evidence are recorded in [backend readiness](backend-readiness.md). It is a review plan, not approved SQL or authorization to create a billable branch or change the shared project.
 
@@ -95,8 +124,15 @@ The next review candidate is the [shared profile contract proposal](shared-profi
 It specifies the six-field mapping on the existing account row, completion states,
 an intended own-profile API/privilege boundary, resumable saves, compatible client
 rollout and actual database/Auth acceptance. Proposed API names are not deployed.
-Comparison/phone rules, supported old-client behavior and the validation environment
-remain unresolved; the proposal does not clear the shared-project change gate.
+Case/space comparison, country-code phone entry, self-declared MEC eligibility and
+coordinated Flutter update are owner-confirmed. Exhaustive registration formats,
+technical attestation/claim/validation/save-limit design and actual migration/account
+tests remain open.
+The isolated environment is now available, but does not clear the architecture/
+migration or shared-project change gate.
+A [native PostgreSQL 16.1 runtime smoke check](database-validation.md) passed with
+Node 24.19.0 on a fresh UTF8/C cluster only. It did not test app SQL, Auth, RLS or
+migrations and does not establish PostgreSQL 17.6/en_US.UTF8 parity.
 
 ## Current UI boundary
 
@@ -112,7 +148,7 @@ The requested homepage, dark mode and polished neo-brutalist identity are implem
 
 Current validation is recorded in the visual-standard interface pass above; previous homepage checks are superseded by the current-source local gate.
 
-Design evidence: private MagicPath project `463330845164449792` was created and opened; an actual canvas read verified 11 shapes across two desktop/mobile frames. No Figma, Penpot, Canva or generated-media artifact is established. MobileMockup was inspected but its image-only mobile-app concept workflow did not fit this website task. Firebase was not selected; no additional backend stack was introduced.
+Design evidence: private [MagicPath project](https://www.magicpath.ai/files/463330845164449792) holds the homepage and student workspace desktop/mobile wireframes. No Figma, Penpot, Canva or generated-media artifact is established. MobileMockup was inspected but its image-only mobile-app concept workflow did not fit this website task. Firebase was not selected; no additional backend stack was introduced.
 
 ## Browser request-workspace boundary
 

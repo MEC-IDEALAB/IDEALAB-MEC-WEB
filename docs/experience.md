@@ -2,15 +2,27 @@
 
 Current UI/auth verification: see [UI audit](ui-audit.md). It supersedes earlier notes about three-option theme menus, repeated boot loading and database timeouts. Supabase read-only connectivity is restored; shared authorization/profile-provisioning defects still block account activation.
 
-Planning baseline: 21 October 2026. Routes, flows and wireframes below are proposed specifications, not claims of implemented screens or deployed API contracts. See [requirements](requirements.md) for scope and open decisions.
+Planning baseline: 21 October 2026. Proposed routes, flows and wireframes are labeled by implementation status; a design preview is not a deployed API contract. See [requirements](requirements.md) for scope and open decisions.
 
 The requested homepage and visual-system pass is complete for this foundation slice; this repository still does not implement every V1 member/staff workflow. `ENABLE_MEMBER_PLATFORM=false` disables shared-account activation by default even if public keys are configured; the member/staff routes below remain full-V1 design targets pending backend acceptance.
+
+The homepage places a tilted black/yellow moving highlights band just below the
+public header and a quieter grey activity/facility ticker near the footer. The
+top band does not repeat the header logo; it separates institutional highlights
+with a double-backslash mark. A shared pause/resume control stops both tracks;
+hover and keyboard focus pause incidentally until explicit resume. Its native
+checkbox remains operable if framework hydration is delayed. A nonce-protected
+head script primes motion before paint for repeat visits,
+preventing the taller static fallback from reflowing during hydration or a
+return navigation. Reduced-motion and no-JavaScript visitors retain all copy
+in still wrapped rows. These are editorial highlights rather than live or
+breaking updates.
 
 ## Homepage and theme implementation
 
 The public homepage, dark mode and polished neo-brutalist identity requested by the owner are implemented in this foundation slice. Existing request-hub work is preserved. A single Light/Dark button follows the operating-system preference until the user chooses a mode; that choice persists across reloads and tabs, with an in-memory fallback when storage is blocked. Semantic theme colors retain 2 px borders, hard shadows, readable availability text and literal artwork plates. Theme controls retain keyboard focus and work without storage permission. Literal artwork and logos keep readable plates in both modes rather than being blindly inverted. The toggle uses a 44 px target; the wider 48 px touch-target criterion below remains the design target.
 
-Design evidence: private MagicPath project `463330845164449792` was created and opened; an actual canvas read verified 11 shapes across two desktop/mobile frames. No Figma, Penpot, Canva or generated-media artifact is established. MobileMockup was inspected but its image-only mobile-app concept workflow did not fit this website task. Firebase was not selected; no additional backend stack was introduced.
+Design evidence: private MagicPath project `463330845164449792` includes homepage desktop/mobile, student workspace desktop/mobile, the nine-destination V1 map, MEC onboarding desktop/mobile, and scoped staff workspace desktop/mobile frames. Local Chromium acceptance is the responsive render check. MagicPath reached its account call quota while adding an account-access frame; the sign-in/join wireframe below remains documented here and matches the implemented routes. No Figma, Penpot, Canva or generated-media artifact is established. MobileMockup was inspected but its image-only mobile-app concept workflow did not fit this website task. Firebase was not selected; no additional backend stack was introduced.
 
 ## Current visual-standard interface pass
 
@@ -18,7 +30,7 @@ Current owner direction uses notebook cross-grid paper and the original yellow `
 
 The maker-spirit eyebrow, hero service-availability footnote and first-card boilerplate were removed at the owner’s request. Factual unavailable messages remain on account/service routes. Sign-in retains its semantic form and password show/hide control, disabled while account activation is unavailable. The auth story panels use the current shared palette and theme controls. `/sign-up` remains information/contact only, with no registration writes or OAuth. The loading skeleton remains scoped to sign-in to preserve ordinary not-found HTTP status behavior.
 
-MagicPath project `463330845164449792` was updated with hierarchy/wireframe annotations and earlier accent panels. It is a planning reference, not the high-fidelity source of the implemented interface. No Figma/Penpot/Canva or generated-media artifact is claimed.
+MagicPath project `463330845164449792` is a planning reference, not the high-fidelity source of the implemented interface. Its new MEC onboarding and staff desktop/mobile frames match the current design previews; account access remains documented in this file because the MagicPath call quota was exhausted before that frame could be added. No Figma/Penpot/Canva or generated-media artifact is claimed.
 
 Notebook/content validation passed (session 11250, exit 0): lint, production build and real browser coverage of five homepage widths and all three facility photos; the full 11-entry `/lab` directory at 320/768/1440 px in both themes; `/explore` history and public event-theme boundaries; prior contrast, motion, no-JavaScript, draft and guard journeys. Jet-black dark-mode validation subsequently passed in session 7536, including the body and neutral section strip. Backend availability, full V1 and deployment remain unverified.
 
@@ -26,19 +38,16 @@ Notebook/content validation passed (session 11250, exit 0): lint, production bui
 
 | Surface | Proposed routes | Goal |
 | --- | --- | --- |
-| Public | `/`, `/about`, `/facilities`, `/contact`, `/policies/[slug]` | Understand the lab and participation; enter shared account flow. |
-| Curated public sections | Homepage editorial facilities/participation sections | Individual project/event records are signed-in only; no anonymous record routes. |
-| Account | `/sign-in`, `/sign-up`, `/auth/confirm`, `/forgot-password`, `/reset-password`, `/onboarding` | Verified identity, explicit sign-in and minimum profile. |
-| Design preview | `/design/onboarding` when `ENABLE_DESIGN_PREVIEW=true` | Review the six required identity fields and validation; sample-only, no account access or persistence. |
-| Member | `/app`, `/app/lab`, `/app/lab/check-in`, `/app/lab/history`, `/app/lab/catalog` | Home, presence/history and verified services. |
-| Requests | `/app/requests`, `/app/requests/new`, `/app/requests/[id]` | Compose, review, track and resolve requests. |
-| Projects | `/app/projects`, `/app/projects/new`, `/app/projects/[id]`, `/app/projects/[id]/members` | Discovery, ownership and membership requests. |
-| Events | `/app/events`, `/app/events/[id]`, `/app/events/[id]/registration` | Eligible participation and payment/attendance status. |
-| Personal | `/app/borrowing`, `/app/borrowing/[id]`, `/app/notifications`, `/app/profile`, `/app/profile/edit`, `/app/settings` | Borrowing, inbox and private account management. |
-| Staff | `/app/workspace`, plus `/requests/[id]`, `/manufacturing`, `/queue`, `/machines`, `/inventory`, `/borrowing`, `/visitors`, `/payments`, `/events`, `/reports` below that prefix | Scoped operational work and accountable decisions. |
-| Admin | `/app/admin`, `/app/admin/members`, `/app/admin/assignments`, `/app/admin/master-data`, `/app/admin/audit` | Trusted administration and audit. |
+| Public, implemented | `/`, `/explore`, `/lab`, `/projects`, `/events` | Curated IDEA Lab and facility information; individual event/project records are not public. |
+| Account, implemented | `/sign-in`, `/sign-up`, `/forgot-password`, `/reset-password`, `/auth/callback`, `/auth/recovery/callback` | Honest account-access and recovery states; activation remains disabled pending backend acceptance. |
+| Design preview, implemented | `/design/onboarding` when `ENABLE_DESIGN_PREVIEW=true` | Six required profile values plus MEC self-declaration; sample-only validation, no account access or persistence. |
+| Student shell preview, implemented | `/design/student?screen=home|lab|profile|projects|events|requests|notifications|visits|borrowing|settings` when `ENABLE_DESIGN_PREVIEW=true` | Responsive student page layouts and navigation; no live account, records, submissions or role checks. |
+| Member routes, gated | `/app`, `/app/lab`, `/app/projects`, `/app/events`, `/app/requests`, `/app/requests/new`, `/app/notifications`, `/app/profile` | Protected route foundation and honest unavailable states; not full operational modules. |
+| Future member detail routes | `/app/requests/[id]`, project/event details, borrowing and lab visit history | Planned after the shared identity, permissions, data contract and module rules are accepted. The settings destination currently exists only in the design preview. |
+| Staff design preview | `/design/workspace` when `ENABLE_DESIGN_PREVIEW=true` | Empty Machine/Room, Operations, Events and Super Admin layout previews; no role authority or operational action. |
+| Future staff/admin | Scoped staff inbox/detail, machine/room assignment, handover and audit routes | No live staff/admin authority until permission matrix and server-side actions are implemented. |
 
-Public desktop navigation links to curated homepage sections and sign-in; project/event record links enter the signed-in app. Mobile uses a labeled disclosure menu. Online account creation remains planned; `/sign-up` provides honest joining information and a working contact path without implying registration success. Signed-in desktop anchors are Home / Lab / Profile; contextual Projects / Events / Requests and permissioned Workspace follow. Mobile retains three bottom anchors; modules are reached from Home/Lab. Staff section navigation uses a compact menu, breadcrumb and explicit machine/room scope.
+Public desktop navigation links to curated homepage sections and sign-in; project/event record links enter the signed-in app. Mobile uses a labeled disclosure menu. Online account creation remains planned; `/sign-up` provides honest joining information and a working contact path without implying registration success. Signed-in desktop anchors are Home / Lab / Profile; contextual Projects / Events / Requests / Notifications / Visits / Borrowing follow. The desktop rail can collapse to an icon-only, accessible state; Settings stays pinned at its lower edge and Notifications has a top-right shortcut. Mobile retains the app's three bottom anchors; modules are reached from Home, Notifications remains at the top right, and Settings is linked from Profile. These controls are present in the no-data design preview and do not grant account access. Staff section navigation uses a compact menu, breadcrumb and explicit machine/room scope.
 
 Public links identify the current page with an underline and `aria-current="page"`.
 The mobile disclosure retains native HTML behavior without JavaScript. With
@@ -47,24 +56,77 @@ outside pointer and link activation close it without trapping focus. Crossing
 the 800 px desktop breakpoint closes it and transfers any focused mobile control
 to the current desktop link (or the first link on the homepage).
 
+The desktop/mobile student workspace layouts are drawn in the [MagicPath
+wireframe](https://www.magicpath.ai/files/463330845164449792). The stable source
+remains this repository and its responsive browser acceptance; the canvas is a
+design handoff, not a production integration.
+
+## Account access and join wireframes
+
+The split-panel account pages borrow the user's reference hierarchy while
+keeping the approved IDEALAB palette and current account-gate behavior. The
+desktop layout keeps a brand/story panel beside one focused account panel; on
+short and narrow screens the story panel leaves the viewport so the account
+controls remain reachable without normal page scrolling.
+
+```text
+SIGN IN — DESKTOP
++ Back to IDEALAB MEC -------------------------------- Theme +
+| Yellow maker-story panel    | Sign in to existing lab account    |
+| Welcome back                | Account-service status / safe error|
+| Your next idea starts here  | Email address                      |
+| Short Grow account note     | Password                  Forgot?  |
+|                             | [Sign in]                           |
+|                             | or [Continue with Google]*          |
+|                             | Help · Contact · Explore joining    |
++-----------------------------+------------------------------------+
+
+JOIN — PHONE, 320×568
++ Back + Theme                                             +
+| Join the makers.                                         |
+| Current registration availability message               |
+| [Contact the lab team]                                   |
+| Google sign-in is disabled until its activation gate     |
+| Already have an account? Sign in here                   |
++----------------------------------------------------------+
+```
+
+`/sign-up` currently gives joining information and a lab contact path; it does
+not collect or create an account. Email sign-in, Google sign-in, and account
+creation remain disabled until the shared Auth/schema/security and Flutter
+compatibility gates pass. Error copy does not identify whether an account
+exists. Recovery has separate request and password-reset pages; its callback
+uses a fixed origin and rejects caller-provided destinations. The visual form
+is implemented, but successful account and email-provider journeys remain
+unverified.
+
 ## Account creation and onboarding
 
-Follow [the onboarding requirements](onboarding-requirements.md): any verified-email student account starts as Student, and the member app remains gated until **name, phone, roll number, department, year, and college/institution** are saved successfully. The public `/sign-up` page is currently informational; functional account creation, email confirmation, onboarding persistence and Google acceptance remain gated by the shared-backend review.
+Latest pilot scope is [MEC-only on both clients](mec-pilot-admission.md).
+Collect the registration number (including `MDL`/`LMDL` prefixes) and use the
+canonical MEC institution value. Students self-declare current MEC attendance
+and that the number was issued to them; the pilot enforces one claim per
+normalized number but performs no college-record verification. Email
+verification and six-field profile completion remain separate. Preserve the
+trusted staff path and existing account IDs.
 
-The first-time path is `homepage → sign up → email confirmation → intentional sign-in → profile check → six required fields saved → Home`. Existing mobile and website identities must converge on the same Supabase Auth user and `public.users` row. Keep the form one-column on phones, explain why institution details are requested, show required status and progress, validate beside each field, retain safe input across recoverable failures, and keep optional profile enrichment out of initial onboarding. The owner chose Year 1–8, free-text institution, institution-scoped roll-number uniqueness, student self-edit, and private-by-default required details. Username, bio, interests, skills and goals from the mobile source are deferred to later profile editing.
+Follow [the onboarding requirements](onboarding-requirements.md): trusted provisioning creates an ordinary Student account, and student workspace entry requires verified email, six saved required values (**name, phone, registration number, department, current year, canonical MEC institution**) and the self-declaration plus unique registration claim. This pilot does not independently verify the student or first claimant. The public `/sign-up` page is currently informational; functional account creation, email confirmation, onboarding persistence and Google acceptance remain gated by the shared-backend review.
 
-The current `/design/onboarding` route is an opt-in review artifact, not that account journey. It renders six required fields and focuses a linked error summary when fields are missing. Current study year is selected from Year 1–8, and roll-number uniqueness is described as institution-scoped. The preview keeps values in component memory only and reports that nothing was sent or saved. Copy distinguishes planned email verification, self-edit and privacy defaults from currently working behavior. The page is `noindex`, warns against entering real details, and returns 404 unless the design-preview flag is enabled.
+The first-time path is `homepage → sign up → email confirmation → intentional sign-in → profile check → six required values saved → MEC student self-declaration → unique claim → Home`. Existing mobile and website identities converge on the same Supabase Auth user and `public.users` row. Keep the form one-column on phones, explain the canonical institution and pilot assurance level, show required status and progress, validate beside each editable field, retain safe input across recoverable failures, and keep optional enrichment out of initial onboarding. Current decisions are Year 1–8, canonical MEC institution, one normalized MEC registration claim, country-code phone entry, self-declared MEC eligibility, and private required details. Earlier free-text multi-institution entry is historical. Username, bio, interests, skills and goals from the mobile source are deferred to later profile editing.
+
+The current `/design/onboarding` source is an opt-in review artifact, not that account journey. It displays six required values: five editable fields and read-only “Model Engineering College.” Study year is selected from Year 1–8. Local feedback checks required values, a `+country-code` numeric phone shape, and an `MDL`/`LMDL` prefix with an alphanumeric suffix. It does not assume an exhaustive course catalog or suffix length. A separate MEC student self-declaration is required. These checks neither validate phone reachability or claim availability nor establish independent student/number verification. A linked error summary handles missing/invalid fields. Values stay in component memory; the result says nothing was sent or saved, the attestation was not checked against college records, and number availability was not checked. Planned email verification, self-edit and privacy remain distinct from working preview behavior. The current-source production-browser test is rerun for this page change; see the [MEC preview audit](ui-audit.md#mec-pilot-preview--21-october-2026) for scope and limits. The page is `noindex`, warns against entering real details, and returns 404 unless the design-preview flag is enabled.
 
 ```text
 ONBOARDING — WIDE PREVIEW
 + Back to sign up ------------------------------------------ Theme +
 | Six required details before member Home.                     |
 +----------------------------+-----------------------------------+
-| 06 required details       | Required profile                  |
+| 06 profile details       | Required profile                  |
 | Why these details matter  | About you: name | phone           |
 | Preview-only notice        |              roll number          |
 |                            | Your studies: department | study year|
-|                            |              college/institution   |
+|                            | MEC institution (read-only)       |
+|                            | MEC self-declaration checkbox    |
 |                            | [Check preview fields]             |
 +----------------------------+-----------------------------------+
 
@@ -73,13 +135,94 @@ ONBOARDING — PHONE PREVIEW
 | Heading and one-line purpose                               |
 | Account context / preview-only notice                       |
 +------------------------------------------------------------+
-| Name → phone → roll → department → Year 1–8 → institution  |
+| Name → +phone → MEC number → department → Year 1–8           |
+| Model Engineering College (read-only sixth value)            |
+| Self-declared MEC eligibility; no roster check               |
 | linked error summary if required values miss                |
 | [Full-width check button]                                   |
 +------------------------------------------------------------+
 ```
 
-The owner confirmed current year of study (Year 1–8), a free-text institution value, institution-scoped roll-number uniqueness, self-edit of required fields, and private-by-default visibility. The preview explains that institutional entry does not imply email-domain verification. The cross-app database mapping and roll normalization rules remain subject to review. Optional mobile profile fields stay outside the initial onboarding and are not persisted by this preview.
+The owner confirmed case/space-insensitive comparison, +country-code entry, coordinated Flutter update and self-declared MEC eligibility for the pilot. The preview requires a separate self-declaration but does not implement database normalization, duplicate claims or enforceable save limits. Exact comparison/phone validation, claim transitions and generic duplicate responses still need the shared technical contract. Optional mobile profile fields stay outside initial onboarding and are not persisted here.
+
+## Student workspace page map and wireframes
+
+The opt-in `/design/student` preview makes nine student destinations reviewable
+without exposing fake member data. Query values are `home`, `lab`, `profile`,
+`projects`, `events`, `requests`, `notifications`, `visits` and `borrowing`. Every
+view carries a no-live-data banner, its own unavailable or empty state, the shared
+Light/Dark toggle and a link back to the public site. The route is `noindex` and
+returns 404 unless `ENABLE_DESIGN_PREVIEW=true`; it does not sign in, query
+Supabase, save form data or authorize any role.
+
+**Desktop:** fixed left rail groups Home/Lab/Profile separately from Projects,
+Events, Requests, Notifications, Visits and Borrowing. The top bar carries the
+current-page breadcrumb, preview-mode label and direct theme toggle. The content column starts
+with a preview-status banner, one page title and a contextual surface. Home shows
+the module links and pilot/scheduling notes. Lab puts approved visit guidance next
+to facility/service availability states. Profile shows the six planned private
+fields and an edit-layout wireframe; a registration-number change must preserve
+the unique-claim rule. Projects show discovery, a record-detail layout and the
+creator-reviewed join-request path. Events show a detail layout and approved
+eligibility, capacity and free/paid registration states, with manual payment
+verification separated from a seat. Requests show Machine/Operations, the local
+draft entry point, an empty submitted-request state and the proposed-time
+acceptance lifecycle. Visits cover pre-arrival guidance, manual check-in/out and
+history. Borrowing covers an approved catalog, item details, issue and return
+verification. These are state/layout maps without pretend records, forms or
+operational buttons.
+
+**Mobile:** the rail collapses; the top bar stays compact and Home/Lab/Profile
+become a persistent three-item bottom navigation with 52 px link height and safe-
+area padding. On module destinations, Home is marked as the current navigation
+location (not the current page) and provides the complete module map. Detail cards
+use one column and visit states use two columns across the 761–980 px tablet range;
+cards stack at narrow widths;
+the page content scrolls above the bottom bar. Feature panels switch to jet black
+with accent labels in dark mode. The preview has no horizontal scroll at 320 px.
+
+```text
+STUDENT HOME — DESKTOP
++------------------+--------------------------------------------------+
+| IDEALAB MEC      | Student space / Home        Preview • Theme     |
+| Home             | DESIGN PREVIEW · NO LIVE DATA                    |
+| Lab              | Good ideas need a place to begin.                 |
+| Profile          | [Requests] [Projects] [Events]                    |
+| Modules          | [Notifications] [Visits] [Borrowing] [Profile]    |
+| Projects         | Self-declared pilot note | preferred-time note   |
+| Events           |                                                  |
+| Requests         |                                                  |
+| Visits           |                                                  |
++------------------+--------------------------------------------------+
+
+STUDENT HOME — MOBILE
++--------------------------------------------------+
+| IDEALAB MEC                           Theme       |
+| DESIGN PREVIEW · NO LIVE DATA                     |
+| Good ideas need a place to begin.                 |
+| [Work requests]                                   |
+| [Projects]                                        |
+| [Events & workshops]                              |
+| [Notifications] [Lab visits] [Your profile]      |
+| Self-declared pilot • changed time needs consent  |
++--------------------------------------------------+
+|       HOME                 LAB              PROFILE|
++--------------------------------------------------+
+```
+
+**Module detail-state map:** Projects: discover → signed-in detail → join request
+→ creator decision. Events: review terms → free registration or paid proof →
+manual payment/capacity decision. Requests: preferred time → assigned-head review
+→ requester accepts a changed proposal or asks for another → agreed time and
+recorded history. Visits: guidance → check-in → active visit → check-out/history.
+Borrowing: approved catalog → item/request → Operations issue → member reports
+return → Operations verifies. These diagrams show intended page states, not
+enabled actions; production member routes remain behind the account/backend gate.
+
+Implemented product routes remain distinct: `/app` and its subroutes are
+protected and disabled by the shared-account feature flag; their live records,
+actions and backend access still require the shared schema/security contract.
+This preview is a UI/wireframe handoff, not production member-page completion.
 
 ## Local request-workspace slice
 
@@ -102,6 +245,9 @@ The local production-browser acceptance exercises valid-link review and restore 
 
 ## Journey contracts
 
+The first diagram is the Student path. Existing staff retain their independently
+trusted access path; a Student registration claim does not assign staff authority.
+
 ```mermaid
 flowchart TD
   Public[Public homepage] --> Auth[Shared account sign-in or signup]
@@ -111,10 +257,12 @@ flowchart TD
   Login --> Minimum
   Verify -->|Yes| Minimum{Minimum profile complete?}
   Minimum -->|No| Setup[Name, phone, roll, department, year, institution required]
-  Setup -->|Save confirmed| Home[Home or eligible intended destination]
+  Setup -->|Profile saved| Admission{MEC self-declaration and unique claim?}
   Setup -->|Save failed| Retry[Keep safe input and retry]
   Retry --> Setup
-  Minimum -->|Yes| Home
+  Minimum -->|Yes| Admission
+  Admission -->|No declaration or claim| Pending[Admission guidance; no student workspace]
+  Admission -->|Yes| Home[Student Home; self-declared pilot status]
   Home --> Lab[Lab presence and services]
   Home --> Projects[Project discovery and membership requests]
   Home --> Events[Event participation]

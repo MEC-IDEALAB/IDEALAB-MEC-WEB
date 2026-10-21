@@ -11,7 +11,7 @@
 | Script sources were not restricted, and production session cookies lacked explicit protections | Proxy adds a per-request nonce CSP; Supabase session cookies use HttpOnly, Secure in production and SameSite=Lax. Style attributes are separately allowed for Next/Image layout while executable scripts stay nonce-gated. | Fresh nonce, inline-script nonce, protected-route policy and no-browser-CSP-violation checks in real production Chromium acceptance; live auth cookie issuance is unverified |
 | Typing a second reference URL lost the textarea's trailing newline | Preserve raw text while editing and normalize the URL list only for validation, review and save | Production Chromium types URL → Enter → URL, checks both review links, then verifies both links survive automatic and manual draft restore |
 
-On 21 October 2026, the current UI and preview-guard source passed ESLint, TypeScript, the production build, all 26 boundary tests and real Playwright browser acceptance. The documentation check passed for 15 files and 70 local links. Exact-head Website CI, its required gate and Documentation CI passed on verified PR snapshot `85b4ab2f5a17486542e82f0133231eedf7e80167` ([Website CI](https://github.com/MEC-IDEALAB/IDEALAB-MEC-WEB/actions/runs/39517845382), [Documentation CI](https://github.com/MEC-IDEALAB/IDEALAB-MEC-WEB/actions/runs/39517845380)). An independent source review confirmed the watchdog releases page interaction and the pre-hydration keyboard lock starts before app scripts arrive; a separate security review found and verified the fix for multiline dotenv parsing in the preview flag guard. Browser checks show moving marks, the controlled exit, keyboard/inert handoff, no-hydration recovery, a slow-load exit, reduced-motion fast exit, no repeated loader, and a fitted jet-black 320×568 view. The prior 375×667 auth overflow and hydration race in the old test helper remain corrected. No-JavaScript content, scroll/card animation, live reduced-motion cancellation, five responsive widths, both themes, local images, sample draft behavior, protected routes, fresh CSP nonces and no CSP errors are also covered. Preview drafts use page memory only, clear when leaving request-preview routes, and do not enter local or session storage. Later sign-in navigation uses a standard route skeleton. Live auth and operational backend acceptance remain unverified.
+The foundational UI and preview-guard audit was verified on PR snapshot `85b4ab2f5a17486542e82f0133231eedf7e80167`: ESLint, TypeScript, production build, 26 boundary tests, real Playwright browser acceptance and documentation validation (15 files/70 links) passed. Exact-head [Website CI and required gate](https://github.com/MEC-IDEALAB/IDEALAB-MEC-WEB/actions/runs/39517845382) and [Documentation CI](https://github.com/MEC-IDEALAB/IDEALAB-MEC-WEB/actions/runs/39517845380) passed. An independent source review confirmed the loader watchdog releases page interaction and the pre-hydration keyboard lock starts before app scripts arrive; a separate security review found and verified the fix for multiline dotenv parsing in the preview flag guard. Browser checks show moving marks, the controlled exit, keyboard/inert handoff, no-hydration recovery, a slow-load exit, reduced-motion fast exit, no repeated loader, and a fitted jet-black 320×568 view. The prior 375×667 auth overflow and hydration race in the old test helper remain corrected. No-JavaScript content, scroll/card animation, live reduced-motion cancellation, five responsive widths, both themes, local images, sample draft behavior, protected routes, fresh CSP nonces and no CSP errors are also covered. Preview drafts use page memory only, clear when leaving request-preview routes, and do not enter local or session storage. Later sign-in navigation uses a standard route skeleton. These checks use no live member identity and do not establish live auth or operational backend acceptance.
 
 The 21 October follow-up fixed multiline reference entry without changing the draft schema. The production-browser test now types two URLs with the keyboard and checks review, automatic restore and manual replacement of unsaved text. Local lint, typecheck, all 23 boundary tests, dependency audit (zero findings), production build, Chromium acceptance, and documentation validation (15 files and 70 local links) passed on this follow-up source. On application commit `2e103d9292c5892841d82a6d4b46075fd0cf1cd6`, exact-head [Website CI and required gate](https://github.com/MEC-IDEALAB/IDEALAB-MEC-WEB/actions/runs/39507554000) and [Documentation CI](https://github.com/MEC-IDEALAB/IDEALAB-MEC-WEB/actions/runs/39507553977) passed. Live account success, recovery and OAuth; real-member draft behavior; scoped permissions; and operational backend workflows remain unverified.
 
@@ -26,19 +26,24 @@ member identity; Google/email account success, six-field onboarding persistence,
 profile privacy, staff scope and operational workflows remain unverified. Keep
 member activation disabled.
 
-The current local change adds responsive noindex recovery and reset-password
-pages, direct light/dark toggles, focused feedback, and show/hide controls for
-both new-password fields. The email-request response does not reveal whether
-an account exists. Source uses a PKCE exchange against the fixed site callback
-and ignores caller-provided return paths; browser acceptance exercised rejected
-callback paths while password change requires a server-side authenticated user.
-The production Chromium suite passed 320, 375, 768 and
-1440 px checks in both themes and verified no horizontal overflow. It does not
-send a live email or call the configured Supabase project; successful recovery,
-email delivery and password update remain unverified. Keep member activation
-disabled until the shared Auth/schema/security gate passes.
+Application/test source commit `4141923468daa1d790645157497923f3e2664c0d`
+adds responsive noindex recovery and reset-password pages, direct light/dark
+toggles, focused feedback, and show/hide controls for both new-password fields.
+The email-request response does not reveal whether an account exists. Source
+uses a PKCE exchange against the fixed site callback and ignores caller-provided
+return paths; browser acceptance exercised rejected callback paths while
+password change requires a server-side authenticated user. The production
+Chromium suite passed 320, 375, 768 and 1440 px checks in both themes and
+verified no horizontal overflow. Exact-head [Website CI and required gate](https://github.com/MEC-IDEALAB/IDEALAB-MEC-WEB/actions/runs/39540469694)
+and [Documentation CI](https://github.com/MEC-IDEALAB/IDEALAB-MEC-WEB/actions/runs/39540469704)
+passed on PR head `3c20ad3dff8e98918613134d2b9ff887062a4b2c`, which adds a
+documentation-only update after the application source. The acceptance server
+uses an `.invalid` Supabase URL; no live email or Auth request was made.
+Successful recovery, email delivery and password update remain unverified.
+Keep member activation disabled until the shared Auth/schema/security gate
+passes.
 
-Exact code revision `d2a310edf80d176bd10768e04dd31cde030b389e` passed hosted
+The earlier email-verification gate revision `d2a310edf80d176bd10768e04dd31cde030b389e` passed hosted
 [Website CI and the required gate](https://github.com/MEC-IDEALAB/IDEALAB-MEC-WEB/actions/runs/39510291937)
 and [Documentation CI](https://github.com/MEC-IDEALAB/IDEALAB-MEC-WEB/actions/runs/39510291938).
 

@@ -51,6 +51,15 @@ paused `grow-security-validation` project is preserved. No paid upgrade,
 production-data copy, account, application migration, Auth-setting or shared-project
 change was performed. Production remains one shared identity/database authority.
 
+A later 21 October check compared PostgreSQL/collation metadata in both projects
+without reading account rows. They expose the same ICU version `153.121`. In the
+isolated project only, a validation collation `idealab_private.mec_registration_ci`
+was created and comparison vectors confirmed case/repeated-whitespace equality
+while punctuation, internal single spaces and accents remain significant. A
+temporary unique-index probe passed after applying that normalization. This does
+not verify a persistent app index, Auth, RLS or application behavior. See the
+[normalization probe](research/registration-normalization-2026-10-21.json).
+
 The branch-list API returned no development branches. The fresh performance
 advisor also reports eight unindexed foreign keys, 62 RLS auth-function
 initplan findings, three pairs of duplicate permissive `SELECT` policies, and
@@ -162,6 +171,15 @@ self-declaration for the pilot and no college-record check. A unique claim limit
 duplicate claims but cannot prove the first claimant owns the number; this is an
 accepted pilot assurance limit, not a verification result.
 
+This creates a false-first-claim recovery risk: a legitimate student can be blocked
+by another account's self-declaration. The current decision authorizes neither ID
+collection nor a college-roster check and does not specify who may transfer a
+claim. No automatic or self-service transfer is permitted. Approve a private
+recovery procedure and authoritative evidence source before production signup
+is activated. Until then, support cannot reassign a claim solely on a competing
+self-declaration, and a legitimate student may have no approved remedy if their
+number was falsely claimed.
+
 Self-edit and required-field privacy are approved; changing a registration number
 needs a reviewed atomic claim transition, not automatic renewed admission. Neither
 signup metadata nor profile forms can assign roles, active/completion/eligibility
@@ -227,10 +245,11 @@ reconcile the conflicting rules, code consumers and live schema.
 grants, triggers and migration ledger. Do not replay the repository migration
 chain against this project.
 2. Review the proposed existing-row mapping, canonical MEC claim boundary,
-self-declaration recording, registration-format coverage and technical
-normalization/save-limit design. Reconcile existing incomplete accounts and
-claims without guessing institutional affiliation; preserve display text and
-required-field privacy.
+self-declaration recording and technical normalization/save-limit design.
+Supplied registration-number prefixes are examples, not an exhaustive format
+catalogue; the bounded input policy does not verify against college records.
+Reconcile existing incomplete accounts and claims without guessing institutional
+affiliation; preserve display text and required-field privacy.
 3. Replace Flutter's direct profile creation, arbitrary update maps,
 client-selected role and client-written completion state with the reviewed
 shared contract. Review full-row profile helpers such as `getUserProfile`
@@ -283,10 +302,21 @@ cleanup without touching the existing service or shared project. This is not
 the PostgreSQL 17.6/Supabase Auth/Data API acceptance environment required above;
 no application schema, provisioning, RLS or migration has been tested by it.
 
-- Technical approval of the proposed existing-row mapping, phone metadata and
-  normalization/collation rules. Country-code entry, case/space comparison and
-  self-declared MEC eligibility are settled; full registration formats and
-  attestation/claim enforcement are not.
+- Follow-up independent technical/security review of the specified claim
+  transition and rolling attempt limit. The first review returned actionable
+  gaps; the revision now defines pending reservations, old-claim preservation,
+  exact retry behavior, timestamp pruning, and the fifth/sixth attempt boundary.
+  The [model-level temporary SQL fixture](research/registration-claim-fixture.sql)
+  passed in the approved Free project and rolled back; it does not exercise the
+  proposed RPC or concurrent sessions.
+  The owner approved the generic-error/limited-attempt approach but not the exact
+  five-per-15-minute threshold; that value remains a proposal requiring approval
+  before production signup.
+  Read-only test-project probes also covered composed/decomposed accents,
+  non-breaking space, Latin/Greek lookalikes and sharp-s variants. These are
+  design evidence only; the actual RPC still requires database tests. Country-code
+  entry, case/space comparison and self-declared MEC eligibility are settled; the
+  supplied prefixes remain non-exhaustive examples.
 - How existing users supply institution and current study year, and how
   existing roll values are checked under approved case/space normalization
   before any reviewed replacement of raw global uniqueness. Preserve the
@@ -299,6 +329,14 @@ no application schema, provisioning, RLS or migration has been tested by it.
 - Reviewed test schema and real Auth/Data API/both-client acceptance in the
   now-available isolated Free project, including the 17.11-versus-shared-17.6
   version difference; production rollback and data-recovery ownership.
+- An approved private support recovery procedure and authoritative evidence source
+  for a false first claim before production signup is activated. The current pilot
+  explicitly lacks independent ownership verification and claim transfer.
+- A real test-account path in the isolated project. The connected Supabase tool
+  catalog currently exposes SQL, migrations and project management, but no Auth
+  user-creation or account-testing operation. No synthetic Auth row should be
+  inserted directly into `auth.users`; email must not be sent to an arbitrary
+  address to manufacture a test identity.
 - Supported Flutter build, versioned cutover and recovery evidence for the
   approved coordinated update; unsafe direct writers must not remain enabled.
 - A review of legacy profile visibility and the current web `requireMember`

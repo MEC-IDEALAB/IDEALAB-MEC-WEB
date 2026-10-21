@@ -75,25 +75,53 @@ the declaration or claim.
 ## Confirmed product rules and proposed technical validation
 
 The owner confirmed case/space-insensitive comparison, country-code phone entry
-and the MEC-only pilot. Lengths, exact Unicode/collation behavior, complete number
-formats and validation implementation below remain technical review candidates.
-Existing records are not assumed compliant and must not be silently rewritten.
+and the MEC-only pilot. Existing records are not assumed compliant and must not
+be silently rewritten. The safe technical bounds below do not claim to enumerate
+MEC branch formats.
 
 | Field | Proposed rule |
 | --- | --- |
 | Name | Trim surrounding whitespace; preserve Unicode spelling; 1–120 Unicode code points; reject control characters |
-| Phone | Required `+country-code` entry is confirmed. Proposed storage is parsed E.164; validate national length with maintained phone metadata rather than a guessed global minimum; no SMS-verification claim |
-| Roll | MEC registration number, preserving display text; proposed 1–64 code-point limit and control-character denial. Supplied `MDL24CS219` and lateral-entry `LMDL` are examples, not an exhaustive format directory |
+| Phone | Require `+` followed by a non-zero first digit and 1–14 further digits (2–15 digits total); a maintained phone-number parser may give better entry feedback, but no SMS-verification claim is made |
+| Roll | MEC registration number, preserving the entered display text; require 1–64 Unicode code points after whitespace normalization and reject control characters. Supplied `MDL24CS219` and lateral-entry `LMDL` are examples, not an exhaustive format directory |
 | Institution | Canonical Model Engineering College value for the pilot; proposed 1–200 code-point storage limit; preserve legacy display text during reconciliation without using aliases as separate claim scopes |
 | Department | Free text, 1–120 code points after trimming; preserve display spelling; reject control characters |
 | Study year | JSON integer / SQL smallint 1–8; reject coercion from fractions, booleans or arbitrary strings |
 
-The approved comparison ignores case and repeated/surrounding spaces while
-preserving entered display text. During the pilot, the claim scope is canonical
-MEC: “MEC” and “Model Engineering College” cannot hold separate claims for the same
-normalized registration number. The earlier free-text alias distinction is
-superseded for pilot admission, not an approved bypass. Do not strip punctuation
-or invent format rules from the two supplied prefix examples.
+The approved comparison ignores case and repeated/surrounding whitespace while
+preserving entered display text. The database stores a separate comparison value
+made by collapsing each run of POSIX whitespace to one ASCII space and trimming
+the result. A unique index compares that value with a nondeterministic ICU
+collation using `und-u-ks-level2`: case and Unicode canonical-form differences
+compare equal; accents, punctuation and internal single spaces remain significant.
+It does not strip punctuation, infer course codes or claim that lookalike
+characters are identical. The exact ICU collation is part of the database
+contract, not a JavaScript normalization rule.
+
+On 21 October, read-only checks found the same PostgreSQL 17 major version,
+UTF-8 encoding, `en_US.UTF-8` database locale, ICU collation version `153.121`
+and `und-x-icu` availability in the production and isolated projects. A
+validation-only `idealab_private.mec_registration_ci` collation using ICU
+`und-u-ks-level2` was created in the isolated project and exercised with
+upper/lower case, repeated tabs/newlines, outer whitespace, punctuation,
+internal-space and accent vectors. The requested
+case/whitespace variants compared equal; punctuation and internal single spaces
+remained significant; accented and unaccented text remained distinct. Composed
+and decomposed `é` compared equal. A non-breaking space collapsed to ASCII space
+under the current POSIX whitespace expression. Latin `M` and Greek `Μ` remained
+distinct; capital `ẞ` and lowercase `ß` compared equal, while `ß` and `ss` stayed
+distinct. A transaction-local temporary table with a unique index confirmed that
+a normalized case/outer-whitespace duplicate is rejected. No account rows or
+persistent application tables were created.
+The ICU version must be rechecked before rollout; after an ICU upgrade, recheck
+the duplicate set and rebuild the dependent unique index before refreshing the
+collation version.
+
+During the pilot, the claim scope is canonical MEC: “MEC” and “Model Engineering
+College” cannot hold separate claims for the same normalized registration
+number. The earlier free-text alias distinction is superseded for pilot
+admission, not an approved bypass. Do not invent format rules from the two
+supplied prefix examples.
 
 `MDL24CS219` explains college, admission year, course and student number; `LMDL`
 identifies lateral entry. Neither format nor uniqueness proves number ownership.
@@ -102,15 +130,30 @@ lab-team review or number-bound invitation. A one-time lab-team check without ID
 upload is not part of the approved pilot. Current study year stays an explicit
 Year 1–8 value rather than being inferred from admission year.
 
-The SQL implementation must specify its Unicode/collation behavior and test the
-same comparison vectors in Postgres and clients. Do not substitute JavaScript
-case conversion for the database's uniqueness decision. The database unique index
-is the final concurrent-write authority.
+The database unique index is the final concurrent-write authority. Clients submit
+the preserved display text and show server-returned results; JavaScript case
+conversion is not used to reserve or preflight a number. Supplied examples do not
+need an exhaustive branch/course catalogue because registration-format coverage
+has not been provided. Unknown but bounded display values are accepted for a
+self-declared pilot claim; this is not proof against a fabricated or mistyped
+number.
 
-Before SQL, settle the exhaustive registration-format/course coverage and exact
-normalization/validation and attestation/claim implementation. The assurance policy
-is settled as self-declared MEC eligibility without college-record verification;
-changing comparison semantics later requires another duplicate/collation review.
+The assurance policy is self-declared MEC eligibility without college-record
+verification. A successful first claim establishes only that the normalized
+value is unclaimed in this database.
+
+This pilot choice has an accepted availability/integrity risk: a verified account
+can claim an unclaimed number that belongs to another student. Generic errors and
+rate limits reduce repeated guessing but cannot prevent a first false claim. The
+current product decision does not authorize ID collection or a source of
+authoritative roster evidence, so there is no automated ownership check or
+approved self-service transfer. A claim conflict must not reveal the holder.
+Before production admission at wider scale, the lab must approve a private recovery
+procedure and authoritative evidence source for correcting a false claim before
+production signup is activated. Until then, support must not reassign a claim
+based only on another self-declaration, and a legitimate student may have no
+approved remedy if their number was falsely claimed. The UI and release checklist
+must state this limitation; do not describe the pilot as independently verified.
 
 ## Account and profile states
 
@@ -143,8 +186,9 @@ college roster or document was checked.
 
 | Proposed operation | Input | Successful output / atomic behavior |
 | --- | --- | --- |
-| `get_own_profile_v1` | No account ID | Allowlisted own six fields, read-only account role, active/completion/version/revision state |
-| `save_own_profile_v1` | Full six-key replacement payload plus expected revision; no actor or authority input | Lock own row, validate version/revision and values, update atomically, derive trusted completion/version, increment revision, return saved own profile |
+| `get_own_profile_v1` | No account ID | Allowlisted own six fields, read-only account role, active/completion/version/revision state and own claim/admission status |
+| `save_own_profile_v1` | Full six-key replacement payload plus expected revision; no actor or authority input | Lock own row, validate version/revision and values, update atomically, derive trusted completion/version, increment revision, and refuse a changed claimed number with `claim_transition_required` |
+| `claim_mec_registration_v1` | Display number, expected profile revision and explicit self-declaration | Lock own row; require verified active Student and complete profile; reserve the normalized claim, record server-time/versioned attestation and update the display value atomically; a changed claim replaces the old one only after the new one is secured |
 | New-Auth provisioning trigger | Trusted NEW non-anonymous Auth identity with an email, including an explicitly tested anonymous-to-email conversion | Insert ordinary Student profile once; ignore editable role/status metadata; never overwrite an existing profile |
 | Operator missing-profile repair procedure | Approved target Auth ID and authoritative role/status provenance; never member-supplied authority | Restore one missing legacy row under a reviewed maintenance transaction; preserve existing rows and refuse ambiguous authority/status |
 
@@ -175,8 +219,31 @@ six profile fields and derived completion/version/revision. It cannot edit anoth
 ID, role, active status or eligibility authority. Registration-number self-edit
 needs an atomic reviewed claim transition: it cannot transfer another claim,
 auto-approve a replacement number or leave the self-declared admission attached to
-an old number. The precise attestation record, claim transition and replacement
-behavior still need a technical design.
+an old number. The private `idealab_private` claim table has a unique normalized
+value using the reviewed ICU collation, preserved display text, attestation
+timestamp/version and a `current` or transaction-local `pending` state. Partial
+unique indexes allow at most one current and one pending row per Auth user; the
+normalized value is unique across both states. No pending row may remain committed.
+
+The claim RPC locks the owner's `users` row, checks the expected profile revision,
+and serializes that user's claim attempts. An exact retry for the current claim
+(same normalized and display values) returns idempotent success with the current
+revision and writes nothing. Handle the same normalized claim before reserving a
+pending row so it does not conflict with the user's own current row. A case/space-only display edit keeps the existing
+attestation, but requires the current revision. For a new or changed number, the
+RPC first inserts a `pending` row with
+`ON CONFLICT (normalized_value) DO NOTHING RETURNING`. If occupied, it records the
+collision timestamp and returns normally with the generic result; the current
+claim and profile remain unchanged. If inserted, it deletes the old current row,
+promotes the pending row to current, updates `users.college_roll` and revision,
+and commits those changes together. The unique pending row reserves the target
+before the old claim is released. A lost-response retry is idempotent when the
+stored current claim already has exactly the submitted normalized and display
+values; any other stale revision returns a conflict. The `users.college_roll`
+value remains the display/draft compatibility field. The existing raw unique
+constraint is retained until a coordinated cutover reconciles legacy records and
+has a reviewed replacement; it must not be silently dropped to make a draft
+fixture pass.
 Use fixed search paths, qualified static SQL, minimal function privileges and no
 caller-selected relation, column, actor or dynamic SQL. No elevated function may
 simply return a client-provided completion result.
@@ -236,15 +303,33 @@ profile columns. Test the legacy endpoints as well as the new own-profile API.
 The save response distinguishes safe field validation, stale revision, inactive
 account, lost verification and retryable backend failure. Do not expose raw unique
 constraint details or another account's identity. There is no roll-availability
-lookup endpoint. A uniqueness failure uses a generic cannot-save/review response,
-and repeated authenticated saves need an enforceable abuse limit before launch.
-The owner accepted limited occupied-registration inference with generic errors
-and save limits, along with self-declared first-claim eligibility. This is not
-independent ownership verification or an assertion that enumeration is impossible.
-Define and test the limit/window and enforcement path
-for direct API calls too; a client-only throttle or a failed transaction that
-rolls back its attempt counter is insufficient. No availability lookup, other
-profile disclosure, raw provider errors or profile-value logging is permitted.
+lookup endpoint. The owner accepted limited occupied-registration inference with
+generic errors and save limits, along with self-declared first-claim eligibility.
+The owner approved generic errors and limited repeated attempts, but did not set
+the numeric threshold. Five occupied-number collisions per verified Auth UID in
+a rolling 15-minute window is a conservative technical proposal and must be
+confirmed before production signup is activated. The private attempt-state row
+stores only up to five collision timestamps, never the submitted number, IP
+address or user agent. After
+locking the owner's `users` row, the RPC captures one
+`v_now := clock_timestamp()` and prunes timestamps at or before
+`v_now - interval '15 minutes'`; only timestamps strictly newer than that
+boundary count. Use this post-lock timestamp for both the window decision and a
+recorded collision, rather than transaction-start `now()` after a lock wait.
+The first five occupied-number collisions are processed and recorded. Before a
+sixth candidate is checked, five still-live timestamps return the same generic
+public result as a collision. Throttled calls are not added to the array; an
+exact idempotent retry and a display-only case/space edit do not consume the
+collision limit. A collision uses targeted `ON CONFLICT (normalized_value) DO
+NOTHING`, so the function can record its timestamp and return normally rather
+than rolling back the counter. The next claim call prunes expired timestamps and
+deletes an empty state row; each user's retained state is bounded to five
+timestamps. The `users` row lock serializes concurrent claims from the same UID;
+the unique normalized index arbitrates different UIDs. This limit applies per
+verified account and cannot stop a distributed, multi-account attacker. It is
+not ownership verification or a claim that enumeration is impossible. No
+availability lookup, other-profile disclosure, raw provider errors or
+profile-value logging is permitted.
 
 ## Save, resume and self-edit behavior
 
@@ -311,10 +396,11 @@ are different acceptance cases.
 1. Capture a metadata baseline and reconcile the two-entry live migration ledger
    against every checked-in migration. Do not replay 001–008 or replace the live
    role model with `base_role/system_role` as part of this profile change.
-2. Implement the approved self-declaration/unique-claim policy; resolve
-   registration-format coverage, technical normalization/save-limit design and
-   acceptance in the available isolated validation environment.
-   Obtain architecture/security review of this contract and admission API.
+2. Review the approved self-declaration/unique-claim policy and bounded
+   registration input. Recheck the ICU normalization/collation and attempt-limit
+   decisions in the isolated validation environment. Obtain architecture/security
+   review of this contract and admission API; supplied number examples do not
+   create an exhaustive format-catalogue requirement.
 3. Prepare expand-only SQL in the canonical Grow migration chain: nullable new
    fields, contract/revision columns and approved validation helpers. Do not
    activate a new completion gate or tighten deployed writes yet.
@@ -362,7 +448,7 @@ staff roles or guess replacement institutions during recovery.
 | SP-04 | Save partial progress, reload and finish; omit/unknown keys, null/empty, wrong types, phone format and invalid non-empty values | Full replacement and +country-code rules enforced; own progress resumes; only six valid persisted values allow profile completion, which alone does not admit; no silent merge/clear |
 | SP-05 | Anonymous Auth session carrying authenticated role, unverified/deleted Auth identity, inactive owner and another user; direct REST reads and excluded-column selection | Anonymous/unverified/deleted/cross-user private reads and all writes denied by DB; inactive verified owners may read the allowlisted own profile/status only but cannot save/Home; excluded columns and `SELECT *` denied; helper grants and failure states verified |
 | SP-06 | Direct profile/role/status/completion/eligibility/position/ID update, insert or alternate writable RPC/view | Direct member authority writes denied; reviewed own-profile writer derives completion/version/revision only; chosen admission path cannot be bypassed |
-| SP-07 | Concurrent same normalized MEC-number claims and repeated guesses via both clients/direct API | At most one claim succeeds; failed save atomic; generic errors and enforceable attempt limits; no other profile disclosed |
+| SP-07 | Concurrent same normalized MEC-number claims and repeated guesses via both clients/direct API | At most one current/pending claim reserves a normalized number; a collision commits its attempt timestamp without changing the old claim; fifth collision is processed, sixth is throttled while five remain in-window; same-UID concurrency serializes and different-UID uniqueness is atomic; collision and throttle share the same generic error |
 | SP-08 | MDL/LMDL examples, case/spaces, MEC display aliases and invalid/unknown format | One canonical MEC claim scope; aliases cannot duplicate a number; full format policy tested without inventing branch coverage; self-declaration is not college-record verification |
 | SP-09 | Self-edit including registration change, stale revision, lost response and direct six-field Data API bypass | Atomic reviewed claim transition plus revision checks prevent overwrite/transfer races; no automatic admission of a replacement number; last valid profile and recoverable retry preserved |
 | SP-10 | New signup trigger failure; anonymous/phone-only exclusion and eligible conversion; separately, missing legacy row/staff/inactive repair | Signup transaction and conversion obey verified-email provisioning rules without auto-admission; operator repair preserves authoritative role/status, is idempotent and refuses ambiguous classification; no claimed account success without readiness |
@@ -465,11 +551,23 @@ This contract is a review candidate. No migration, profile API, six-field produc
 form, client patch or live permission fix has been implemented by this document.
 The [backend readiness gate](backend-readiness.md) remains open.
 
-Next: design the approved self-declaration and unique-claim record/transition,
-finish registration-format coverage and specify enforceable save limits. The
-isolated Free test project is available; prepare and review its test implementation
-without treating empty-project connectivity as acceptance.
-Review the resulting permission/trigger/admission design independently, then
-implement and test a coordinated migration/client slice. The exact shared-project
-change still needs explicit authorization after the concrete SQL and acceptance
-evidence are available.
+The current owner answers close the pilot product-policy questions for MEC
+self-declaration and registration claims, with the false-first-claim risk above.
+The isolated project contains only the validation schema/collation; read-only
+comparison probes also covered NFC/NFD, non-breaking space, Greek/Latin lookalike
+letters and sharp-s behavior. No application table, RPC, Auth account or migration
+is installed there. Independent follow-up review found no remaining issue in the
+specified model, timing, or evidence trail. The transaction-local
+[claim fixture](research/registration-claim-fixture.sql) passed on the approved
+Free project and was rolled back; a follow-up catalog query found no persistent
+fixture tables or functions. It covers only the documented model, not an app RPC,
+concurrent sessions, Auth, RLS, grants, Data API or either client. The numeric
+five-per-15-minute threshold still needs owner confirmation. The connected
+Supabase tool catalog has no Auth account creation operation, so a real
+signup/Google/confirmation journey has not been run.
+
+Next: implement and test the reviewed claim model in a validation-only application
+schema, then add real Auth/Data API and coordinated Flutter/web acceptance. Keep
+legacy-schema reconciliation and the production cutover as separate release gates.
+The exact shared-project change still needs explicit authorization after concrete
+SQL and full acceptance evidence are available.

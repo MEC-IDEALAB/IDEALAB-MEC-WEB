@@ -1,5 +1,29 @@
 # UI audit and corrections
 
+## Poster-reference collage follow-up — 21 October 2026
+
+The homepage hero now pairs its original maker illustration with a compact,
+tilted Snapmaker A350T equipment print, using the supplied poster references for
+the layered-paper composition. The photo comes from the site's locally stored
+IDEA Lab facilities assets; the caption names the equipment and its actual
+three functions. The editorial activity list above already applies the supplied
+event-list reference through numbered metadata, colored marks, serif titles,
+short descriptions and thin separators. These rows remain learning themes,
+not a claim that dated events are scheduled. Desktop and 320 px production
+captures were inspected; no horizontal overflow appeared. Current snapshots are
+`artifacts/acceptance/home-hero-1440.png` and
+`artifacts/acceptance/home-320.png`.
+
+The current source passed Node 24.19.0 ESLint, TypeScript, all 28 boundary tests,
+an optimized production build, the full local Chromium acceptance journey and
+the documentation validation. The independent visual/source review found no
+concrete issue in the collage. The installed Impeccable CLI does not provide
+the documented `audit` subcommand; its detector reported two existing auth
+story `side-tab` warnings and the existing notebook-grid advisory. The grid is
+an explicitly approved brand treatment; the auth warnings are outside this
+homepage change. This is a local UI review, not evidence of live account or
+backend acceptance.
+
 ## Homepage editorial activity list — 21 October 2026
 
 Reworked the homepage activity cards into a reference-inspired editorial list:
@@ -197,3 +221,44 @@ live member data, authentication, database persistence, staff authorization or
 operational V1 workflows; the member feature flag remains off.
 
 The public sign-in and sign-up pages now state that account access is unavailable in this release and direct students to the lab team, replacing the old “being connected” notice. Both routes remain gated until the shared database, Auth and coordinated-client checks pass.
+
+## Shared member navigation and responsive-shell follow-up — 21 October 2026
+
+The public homepage now uses the supplied editorial event-list and poster
+references as inspiration: factual learning-activity rows, notebook-grid
+surfaces, bold framed type and a tilted, captioned Snapmaker object-study
+collage. The user-provided artwork was not copied. A production Chromium
+capture of the rendered hero and complete homepage was visually inspected.
+
+The real member layout and the explicitly data-free student design preview now
+share a workspace shell. Desktop navigation collapses to an icon rail, Settings
+stays anchored at the lower left, Notifications sits at the upper right, and
+the phone layout uses four primary bottom-navigation anchors with a keyboard-
+operable More popover for secondary destinations. Visits, Borrowing and Settings
+have protected routes and clear unavailable states; they do not manufacture
+account settings, visit history or inventory.
+
+Current Node 24.19.0 ESLint, TypeScript, 28 boundary tests, 18-document/113-link
+validation and `git diff --check` passed. The optimized Next.js production build
+and full local Chromium acceptance passed. That run checks five viewport widths,
+light/dark themes, preview navigation and browser Back, menu keyboard behavior,
+reduced motion, no-data isolation, preview-disabled 404s, recovery boundaries and
+security headers. Inspected captures include the homepage, the student Home
+layout and the open More menu. An independent source review confirmed the
+desktop Settings presentation, route-aware More menu closure, Machine and
+Operations request wording and current mobile capture.
+
+This confirms the public pages and non-operational design previews only. Live
+account creation, OAuth, real member sessions, shared profile/data persistence,
+scoped staff permissions and operational request, visit or borrowing workflows
+remain unverified; the member feature flag remains off.
+
+The final mobile shell review corrected left/right safe-area padding and raised
+the theme and Notifications controls to 48 px with an 8 px gap, including the
+older narrow-phone preview overrides. Chromium asserts their rendered size and
+the full responsive acceptance run passed again. The UI detector's notebook-grid
+advisory and split-pane accent-border warnings are intentional: the owner
+explicitly requested notebook-cross surfaces and supplied split-panel auth
+references. The bundled detector ran; its separate `audit` verb is not supported
+by this installed executable, so technical verification used the browser suite,
+the detector output and independent source review.

@@ -55,6 +55,24 @@ not scheduled event records; current event details and registration remain in th
 signed-in experience. At phone widths, descriptions move beneath each title and
 the list keeps its readable order without horizontal scrolling.
 
+The homepage hero translates the supplied poster references into a small,
+tilted “Object Study” print layered over the original maker illustration. It
+uses the local, official Snapmaker A350T facility photograph with a factual
+caption, the existing pink backing, ink outline and hard shadow. Keep the
+equipment photo at its native proportions, use `object-fit: contain`, and keep
+decorative collage layers hidden from assistive technology; the enclosing maker
+illustration provides one concise accessible description. Reference poster
+artwork is design inspiration only and is not copied into the site.
+
+The member workspace keeps one shared navigation component between its
+protected route shell and no-data design preview. On desktop, the icon rail
+collapses while retaining accessible labels, Settings sits at the bottom and
+Notifications stays in the top-right action group. On phones, four primary
+destinations sit in the fixed bottom bar and secondary destinations use an
+accessible More popover. Keep 44 px as the minimum interactive target and use
+48 px for mobile top-bar actions, apply physical safe-area insets to matching
+edges, and retain focus-visible outlines when changing these controls.
+
 ## Audit refinements
 
 Use local Press Start 2P for small accent labels and the MEC badge; retain modern Space Grotesk headings and DM Sans body text. The notebook grid uses seven-percent ink. One direct Light/Dark button replaces the menu; OS preference is only the initial fallback. The branded boot screen runs once per browser-tab visit: fast loads get a 560 ms reveal, slow loads exit as soon as the ready checks finish, and a 190 ms fade hands off to the page. Page content is inert from the first body paint until the loader exits; the 4.8-second no-hydration watchdog also releases it. Reduced motion exits immediately. Phone account pages omit decorative story panels and fit the tested normal viewports while remaining scrollable under zoom/keyboard constraints. See [audit](ui-audit.md) for current evidence and authentication blockers.

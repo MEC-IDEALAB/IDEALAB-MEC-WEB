@@ -1,14 +1,12 @@
 "use client";
 
 import Link from 'next/link';
-import { useState } from 'react';
 import {
   ArrowDownRight,
   ArrowLeft,
   ArrowRight,
   Bell,
   CalendarDays,
-  Check,
   CircleHelp,
   CircleSlash2,
   ClipboardList,
@@ -19,15 +17,13 @@ import {
   Home,
   LockKeyhole,
   Package,
-  PanelLeftClose,
-  PanelLeftOpen,
   Settings2,
   ShieldCheck,
   UserRound,
   Wrench,
 } from 'lucide-react';
-import { ThemePicker } from '@/components/theme-picker';
 import { HomeMotion } from '@/components/home-motion';
+import { MemberWorkspaceShell } from '@/components/member-workspace-shell';
 
 export type StudentPreviewScreen =
   | 'home'
@@ -45,18 +41,17 @@ const screens: Array<{
   id: StudentPreviewScreen;
   label: string;
   icon: typeof Home;
-  group: 'anchors' | 'modules';
 }> = [
-  { id: 'home', label: 'Home', icon: Home, group: 'anchors' },
-  { id: 'lab', label: 'Lab', icon: FlaskConical, group: 'anchors' },
-  { id: 'profile', label: 'Profile', icon: UserRound, group: 'anchors' },
-  { id: 'projects', label: 'Projects', icon: FolderKanban, group: 'modules' },
-  { id: 'events', label: 'Events', icon: CalendarDays, group: 'modules' },
-  { id: 'requests', label: 'Requests', icon: ClipboardList, group: 'modules' },
-  { id: 'notifications', label: 'Notifications', icon: Bell, group: 'modules' },
-  { id: 'visits', label: 'Visits', icon: DoorOpen, group: 'modules' },
-  { id: 'borrowing', label: 'Borrowing', icon: Package, group: 'modules' },
-  { id: 'settings', label: 'Settings', icon: Settings2, group: 'modules' },
+  { id: 'home', label: 'Home', icon: Home },
+  { id: 'lab', label: 'Lab', icon: FlaskConical },
+  { id: 'profile', label: 'Profile', icon: UserRound },
+  { id: 'projects', label: 'Projects', icon: FolderKanban },
+  { id: 'events', label: 'Events', icon: CalendarDays },
+  { id: 'requests', label: 'Requests', icon: ClipboardList },
+  { id: 'notifications', label: 'Notifications', icon: Bell },
+  { id: 'visits', label: 'Visits', icon: DoorOpen },
+  { id: 'borrowing', label: 'Borrowing', icon: Package },
+  { id: 'settings', label: 'Settings', icon: Settings2 },
 ];
 
 const screenCopy: Record<StudentPreviewScreen, { title: string; eyebrow: string; intro: string }> = {
@@ -114,48 +109,6 @@ const screenCopy: Record<StudentPreviewScreen, { title: string; eyebrow: string;
 
 function screenHref(screen: StudentPreviewScreen) {
   return `/design/student?screen=${screen}`;
-}
-
-function SideNavigation({ activeScreen, collapsed }: { activeScreen: StudentPreviewScreen; collapsed: boolean }) {
-  return (
-    <nav className="student-preview-side-nav" id="student-preview-sidebar-nav" aria-label="Student workspace">
-      <p className="student-preview-nav-label" aria-hidden={collapsed}>YOUR SPACE</p>
-      {screens.filter(screen => screen.group === 'anchors').map(({ id, label, icon: Icon }) => (
-        <Link className="student-preview-nav-link" href={screenHref(id)} aria-label={label} title={collapsed ? label : undefined} aria-current={activeScreen === id ? 'page' : undefined} key={id}>
-          <Icon size={18} aria-hidden="true" /><span className="student-preview-nav-text">{label}</span>
-          {activeScreen === id && <span className="student-preview-current-mark" aria-hidden="true"><Check size={13} /></span>}
-        </Link>
-      ))}
-      <p className="student-preview-nav-label student-preview-nav-label-modules" aria-hidden={collapsed}>MODULES</p>
-      {screens.filter(screen => screen.group === 'modules' && screen.id !== 'settings').map(({ id, label, icon: Icon }) => (
-        <Link className="student-preview-nav-link" href={screenHref(id)} aria-label={label} title={collapsed ? label : undefined} aria-current={activeScreen === id ? 'page' : undefined} key={id}>
-          <Icon size={18} aria-hidden="true" /><span className="student-preview-nav-text">{label}</span>
-          {activeScreen === id && <span className="student-preview-current-mark" aria-hidden="true"><Check size={13} /></span>}
-        </Link>
-      ))}
-      <div className="student-preview-nav-note" hidden={collapsed}>
-        <LockKeyhole size={17} aria-hidden="true" />
-        <p>Member pages need a signed-in account and server-checked access.</p>
-      </div>
-    </nav>
-  );
-}
-
-function SidebarToggle({ collapsed, onClick }: { collapsed: boolean; onClick: () => void }) {
-  const Icon = collapsed ? PanelLeftOpen : PanelLeftClose;
-  return (
-    <button
-      className="student-preview-sidebar-toggle"
-      type="button"
-      aria-label={collapsed ? 'Expand workspace sidebar' : 'Collapse workspace sidebar'}
-      aria-expanded={!collapsed}
-      aria-controls="student-preview-sidebar-nav"
-      title={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}
-      onClick={onClick}
-    >
-      <Icon size={18} aria-hidden="true" />
-    </button>
-  );
 }
 
 function ModuleUnavailable({ title, detail }: { title: string; detail: string }) {
@@ -352,41 +305,14 @@ function ScreenContent({ screen }: { screen: StudentPreviewScreen }) {
 }
 
 export function StudentWorkspacePreview({ activeScreen }: { activeScreen: StudentPreviewScreen }) {
-  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const active = screens.find(screen => screen.id === activeScreen) ?? screens[0];
-  const mobileAnchor = active.group === 'anchors' ? active.id : active.id === 'settings' ? 'profile' : 'home';
   const copy = screenCopy[active.id];
   const ActiveIcon = active.icon;
 
   return (
-    <div className={`student-preview-app${sidebarCollapsed ? ' student-preview-sidebar-collapsed' : ''}`}>
+    <MemberWorkspaceShell variant="preview" activeScreen={active.id} activeLabel={active.label} signOutControl={null}>
       <HomeMotion />
-      <aside className="student-preview-sidebar">
-        <div className="student-preview-sidebar-header">
-          <Link href="/" className="student-preview-brand" aria-label="IDEALAB MEC public homepage">
-            <span className="student-preview-brand-mark" aria-hidden="true">IM</span>
-            <span><strong>IDEALAB</strong><small>MODEL ENGINEERING COLLEGE</small></span>
-          </Link>
-          <SidebarToggle collapsed={sidebarCollapsed} onClick={() => setSidebarCollapsed(value => !value)} />
-        </div>
-        <SideNavigation activeScreen={active.id} collapsed={sidebarCollapsed} />
-        <div className="student-preview-sidebar-bottom">
-          <Link className="student-preview-nav-link student-preview-settings-link" href={screenHref('settings')} aria-label="Settings" title={sidebarCollapsed ? 'Settings' : undefined} aria-current={active.id === 'settings' ? 'page' : undefined}>
-            <Settings2 size={18} aria-hidden="true" /><span className="student-preview-nav-text">Settings</span>
-            {active.id === 'settings' && <span className="student-preview-current-mark" aria-hidden="true"><Check size={13} /></span>}
-          </Link>
-          <span className="student-preview-sidebar-caption">MADE FOR MAKERS</span>
-          <span className="student-preview-side-doodle" aria-hidden="true">✳ <span>IDEA → LAB</span></span>
-        </div>
-      </aside>
-
-      <main className="student-preview-main-column" id="main-content" tabIndex={-1}>
-        <header className="student-preview-topbar">
-          <div className="student-preview-breadcrumb"><span>Student space</span><span aria-hidden="true">/</span><span>{active.label}</span></div>
-          <div className="student-preview-topbar-actions"><span className="student-preview-user"><UserRound size={17} aria-hidden="true" /><span>Preview mode</span></span><Link className="student-preview-notification-button" href={screenHref('notifications')} aria-label="Notifications" title="Notifications" aria-current={active.id === 'notifications' ? 'page' : undefined}><Bell size={19} aria-hidden="true" /></Link><ThemePicker /></div>
-        </header>
-
-        <div className="student-preview-content" id="student-preview-content" tabIndex={-1}>
+      <div className="student-preview-content" id="student-preview-content" tabIndex={-1}>
           <div className="student-preview-banner" role="status">
             <CircleHelp size={18} aria-hidden="true" />
             <div><strong>DESIGN PREVIEW · NO LIVE DATA</strong><span>This empty student workspace is a layout map. It does not connect to an account or service.</span></div>
@@ -397,16 +323,7 @@ export function StudentWorkspacePreview({ activeScreen }: { activeScreen: Studen
           </header>
           <div className="student-preview-screen-content"><ScreenContent screen={active.id} /></div>
           <footer className="student-preview-footer"><span>IDEALAB MEC · STUDENT EXPERIENCE</span><Link href="/" className="student-preview-footer-link"><ArrowLeft size={16} aria-hidden="true" /> Public homepage</Link></footer>
-        </div>
-      </main>
-
-      <nav className="student-preview-mobile-nav" aria-label="Student primary navigation">
-        {screens.filter(screen => screen.group === 'anchors').map(({ id, label, icon: Icon }) => (
-          <Link href={screenHref(id)} aria-current={mobileAnchor === id ? (active.group === 'anchors' ? 'page' : 'location') : undefined} key={id}>
-            <Icon size={19} aria-hidden="true" /><span>{label}</span>
-          </Link>
-        ))}
-      </nav>
-    </div>
+      </div>
+    </MemberWorkspaceShell>
   );
 }

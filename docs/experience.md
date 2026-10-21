@@ -42,12 +42,12 @@ Notebook/content validation passed (session 11250, exit 0): lint, production bui
 | Account, implemented | `/sign-in`, `/sign-up`, `/forgot-password`, `/reset-password`, `/auth/callback`, `/auth/recovery/callback` | Honest account-access and recovery states; activation remains disabled pending backend acceptance. |
 | Design preview, implemented | `/design/onboarding` when `ENABLE_DESIGN_PREVIEW=true` | Six required profile values plus MEC self-declaration; sample-only validation, no account access or persistence. |
 | Student shell preview, implemented | `/design/student?screen=home|lab|profile|projects|events|requests|notifications|visits|borrowing|settings` when `ENABLE_DESIGN_PREVIEW=true` | Responsive student page layouts and navigation; no live account, records, submissions or role checks. |
-| Member routes, gated | `/app`, `/app/lab`, `/app/projects`, `/app/events`, `/app/requests`, `/app/requests/new`, `/app/notifications`, `/app/profile` | Protected route foundation and honest unavailable states; not full operational modules. |
-| Future member detail routes | `/app/requests/[id]`, project/event details, borrowing and lab visit history | Planned after the shared identity, permissions, data contract and module rules are accepted. The settings destination currently exists only in the design preview. |
+| Member routes, gated | `/app`, `/app/lab`, `/app/projects`, `/app/events`, `/app/requests`, `/app/requests/new`, `/app/notifications`, `/app/profile`, `/app/visits`, `/app/borrowing`, `/app/settings` | Protected shared shell and honest unavailable states; visits, borrowing and account preferences have routes, but live records, profile editing and operational actions are not connected. |
+| Future member detail routes | `/app/requests/[id]`, project/event details and lab visit history | Planned after the shared identity, permissions, data contract and module rules are accepted. |
 | Staff design preview | `/design/workspace` when `ENABLE_DESIGN_PREVIEW=true` | Empty Machine/Room, Operations, Events and Super Admin layout previews; no role authority or operational action. |
 | Future staff/admin | Scoped staff inbox/detail, machine/room assignment, handover and audit routes | No live staff/admin authority until permission matrix and server-side actions are implemented. |
 
-Public desktop navigation links to curated homepage sections and sign-in; project/event record links enter the signed-in app. Mobile uses a labeled disclosure menu. Online account creation remains planned; `/sign-up` provides honest joining information and a working contact path without implying registration success. Signed-in desktop anchors are Home / Lab / Profile; contextual Projects / Events / Requests / Notifications / Visits / Borrowing follow. The desktop rail can collapse to an icon-only, accessible state; Settings stays pinned at its lower edge and Notifications has a top-right shortcut. Mobile retains the app's three bottom anchors; modules are reached from Home, Notifications remains at the top right, and Settings is linked from Profile. These controls are present in the no-data design preview and do not grant account access. Staff section navigation uses a compact menu, breadcrumb and explicit machine/room scope.
+Public desktop navigation links to curated homepage sections and sign-in; project/event record links enter the signed-in app. Mobile uses a labeled disclosure menu. Online account creation remains planned; `/sign-up` provides honest joining information and a working contact path without implying registration success. Signed-in desktop anchors are Home / Lab / Work requests / Profile; contextual Projects / Events / Notifications / Visits / Borrowing follow. The desktop rail can collapse to an icon-only, accessible state; Settings stays pinned at its lower edge and Notifications has a top-right shortcut. Mobile keeps Home / Lab / Requests / Profile in its fixed bottom bar, with secondary destinations grouped in More. Notifications also remains at the top right. These controls exist in the protected member shell and no-data design preview, but do not grant account access or connect unavailable services. Staff section navigation uses a compact menu, breadcrumb and explicit machine/room scope.
 
 Public links identify the current page with an underline and `aria-current="page"`.
 The mobile disclosure retains native HTML behavior without JavaScript. With
@@ -55,6 +55,21 @@ enhancement, Escape closes it and restores focus to its control; Tab departure,
 outside pointer and link activation close it without trapping focus. Crossing
 the 800 px desktop breakpoint closes it and transfers any focused mobile control
 to the current desktop link (or the first link on the homepage).
+
+The protected member shell now shares the same navigation in the signed-in
+route layout and the student design preview. Desktop uses Home, Lab, Work
+requests and Profile anchors, secondary module links, a collapsible icon rail,
+Settings pinned at the rail's lower edge and Notifications at the far right of
+the top bar. Mobile keeps Home, Lab, Requests and Profile in a fixed bottom
+bar; the More popover contains Projects, Events, Notifications, Visits,
+Borrowing and Settings. More closes on Escape, outside pointer, focus leaving
+the popover or route change; Escape restores focus to its trigger. The
+navigation component has a preview variant for no-data browser acceptance and
+a protected member variant for `/app`. The new Visits, Borrowing and Settings
+routes all require the member gate. They show factual unavailable states until
+approved service data and write permissions exist. Browser acceptance checks
+the rendered preview variant; live authenticated member rendering remains
+unverified.
 
 The desktop/mobile student workspace layouts are drawn in the [MagicPath
 wireframe](https://www.magicpath.ai/files/463330845164449792). The stable source

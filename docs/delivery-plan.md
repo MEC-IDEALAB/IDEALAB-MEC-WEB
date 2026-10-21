@@ -200,3 +200,35 @@ Historical provenance in the parent Grow workspace includes `docs/00_Project/CUR
 ## Branded loading state
 
 The first visit in a tab shows smaller IDEALAB marks moving continuously across the notebook grid, behind a Neo-brutalist card with an animated circuit, cube, brand lockup and indeterminate progress. Dismissal waits for font readiness and a paint; the 560 ms brand reveal prevents a flash, but a slow load exits as soon as it is ready. A 190 ms fade keeps the content inert through the transition. Reduced-motion users see a static screen that exits without the reveal delay. A 4.8-second watchdog is the fail-open, blocked storage skips the loader, and repeat reloads/client navigation do not repeat it. The ordinary root 404 status remains intact; route and sign-in skeletons stay separate from the first-visit splash.
+
+## User poster-reference collage follow-up — 21 October 2026
+
+The homepage hero now includes a small printed-object collage with the local
+Snapmaker A350T facility photo and a factual caption, layered over the original
+maker illustration. Existing editorial activity rows continue to carry the
+event-list inspiration without implying a live schedule. On this local source
+snapshot, Node 24.19.0 ESLint and TypeScript passed, all 28 boundary tests
+passed, the optimized production build passed, the full local Chromium
+acceptance passed, documentation validation passed, and `git diff --check`
+passed. Desktop and 320 px production captures were visually inspected. The
+independent review found no concrete collage issue. Live authentication,
+profiles, database persistence, staff authorization and V1 operational
+workflows remain unverified; this change does not clear the release gate.
+
+## Shared workspace navigation follow-up — 21 October 2026
+
+The member route and no-data student preview now use a common responsive
+navigation shell: collapsible desktop rail, lower-left Settings, upper-right
+Notifications and a four-anchor mobile bar with a keyboard-operable More menu.
+Protected Visits, Borrowing and Settings routes communicate that their real
+account data and operations are unavailable. The supplied editorial poster and
+event-list references inform the homepage collage and factual activity rows.
+
+For the current local source, Node 24.19.0 lint, TypeScript, all 28 boundary
+tests, documentation validation (18 files/113 links), `git diff --check`, the
+optimized production build and complete local Chromium acceptance passed.
+Rendered homepage and mobile workspace captures were inspected, and an
+independent source reviewer confirmed the Settings layout, browser-Back menu
+closure, Machine/Operations request copy and mobile screenshot. Authenticated
+member journeys, live Supabase data, authorization and all operational V1
+workflows remain unverified. Keep activation and release gates closed.

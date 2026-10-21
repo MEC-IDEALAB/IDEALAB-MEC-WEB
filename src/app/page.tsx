@@ -1,6 +1,6 @@
 import Image from "next/image";
 import Link from "next/link";
-import { ArrowRight, ArrowUpRight, CalendarDays, CircleArrowRight, Cpu, Layers3, MoveUpRight, Sparkles, UsersRound, Wrench } from "lucide-react";
+import { ArrowRight, ArrowUpRight, CalendarDays, CircleArrowRight, Cpu, Layers3, Sparkles, UsersRound, Wrench } from "lucide-react";
 import { Brand } from "@/components/brand";
 import { PublicHeader } from "@/components/public-header";
 import { HomeMotion } from "@/components/home-motion";
@@ -8,6 +8,7 @@ import { HomeTickerBottom, HomeTickerTop } from "@/components/home-ticker-bands"
 import { DoodleStar, DoodleOrbit, DoodleTrail } from '@/components/doodles';
 import { FacilityCards } from '@/components/facility-cards';
 import { activities } from '@/content/lab';
+import { MakerIllustration } from '@/components/maker-poster';
 
 const paths = [
   { n: "01", title: "Make something real.", text: "Explore the tools, understand the process and find the right support for your next idea.", href: "/lab", label: "Explore the lab", icon: Wrench, tone: "lime" },
@@ -16,30 +17,6 @@ const paths = [
 ];
 
 const activityIcons = [Wrench, Cpu, UsersRound];
-
-function MakerIllustration() {
-  return <div className="maker-art" aria-hidden="true">
-    <span className="art-coordinate">MEC / IDEA LAB</span><span className="art-cross">+</span>
-    <svg className="machine-drawing" viewBox="0 0 520 410" fill="none">
-      <path d="M76 296 261 190 450 297 264 405 76 296Z" fill="var(--accent-lavender)" stroke="var(--accent-ink)" strokeWidth="3" />
-      <path d="M76 296V313L264 421V405M264 421 450 313V297" stroke="var(--accent-ink)" strokeWidth="3" transform="translate(0 -15)" />
-      <path d="M113 280V111L281 16 419 96V267" stroke="var(--accent-ink)" strokeWidth="28" strokeLinejoin="round" />
-      <path d="M113 280V111L281 16 419 96V267" stroke="var(--art-paper)" strokeWidth="20" strokeLinejoin="round" />
-      <path d="M113 111 251 191 419 96M251 191V357" stroke="var(--accent-ink)" strokeWidth="28" strokeLinejoin="round" />
-      <path d="M113 111 251 191 419 96M251 191V357" stroke="var(--art-paper)" strokeWidth="20" strokeLinejoin="round" />
-      <path d="M132 267 279 183 401 253 253 338 132 267Z" fill="var(--accent-ink)" stroke="var(--accent-ink)" strokeWidth="3" />
-      <path d="m148 264 130-75 108 62-132 76-106-63Z" fill="var(--art-neutral)" stroke="var(--accent-ink)" strokeWidth="3" />
-      <path d="m249 258 40-23 39 23-40 23-39-23Z" fill="var(--accent-apricot)" stroke="var(--accent-ink)" strokeWidth="3" /><path d="M249 258v30l39 23 40-23v-30l-40 23-39-23Z" fill="var(--accent-apricot)" stroke="var(--accent-ink)" strokeWidth="3" /><path d="M288 281v30" stroke="var(--accent-ink)" strokeWidth="3" />
-      <path d="m175 113 106-60 75 43-106 61-75-44Z" fill="var(--accent-lavender)" stroke="var(--accent-ink)" strokeWidth="3" />
-      <path d="M280 110v73" stroke="var(--accent-ink)" strokeWidth="9" /><path d="m261 142 20-12 20 12v26l-20 12-20-12v-26Z" fill="var(--accent-amber)" stroke="var(--accent-ink)" strokeWidth="3" /><path d="m273 176 8 18 8-18" fill="var(--accent-ink)" />
-      <path d="m146 288 27 16M179 308l16 9M379 292l-27 16" stroke="var(--accent-ink)" strokeWidth="3" />
-      <circle cx="370" cy="182" r="25" fill="var(--accent-amber)" stroke="var(--accent-ink)" strokeWidth="3" /><path d="M359 182h22M370 171v22" stroke="var(--accent-ink)" strokeWidth="3" />
-    </svg>
-    <div className="art-note"><span className="note-dot" />FROM IDEA<br /><strong>TO REALITY.</strong><MoveUpRight size={28} /></div>
-    <span className="art-sticker"><Sparkles size={20} /> Built on<br />curiosity.</span>
-    <span className="art-bottom">THINK. EXPERIMENT. MAKE. REPEAT.</span>
-  </div>;
-}
 
 export default function Home() {
   return <div className="playful-site"><PublicHeader /><HomeTickerTop /><HomeMotion /><main id="main-content">
@@ -55,7 +32,7 @@ export default function Home() {
       <div className="path-grid">{paths.map(({ n, title, text, href, label, icon: Icon, tone }) => <article className={`path-card tone-${tone}`} data-reveal="card" data-stagger={Number(n) - 1} key={n}><div className="card-topline"><span className="card-index">/ {n}</span><Icon size={26} strokeWidth={1.7} aria-hidden="true" /></div><h3>{title}</h3><p>{text}</p><Link href={href} className="card-link">{label}<CircleArrowRight size={24} strokeWidth={1.5} aria-hidden="true" /></Link></article>)}</div>
     </section>
     <section className="section container facilities-section" aria-labelledby="facilities-title"><div className="section-heading" data-reveal="section"><div><p className="eyebrow">TOOLS FOR YOUR WHAT-IF</p><h2 id="facilities-title">From a sketch<br />to something you can hold.</h2></div><Link className="text-link" href="/lab#facilities">Explore facilities <ArrowUpRight size={20} aria-hidden="true" /></Link></div><FacilityCards preview /><p className="source-caption">Facilities published by IDEA Lab. <a href="mailto:idealab@mec.ac.in">Contact the team</a> for access and operating arrangements.</p></section>
-    <section className="journey-section" aria-labelledby="journey-title"><div className="container journey-grid"><div className="journey-intro" data-reveal="section"><p className="eyebrow">FROM PLAN TO PROTOTYPE</p><h2 id="journey-title">Your idea.<br />A clear next step.</h2><p>A work request starts the conversation. The lab team helps coordinate what comes next.</p><Link className="button" href="/sign-in">Start a work request <ArrowUpRight size={18} aria-hidden="true" /></Link></div><ol className="journey-steps" data-reveal="journey"><li><span>01</span><div><h3>Tell us what you have in mind.</h3><p>Sign in, choose the machine, and describe the work you need. Add your preferred date and time.</p></div></li><li><span>02</span><div><h3>The Machine Head confirms.</h3><p>Your preferred time is a request. The Machine Head reviews the details and confirms the arrangement.</p></div></li><li><span>03</span><div><h3>Let’s get making. Safely.</h3><p>Only the Machine Head operates the machine. Follow the confirmed instructions and track your request.</p></div></li></ol></div></section>
+    <section className="journey-section" aria-labelledby="journey-title"><div className="container journey-grid"><div className="journey-intro" data-reveal="section"><p className="eyebrow">FROM PLAN TO PROTOTYPE</p><h2 id="journey-title">Your idea.<br />A clear next step.</h2><p>A work request starts the conversation. The lab team helps coordinate what comes next.</p><Link className="button" href="/sign-in">Start a work request <ArrowUpRight size={18} aria-hidden="true" /></Link></div><ol className="journey-steps" data-reveal="journey"><li><span>01</span><div><h3>Tell us what you have in mind.</h3><p>Sign in, choose Machine or Operations support, and describe the work. Add your preferred date and time.</p></div></li><li><span>02</span><div><h3>The responsible head reviews it.</h3><p>Your preferred time is a request. The assigned head reviews the details and confirms a time or proposes a change for you to accept.</p></div></li><li><span>03</span><div><h3>Let’s get making. Safely.</h3><p>Machine operation stays with trained, assigned staff. Follow the confirmed instructions and track your request.</p></div></li></ol></div></section>
     <section className="section container about-section" aria-labelledby="about-title"><div className="about-mark" data-reveal="section" aria-hidden="true"><span>IDEA</span><span>LAB<span className="about-asterisk">✳</span></span><small>MODEL ENGINEERING COLLEGE</small></div><div className="about-copy" data-reveal="section"><p className="eyebrow">AICTE × COGNICOR × MEC</p><h2 id="about-title">A lab for the<br />way you think.</h2><p>Supported by AICTE and CogniCor, MEC’s IDEA Lab brings engineering, design and hands-on learning together. Workshops and training help students and faculty turn ideas into prototypes, explore STEM across disciplines and build practical skills.</p><Link className="text-link" href="/explore">Get to know IDEA Lab <ArrowUpRight size={18} aria-hidden="true" /></Link></div></section>
     <section className="section container activities-section" aria-labelledby="activities-title"><div className="section-heading" data-reveal="section"><div><p className="eyebrow">OUR ACTIVITIES · FIELD NOTES 01—03</p><h2 id="activities-title">Learn by doing.<br />Then do a little more.</h2></div><p>Making, coding and sharing knowledge are part of the lab’s workshop and training history.</p></div><ol className="activity-list" aria-label="Published learning themes">{activities.map((activity, index) => { const Icon = activityIcons[index] ?? Sparkles; return <li key={activity.category}><article className={`activity-row activity-${activity.tone}`} data-reveal="card" data-stagger={index}><span className="activity-row-mark" aria-hidden="true"><Icon size={25} strokeWidth={1.8} /></span><span className="activity-row-index" aria-hidden="true">0{index + 1}</span><div className="activity-row-title"><span className="activity-row-category">{activity.category}</span><h3>{activity.title}</h3></div><p className="activity-row-description">{activity.description}</p><span className="activity-row-glyph" aria-hidden="true">✳</span></article></li>; })}</ol><p className="activity-caption">Published learning themes, not a live event calendar. Sign in for event details and registration.</p><Link className="text-link activity-link" href="/events">Explore learning opportunities <ArrowUpRight size={20} aria-hidden="true" /></Link></section>
     <section className="container final-cta" data-reveal="section"><DoodleTrail className="cta-trail" /><div><p className="eyebrow">THERE’S SOMETHING IN THAT IDEA.</p><h2>Give it a place to grow.</h2></div><Link className="button button-ink" href="/sign-in">Get started <ArrowUpRight size={20} aria-hidden="true" /></Link></section>

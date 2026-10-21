@@ -74,8 +74,9 @@ async function storageSnapshot(page) {
 }
 const env = { ...process.env, NEXT_PUBLIC_SUPABASE_URL: '', NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: '', ENABLE_MEMBER_PLATFORM: 'false', ENABLE_DESIGN_PREVIEW: 'true' };
 const studentPreviewCss = await readFile(new URL('../src/app/student-preview.css', import.meta.url), 'utf8');
+const memberShellCss = await readFile(new URL('../src/app/member-shell.css', import.meta.url), 'utf8');
 assert.match(studentPreviewCss, /\.student-preview-app\{padding-bottom:calc\(76px \+ env\(safe-area-inset-bottom\)\)\}/, 'Student shell reserves the fixed mobile bar plus the bottom device safe area');
-assert.match(studentPreviewCss, /padding-inline-start:max\(12px,env\(safe-area-inset-left\)\);padding-inline-end:max\(12px,env\(safe-area-inset-right\)\)/, 'Mobile navigation respects asymmetric device safe-area insets');
+assert.match(memberShellCss, /padding:\s*7px max\(10px, env\(safe-area-inset-right\)\) calc\(7px \+ env\(safe-area-inset-bottom\)\) max\(10px, env\(safe-area-inset-left\)\)/, 'Mobile workspace navigation applies physical safe-area insets to the matching edges');
 const server = spawn(process.execPath, ['node_modules/next/dist/bin/next', 'start', '--hostname', '127.0.0.1', '--port', String(port)], { env, stdio: ['ignore', 'pipe', 'pipe'] });
 let serverOutput = '';
 server.stdout.on('data', chunk => { serverOutput = (serverOutput + chunk).slice(-5000); });
@@ -109,7 +110,7 @@ try {
   const repeatedHome = await fetch(base);
   const repeatedNonce = repeatedHome.headers.get('content-security-policy')?.match(/(?:^|;)\s*script-src[^;]*'nonce-([^']+)'/)?.[1];
   assert(repeatedNonce && repeatedNonce !== nonce, 'Each page response must use a fresh nonce');
-  for (const path of ['/app', '/app/profile', '/app/requests', '/app/requests/new', '/app/workspace']) {
+  for (const path of ['/app', '/app/profile', '/app/settings', '/app/visits', '/app/borrowing', '/app/requests', '/app/requests/new', '/app/workspace']) {
     const response = await fetch(base + path, { redirect: 'manual' });
     assert.equal(response.status, 307, `${path} must not be accessible without auth`);
     assert.match(response.headers.get('location'), /\/sign-in\?notice=configuration$/);
@@ -677,7 +678,7 @@ try {
   await page.waitForFunction(() => document.querySelector('.student-preview-sidebar').getBoundingClientRect().width >= 250);
   assert(await page.locator('.student-preview-sidebar').getByRole('link', { name: 'Settings' }).isVisible(), 'Settings stays pinned at the bottom of the desktop rail');
   assert(await page.locator('.student-preview-notification-button').isVisible(), 'Notification shortcut remains visible in the top-right controls');
-  assert(await page.locator('.student-preview-topbar-actions').evaluate(element => element.querySelector('.student-preview-notification-button').compareDocumentPosition(element.querySelector('.theme-toggle')) & Node.DOCUMENT_POSITION_FOLLOWING), 'Notifications sits beside the theme control in the top bar');
+  assert(await page.locator('.student-preview-topbar-actions').evaluate(element => element.querySelector('.theme-toggle').compareDocumentPosition(element.querySelector('.student-preview-notification-button')) & Node.DOCUMENT_POSITION_FOLLOWING), 'Notifications remains the rightmost top-bar action');
   await page.evaluate(() => { if (document.activeElement instanceof HTMLElement) document.activeElement.blur(); document.body.tabIndex = -1; document.body.focus(); });
   await page.keyboard.press('Tab');
   assert(await page.locator('.skip-link').evaluate(element => element === document.activeElement && element.getBoundingClientRect().top >= 0), 'Student preview starts keyboard navigation at the visible site skip link');
@@ -733,15 +734,15 @@ try {
       assert(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth), `${screen} fits ${width}px without horizontal scrolling`);
       if (width <= 760) {
         assert(await page.locator('.student-preview-mobile-nav').isVisible(), 'Narrow screens keep the primary navigation visible');
-        assert.equal(await page.locator('.student-preview-mobile-nav a').count(), 3, 'Mobile bottom navigation mirrors the three app anchors');
+        assert.equal(await page.locator('.student-preview-mobile-nav > a.member-mobile-link').count(), 4, 'Mobile bottom navigation keeps the four primary app destinations');
+        assert.equal(await page.locator('.student-preview-mobile-nav > .member-mobile-more').count(), 1, 'Secondary destinations stay grouped under More');
         assert(!await page.locator('.student-preview-sidebar').isVisible(), 'Narrow screens replace the desktop rail');
         assert(await page.locator('.student-preview-notification-button').isVisible(), 'Narrow screens retain top-right notifications');
-        const isMobileAnchor = ['home', 'lab', 'profile'].includes(screen);
-        assert.equal(await page.locator(`.student-preview-mobile-nav a[aria-current="${isMobileAnchor ? 'page' : 'location'}"]`).count(), 1, `${screen} marks its mobile page or grouping location accurately`);
+        const isMobileAnchor = ['home', 'lab', 'requests', 'profile'].includes(screen);
+        assert.equal(await page.locator('.student-preview-mobile-nav > a[aria-current="page"]').count(), isMobileAnchor ? 1 : 0, `${screen} marks its mobile primary page when applicable`);
+        assert.equal(await page.locator('.student-preview-mobile-more-button[aria-current="location"]').count(), isMobileAnchor ? 0 : 1, `${screen} marks More when its destination is secondary`);
         if (!isMobileAnchor) {
-          const expectedLocation = screen === 'settings' ? 'profile' : 'home';
-          const parentHref = await page.locator('.student-preview-mobile-nav a[aria-current="location"]').getAttribute('href');
-          assert(parentHref?.includes(`screen=${expectedLocation}`), `${screen} points to its mobile parent destination: expected ${expectedLocation}, received ${parentHref} at ${width}px`);
+          assert.equal(await page.locator('.student-preview-mobile-more-button').getAttribute('aria-current'), 'location', `${screen} stays grouped under the mobile More destination`);
         }
       } else {
         assert(await page.locator('.student-preview-sidebar').isVisible(), 'Wide screens retain the student destination rail');
@@ -784,6 +785,7 @@ try {
       await page.reload();
       await page.getByRole('heading', { name: studentScreens.home, exact: true }).waitFor();
       assert.equal(await page.locator('html').getAttribute('data-theme'), 'system', 'First visit keeps system theme preference until the user selects a theme');
+      await page.waitForFunction(() => document.querySelector('.theme-toggle')?.getAttribute('aria-pressed') === 'true', null, { timeout: 5000 });
       assert.equal(await page.locator('.theme-toggle').getAttribute('aria-pressed'), 'true', 'System-dark preference is reflected in the toggle');
       assert.equal(await page.locator('.student-preview-note-self-declared').evaluate(element => getComputedStyle(element).backgroundColor), 'rgb(11, 11, 11)', 'System-dark pilot note uses near-black without an explicit saved theme');
       assert.equal(await page.locator('.student-preview-note-request').evaluate(element => getComputedStyle(element).backgroundColor), 'rgb(11, 11, 11)', 'System-dark timing note uses near-black without an explicit saved theme');
@@ -792,6 +794,7 @@ try {
       await page.reload();
       await page.getByRole('heading', { name: studentScreens.home, exact: true }).waitFor();
       assert.equal(await page.locator('html').getAttribute('data-theme'), 'system', 'First visit remains on system theme when OS preference changes');
+      await page.waitForFunction(() => document.querySelector('.theme-toggle')?.getAttribute('aria-pressed') === 'false', null, { timeout: 5000 });
       assert.equal(await page.locator('.theme-toggle').getAttribute('aria-pressed'), 'false', 'System-light preference is reflected in the toggle');
     }
     if (screen === 'profile') {
@@ -819,10 +822,32 @@ try {
   await page.goto(base + '/design/student?screen=home');
   await page.getByRole('heading', { name: studentScreens.home, exact: true }).waitFor();
   await setTheme(page, 'light');
-  const homeNav = page.locator('.student-preview-mobile-nav a[aria-current="page"]');
+  const homeNav = page.locator('.student-preview-mobile-nav > a[aria-current="page"]');
   assert.equal(await homeNav.innerText(), 'Home', 'Mobile navigation marks its current anchor');
   assert(await homeNav.evaluate(element => element.getBoundingClientRect().height >= 44), 'Mobile navigation links meet minimum touch height');
-  await page.screenshot({ path: 'artifacts/acceptance/student-workspace-home-mobile.png', fullPage: true, animations: 'disabled' });
+  for (const selector of ['.theme-toggle', '.student-preview-notification-button']) {
+    const bounds = await page.locator(selector).boundingBox();
+    assert(bounds && bounds.width >= 48 && bounds.height >= 48, `${selector} meets the 48px mobile touch-target goal`);
+  }
+  await page.screenshot({ path: 'artifacts/acceptance/student-workspace-home-mobile.png', fullPage: false, animations: 'disabled' });
+  const moreButton = page.locator('.student-preview-mobile-more-button');
+  await moreButton.focus();
+  await page.keyboard.press('Enter');
+  await page.getByRole('link', { name: 'Borrowing' }).last().waitFor({ state: 'visible' });
+  assert.equal(await moreButton.getAttribute('aria-expanded'), 'true', 'The More menu opens with its expanded state exposed');
+  await page.screenshot({ path: 'artifacts/acceptance/student-workspace-more-mobile.png', fullPage: false, animations: 'disabled' });
+  await page.keyboard.press('Escape');
+  assert.equal(await moreButton.getAttribute('aria-expanded'), 'false', 'Escape closes the More menu');
+  assert(await moreButton.evaluate(element => element === document.activeElement), 'Escape returns keyboard focus to the More control');
+  await moreButton.click();
+  await page.getByRole('link', { name: 'Borrowing' }).last().click();
+  await page.getByRole('heading', { name: studentScreens.borrowing, exact: true }).waitFor();
+  assert.equal(await page.locator('.student-preview-mobile-more-button').getAttribute('aria-current'), 'location', 'Secondary mobile routes show the active More grouping');
+  assert.equal(await page.locator('.student-preview-mobile-more-button').getAttribute('aria-expanded'), 'false', 'Choosing a destination closes the More menu');
+  await page.goBack();
+  await page.getByRole('heading', { name: studentScreens.home, exact: true }).waitFor();
+  assert.equal(await page.locator('.student-preview-mobile-more-button').getAttribute('aria-expanded'), 'false', 'Browser Back does not reopen the More menu from its previous route');
+  assert.equal(await page.locator('.member-mobile-more-links').isVisible(), false, 'The More popover remains closed after browser Back');
   await page.goto(base + '/design/student?screen=profile');
   await page.getByRole('heading', { name: studentScreens.profile, exact: true }).waitFor();
   assert(await page.getByRole('link', { name: 'Workspace settings' }).isVisible(), 'Mobile users can reach settings from their Profile destination');
@@ -831,7 +856,10 @@ try {
   assert(await page.getByText(/No ownership or duplicate check is represented here/).isVisible(), 'Profile preview does not imply independently verified MEC ownership');
   await page.getByRole('link', { name: 'Workspace settings' }).click();
   await page.getByRole('heading', { name: studentScreens.settings, exact: true }).waitFor();
-  assert.equal(await page.locator('.student-preview-mobile-nav a[aria-current="location"]').getAttribute('href'), '/design/student?screen=profile', 'Mobile Settings stays grouped under the Profile destination');
+  await page.locator('.student-preview-mobile-more-button').click();
+  await page.getByRole('link', { name: 'Settings', exact: true }).last().click();
+  await page.getByRole('heading', { name: studentScreens.settings, exact: true }).waitFor();
+  assert.equal(await page.locator('.student-preview-mobile-more-button').getAttribute('aria-current'), 'location', 'Mobile Settings stays grouped under More');
   await page.goto(base + '/design/student?screen=profile');
   await page.getByRole('heading', { name: studentScreens.profile, exact: true }).waitFor();
   await setTheme(page, 'dark');

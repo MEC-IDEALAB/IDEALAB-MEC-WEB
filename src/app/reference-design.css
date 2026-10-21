@@ -114,6 +114,20 @@ to{opacity:1;translate:0 0}
 .skeleton-art{min-height:250px}
 }
 
+/* A small real-equipment print brings the supplied poster references into the hero. */
+.hero-object-study{position:absolute;z-index:4;top:20%;left:-22px;display:grid;gap:7px;width:clamp(126px,28%,156px);padding:9px;border:2px solid var(--accent-ink);background:var(--art-paper);box-shadow:4px 4px 0 var(--accent-ink);transform:rotate(-7deg)}
+.hero-object-study::before{content:"";position:absolute;z-index:-1;inset:8px -8px -8px 8px;border:1px solid var(--accent-ink);background:var(--accent-pink)}
+.object-study-label{font:400 .42rem/1.6 var(--font-retro),monospace;letter-spacing:0;color:var(--accent-ink)}
+.hero-object-study img{display:block;width:100%;height:92px;object-fit:contain;border:1px solid color-mix(in srgb,var(--accent-ink) 22%,transparent);background:#fff}
+.hero-object-study figcaption{display:grid;gap:5px;color:var(--accent-ink);line-height:1.25}
+.hero-object-study figcaption strong{font:700 .72rem/1.2 var(--font-display),sans-serif;letter-spacing:-.035em}
+.hero-object-study figcaption span{font:400 .37rem/1.6 var(--font-retro),monospace;letter-spacing:0}
+.machine-drawing{left:10%;top:19%;width:84%;height:73%}
+@media(max-width:1000px){.hero-object-study{left:-14px;top:18%;width:clamp(120px,29%,148px)}.hero-object-study img{height:82px}}
+@media(max-width:600px){.hero-object-study{left:-8px;top:17%;width:clamp(112px,35%,132px);padding:7px;gap:5px}.hero-object-study img{height:74px}.object-study-label{font-size:.36rem}.hero-object-study figcaption strong{font-size:.66rem}.hero-object-study figcaption span{font-size:.32rem}.machine-drawing{left:12%;top:20%;width:80%;height:70%}}
+@media(max-width:380px){.hero-object-study{left:-5px;top:16%;width:108px}.hero-object-study img{height:66px}.hero-object-study figcaption strong{font-size:.61rem}}
+@media(prefers-reduced-motion:reduce){.hero-object-study{transition:none}}
+
 @media(max-width:600px){.hero-art-wrap{padding-inline:10px}
 .hero-art-wrap .maker-art{max-width:none}
 .hero-star{right:0;top:-12px}

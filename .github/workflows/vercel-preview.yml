@@ -1,0 +1,76 @@
+name: Manual Vercel preview
+on:
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: vercel-preview-${{ github.ref }}
+  cancel-in-progress: true
+jobs:
+  preview:
+    if: github.ref == 'refs/heads/main'
+    name: Verify and deploy preview
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    env:
+      NEXT_TELEMETRY_DISABLED: '1'
+      ENABLE_MEMBER_PLATFORM: 'false'
+      ENABLE_DESIGN_PREVIEW: 'false'
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7
+        with:
+          node-version: '24.19.0'
+          cache: npm
+      - name: Require an institution-eligible Vercel plan
+        shell: bash
+        env:
+          VERCEL_PLAN: ${{ vars.VERCEL_PLAN }}
+        run: |
+          if [[ "$VERCEL_PLAN" != "pro" && "$VERCEL_PLAN" != "enterprise" ]]; then
+            echo "Set the VERCEL_PLAN repository variable to pro or enterprise only after confirming the Vercel account plan and institutional-use eligibility." >&2
+            exit 1
+          fi
+      - run: npm ci
+      - run: npm run lint
+      - run: npm run typecheck
+      - run: npm run test:boundaries
+      - run: npm audit --audit-level=high
+      - run: node scripts/check-docs.mjs
+      - run: npm run build
+      - run: npx playwright install --with-deps chromium
+      - run: npm run test:acceptance
+      - name: Require Vercel project credentials
+        shell: bash
+        env:
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+          VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+          VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
+        run: |
+          if [[ -z "$VERCEL_TOKEN" || -z "$VERCEL_ORG_ID" || -z "$VERCEL_PROJECT_ID" ]]; then
+            echo "Configure VERCEL_TOKEN, VERCEL_ORG_ID, and VERCEL_PROJECT_ID as GitHub Actions secrets before dispatching this workflow." >&2
+            exit 1
+          fi
+      - name: Pull Preview environment
+        env:
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+          VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+          VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
+        run: npx --yes vercel@64.7.0 pull --yes --environment=preview --token="$VERCEL_TOKEN"
+      - name: Require preview-only feature flags
+        run: node scripts/vercel-preview-env.mjs
+      - name: Build Vercel Preview
+        env:
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+          VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+          VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
+        run: npx --yes vercel@64.7.0 build --token="$VERCEL_TOKEN"
+      - name: Deploy Preview only
+        shell: bash
+        env:
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+          VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+          VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
+        run: npx --yes vercel@64.7.0 deploy --prebuilt --yes --token="$VERCEL_TOKEN"

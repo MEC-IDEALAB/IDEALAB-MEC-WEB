@@ -1,0 +1,8 @@
+import { defineConfig, globalIgnores } from 'eslint/config';
+import js from '@eslint/js';
+import ts from 'typescript-eslint';
+import hooks from 'eslint-plugin-react-hooks';
+export default defineConfig([
+  globalIgnores(['.next/**', 'next-env.d.ts', 'node_modules.previous/**']),
+  { files: ['**/*.{ts,tsx}'], extends: [js.configs.recommended, ...ts.configs.recommended], plugins: { 'react-hooks': hooks }, rules: { ...hooks.configs.recommended.rules } },
+]);

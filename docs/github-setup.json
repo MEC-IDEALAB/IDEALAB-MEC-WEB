@@ -82,6 +82,12 @@
       "nodeId": "I_kwDOVQoAGc8AAAABYfq_oA",
       "title": "CI, PR gates, Vercel delivery and pilot readiness",
       "url": "https://github.com/MEC-IDEALAB/IDEALAB-MEC-WEB/issues/13"
+    },
+    {
+      "number": 15,
+      "nodeId": "I_kwDOVQoAGc8AAAABYnjX0g",
+      "title": "Block account activation until shared profile permissions and provisioning are secured",
+      "url": "https://github.com/MEC-IDEALAB/IDEALAB-MEC-WEB/issues/15"
     }
   ],
   "organizationMetadataUpdated": true

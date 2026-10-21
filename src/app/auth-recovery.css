@@ -1,0 +1,26 @@
+.auth-label-row{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:-8px}
+.auth-label-row a,.recovery-page .small-copy a{color:var(--primary);text-decoration:underline;text-underline-offset:3px;font-size:.76rem;min-height:44px;display:inline-flex;align-items:center}
+.auth-feedback{margin-block:18px;line-height:1.55;overflow-wrap:anywhere}
+.auth-feedback:focus{outline:3px solid var(--primary);outline-offset:3px}
+.auth-feedback-status{background:var(--success-bg);color:var(--success-ink)}
+.recovery-page .auth-story{background-color:var(--accent-blue);background-image:radial-gradient(color-mix(in srgb,var(--accent-ink) 17%,transparent) .8px,transparent .8px)}
+.reset-page .auth-story{background-color:var(--accent-lavender)}
+.recovery-page .auth-story h1{font-family:var(--font-display),sans-serif}
+.recovery-page .auth-card .form-stack{gap:9px}
+.recovery-page .auth-card .form-stack input{margin-bottom:9px}
+.recovery-page .auth-card .password-field{margin-bottom:8px}
+.recovery-page .auth-card .form-stack .button{margin-top:10px}
+.recovery-page .auth-card .small-copy{max-width:360px}
+@media(max-width:700px){
+  .recovery-page{padding-top:18px;padding-bottom:28px}
+  .recovery-page .auth-toolbar{margin-bottom:18px}
+  .recovery-page .auth-grid{gap:0}
+  .recovery-page .auth-story{min-height:260px;padding:22px 24px}
+  .recovery-page .auth-story h1{font-size:clamp(2.3rem,11vw,3.2rem);margin-block:18px 10px}
+  .recovery-page .auth-story>p{font-size:1rem;margin-bottom:14px}
+  .recovery-page .auth-note{margin-top:auto;padding:12px 14px;max-width:360px}
+  .recovery-page .auth-note p{font-size:.75rem}
+  .recovery-page .auth-card{padding:23px 22px}
+  .recovery-page .auth-card h2{margin-top:10px}
+  .recovery-page .auth-feedback{margin-block:12px}
+}

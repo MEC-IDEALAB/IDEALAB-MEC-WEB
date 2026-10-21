@@ -1,0 +1,122 @@
+{
+  "observedAt": "2026-10-21 10:33:48 UTC",
+  "environment": "Supabase metadata and normalization probe",
+  "projects": {
+    "production": {
+      "id": "huftzhfqnnslvnfzvbex",
+      "role": "read-only collation/version query",
+      "postgres": "17.6.1.166",
+      "encoding": "UTF8",
+      "databaseLocale": "en_US.UTF-8",
+      "icuCollationVersion": "153.121"
+    },
+    "isolatedValidation": {
+      "id": "gvvqlfachzbufstzoiwi",
+      "role": "approved Free test project",
+      "postgres": "17.11.0.003",
+      "encoding": "UTF8",
+      "databaseLocale": "en_US.UTF-8",
+      "icuCollationVersion": "153.121",
+      "mutation": "Created idealab_private schema and validation collation mec_registration_ci (ICU und-u-ks-level2, deterministic=false); no public table or migration created"
+    }
+  },
+  "normalization": {
+    "display": "preserved separately from comparison value",
+    "comparisonWhitespace": "collapse each POSIX whitespace run to one ASCII space and trim",
+    "comparisonExpression": "btrim(regexp_replace(display, '[[:space:]]+', ' ', 'g')) COLLATE idealab_private.mec_registration_ci",
+    "comparisonCollation": "nondeterministic ICU und-u-ks-level2",
+    "observed": {
+      "caseAndRepeatedWhitespaceEqual": true,
+      "temporaryUniqueIndexRejectsCaseAndOuterWhitespaceDuplicate": true,
+      "punctuationRemainsSignificant": true,
+      "internalSingleSpaceRemainsSignificant": true,
+      "accentRemainsSignificant": true,
+      "composedAndDecomposedAccentEqual": true,
+      "nonbreakingSpaceCollapsesToAsciiSpace": true,
+      "latinAndGreekLookalikeLettersRemainDistinct": true,
+      "capitalSharpSAndSharpSEqual": true,
+      "sharpSAndSsRemainDistinct": true
+    },
+    "vectors": [
+      {
+        "label": "ascii_case",
+        "left": "MDL24CS219",
+        "right": "mdl24cs219",
+        "equal": true
+      },
+      {
+        "label": "repeated_tabs_and_spaces",
+        "left": "MEC\t  LAB",
+        "right": "MEC LAB",
+        "equal": true
+      },
+      {
+        "label": "nonbreaking_space",
+        "left": "MEC\u00a0LAB",
+        "right": "MEC LAB",
+        "normalizedUtf8Hex": ["4d4543204c4142", "4d4543204c4142"],
+        "equal": true
+      },
+      {
+        "label": "composed_decomposed_accent",
+        "left": "caf\u00e9",
+        "right": "cafe\u0301",
+        "equal": true
+      },
+      {
+        "label": "latin_vs_greek_m",
+        "left": "M",
+        "right": "\u039c",
+        "equal": false
+      },
+      {
+        "label": "capital_sharp_s_vs_sharp_s",
+        "left": "\u1e9e",
+        "right": "\u00df",
+        "equal": true
+      },
+      {
+        "label": "sharp_s_vs_ss",
+        "left": "\u00df",
+        "right": "ss",
+        "equal": false
+      },
+      {
+        "label": "punctuation",
+        "left": "MDL-24",
+        "right": "MDL 24",
+        "equal": false
+      }
+    ]
+  },
+  "claimFixture": {
+    "file": "registration-claim-fixture.sql",
+    "projectId": "gvvqlfachzbufstzoiwi",
+    "result": "PASS",
+    "scope": [
+      "ICU-normalized unique claim conflict",
+      "old claim display/attestation and profile preservation on collision",
+      "five processed collisions and sixth-attempt throttle boundary",
+      "strict rolling-window cutoff pruning and empty-state deletion",
+      "pending-to-current claim replacement and profile revision increment"
+    ],
+    "cleanup": "Explicit ROLLBACK",
+    "postRollbackCatalog": {
+      "persistentPrivateTables": 0,
+      "persistentFixtureTables": 0,
+      "privateFixtureFunctions": 0
+    },
+    "limitations": [
+      "Model-level temporary fixture; it does not execute the proposed application RPC",
+      "No concurrent sessions, Auth identities, RLS, grants, Data API, Flutter, website or production behavior were tested"
+    ]
+  },
+  "limits": [
+    "No Auth user/account rows were read, created or modified",
+    "No email was sent",
+    "No persistent application tables, RPCs, triggers, policies or migration were created; the unique-index check used a transaction-local temporary probe table",
+    "No production schema, data, Auth settings or privileges were changed",
+    "This confirms the comparison expression for the recorded vectors and temporary unique-index behavior only; it does not test production data, RLS, Auth or either client",
+    "Recheck collation versions and duplicate behavior before any migration"
+  ]
+}

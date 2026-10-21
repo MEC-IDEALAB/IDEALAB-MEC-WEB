@@ -1,0 +1,110 @@
+{
+  "date": "2026-10-21",
+  "scope": "Private registration-claim storage prototype in the owner-approved Free validation project only.",
+  "project": {
+    "name": "idealab-mec-validation",
+    "ref": "gvvqlfachzbufstzoiwi",
+    "region": "ap-south-1",
+    "plan": "Free",
+    "postgres_version": "17.11",
+    "production_data_copied": false
+  },
+  "preflight": {
+    "migration_role": "postgres",
+    "public_application_relations": 0,
+    "private_relations_before_apply": 0,
+    "private_functions_before_apply": 0,
+    "api_roles_present": ["anon", "authenticated"],
+    "collation": {
+      "name": "idealab_private.mec_registration_ci",
+      "provider": "icu",
+      "deterministic": false,
+      "locale": "und-u-ks-level2",
+      "recorded_version": "153.121",
+      "actual_version": "153.121"
+    }
+  },
+  "source": {
+    "validation_sql": "supabase/validation/20261021120000_mec_claim_storage_validation.sql",
+    "follow_up_validation_sql": "supabase/validation/20261021130000_mec_pending_claim_commit_guard.sql",
+    "test_sql": "supabase/tests/database/mec_registration_claims.test.sql",
+    "follow_up_test_sql": "supabase/tests/database/mec_pending_claim_commit_guard.test.sql",
+    "deployable_migrations_directory": false
+  },
+  "transactional_validation": {
+    "database_tests": "pgTAP 1.3.3",
+    "planned_assertions": 21,
+    "finish_raises_on_failure": true,
+    "result": "passed",
+    "transaction_rolled_back": true,
+    "follow_up_persistent_claim_table": false,
+    "follow_up_persistent_normalizer": false,
+    "follow_up_persistent_pgtap_extension": false
+  },
+  "isolated_project_application": {
+    "result": "success",
+    "migration_name": "20261021120000_mec_claim_storage_validation",
+    "ledger_version": "20261021110522",
+    "rls_enabled": true,
+    "rls_forced": true,
+    "policy_count": 0,
+    "anon_and_authenticated_have_private_schema_usage": false,
+    "anon_and_authenticated_have_claim_table_privileges": false,
+    "anon_and_authenticated_can_execute_normalizer": false,
+    "service_role_has_private_schema_usage": false,
+    "service_role_has_claim_table_privileges": false,
+    "service_role_can_execute_normalizer": false,
+    "follow_up_migration_name": "mec_pending_claim_commit_guard",
+    "follow_up_ledger_version": "20261021111725",
+    "persistent_pending_guard_trigger_initially_deferred": true,
+    "guard_function_security_definer": false,
+    "guard_function_empty_search_path": true,
+    "anon_can_execute_guard": false,
+    "authenticated_can_execute_guard": false,
+    "service_role_can_execute_guard": false,
+    "persistent_claim_rows_after_tests": 0,
+    "persistent_pgtap_extension_after_tests": false,
+    "public_application_relations": 0
+  },
+  "follow_up_transactional_validation": {
+    "database_tests": "pgTAP 1.3.3",
+    "planned_assertions": 5,
+    "finish_raises_on_failure": true,
+    "result": "passed",
+    "transaction_rolled_back": true,
+    "behavior_probe": "Temporary table attached to the installed generic trigger function.",
+    "deferred_check_forced_with_set_constraints_immediate": true,
+    "resolved_pending_to_current_passed": true,
+    "unresolved_pending_raised_check_violation": true,
+    "failed_probe_insert_rolled_back_to_savepoint": true,
+    "persistent_table_behavior_exercised": false,
+    "actual_commit_failure_observed": false,
+    "persistent_trigger_catalog_verified": true,
+    "post_rollback_guard_trigger_count": 1,
+    "post_rollback_guard_function_count": 1,
+    "post_rollback_pgtap_extension_count": 0,
+    "post_rollback_claim_row_count": 0
+  },
+  "test_limits": {
+    "persistent_claim_rows_inserted": false,
+    "persistent_unique_index_catalog_verified": true,
+    "normalization_collision_probe": "Temporary table using the same ICU collation; no Auth identity was created.",
+    "postgrest_request_made": false,
+    "role_level_api_journey_run": false
+  },
+  "advisors": {
+    "security": "One INFO rls_enabled_no_policy finding for intentionally private storage.",
+    "performance": "No findings."
+  },
+  "not_verified": [
+    "Supabase Auth account creation, confirmation, Google provider or session flow",
+    "PostgREST or role-level API access journey",
+    "Claim RPC, attestation, profile mapping or claim lifecycle",
+    "Actual COMMIT rejection against a persistent pending claim row; the functional test forces the deferred check immediately on a temporary probe",
+    "Concurrency or collision throttling",
+    "Complete MEC registration-number format coverage and the exact retry limit",
+    "Flutter or website end-to-end account acceptance",
+    "Production compatibility, migration history reconciliation or rollout"
+  ],
+  "production_changed": false
+}

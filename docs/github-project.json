@@ -3,7 +3,7 @@
   "private": true,
   "project": "https://github.com/orgs/MEC-IDEALAB/projects/1",
   "projectPrivate": true,
-  "projectItems": 13,
+  "projectItems": 15,
   "fields": [
     "Title",
     "Assignees",
@@ -41,5 +41,5 @@
       "url": "https://github.com/MEC-IDEALAB/IDEALAB-MEC-WEB/milestone/4"
     }
   ],
-  "issueCount": 13
+  "issueCount": 14
 }

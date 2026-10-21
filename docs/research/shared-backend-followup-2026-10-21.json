@@ -1,0 +1,285 @@
+{
+  "capturedAtUtc": "2026-10-21 08:39 UTC",
+  "project": {
+    "id": "huftzhfqnnslvnfzvbex",
+    "name": "grow-idealab",
+    "status": "ACTIVE_HEALTHY",
+    "region": "ap-south-1",
+    "postgresVersion": "17.6.1.166"
+  },
+  "scope": "Read-only project metadata, public table/RLS catalog, migration ledger, effective grants and policies, selected function/trigger metadata, storage bucket metadata and security advisors. No public user/content rows, auth.users rows, Auth settings, storage objects or secrets were read. No mutation or exploit was attempted.",
+  "deployedMigrationLedger": [
+    {
+      "version": "20260503073726",
+      "name": "create_initial_schema"
+    },
+    {
+      "version": "20260503073744",
+      "name": "add_rls_policies"
+    }
+  ],
+  "sourceMigrationReconciliation": {
+    "status": "Feature-level comparison only; exact source-file attribution is unresolved because the live ledger has two generic names and no source hashes.",
+    "observedDifferences": [
+      "Tracked 001_initial_schema.sql declares users.base_role and users.system_role; live public.users has role with student/lab_admin/super_admin values.",
+      "Tracked 001_initial_schema.sql defines project_updates, inventory_items and inventory_transactions; these were not present in the live public table listing.",
+      "Live rich-profile tables exist, but their presence and policy names do not prove exact application of tracked migrations 003, 006 or 008.",
+      "Tracked 004_storage_buckets.sql names avatars, portfolio and project-banners; the live bucket list is events, inventory, profiles and projects.",
+      "The live btree_gist extension and notification trigger names resemble objects in tracked SQL, but do not identify which source file or version created them."
+    ],
+    "exactAppliedSourceFilesIdentified": false
+  },
+  "publicTablesReported": [
+    "users",
+    "clubs",
+    "tools",
+    "tool_bookings",
+    "lab_sessions",
+    "events",
+    "rsvps",
+    "projects",
+    "project_members",
+    "notifications",
+    "knowledge_articles",
+    "user_profiles",
+    "user_experience",
+    "user_education",
+    "user_portfolio_projects",
+    "user_volunteering",
+    "user_social_links",
+    "user_skills",
+    "user_interests"
+  ],
+  "allListedPublicTablesHaveRlsEnabled": true,
+  "effectivePrivilegesChecked": [
+    "SELECT",
+    "INSERT",
+    "UPDATE",
+    "DELETE"
+  ],
+  "effectiveTablePrivileges": [
+    {
+      "table": "users",
+      "anon": ["SELECT", "INSERT", "UPDATE", "DELETE"],
+      "authenticated": ["SELECT", "INSERT", "UPDATE", "DELETE"]
+    },
+    {
+      "table": "project_members",
+      "anon": ["SELECT", "INSERT", "UPDATE", "DELETE"],
+      "authenticated": ["SELECT", "INSERT", "UPDATE", "DELETE"]
+    },
+    {
+      "table": "user_profiles",
+      "anon": ["SELECT", "INSERT", "UPDATE", "DELETE"],
+      "authenticated": ["SELECT", "INSERT", "UPDATE", "DELETE"]
+    },
+    {
+      "table": "events",
+      "anon": ["SELECT", "INSERT", "UPDATE", "DELETE"],
+      "authenticated": ["SELECT", "INSERT", "UPDATE", "DELETE"]
+    },
+    {
+      "table": "projects",
+      "anon": ["SELECT", "INSERT", "UPDATE", "DELETE"],
+      "authenticated": ["SELECT", "INSERT", "UPDATE", "DELETE"]
+    },
+    {
+      "table": "tool_bookings",
+      "anon": ["SELECT", "INSERT", "UPDATE", "DELETE"],
+      "authenticated": ["SELECT", "INSERT", "UPDATE", "DELETE"]
+    },
+    {
+      "table": "notifications",
+      "anon": ["SELECT", "INSERT", "UPDATE", "DELETE"],
+      "authenticated": ["SELECT", "INSERT", "UPDATE", "DELETE"]
+    },
+    {
+      "table": "knowledge_articles",
+      "anon": ["SELECT", "INSERT", "UPDATE", "DELETE"],
+      "authenticated": ["SELECT", "INSERT", "UPDATE", "DELETE"]
+    }
+  ],
+  "selectedFunctions": [
+    {
+      "schema": "public",
+      "name": "get_user_role",
+      "securityDefiner": true,
+      "searchPathConfig": null,
+      "executeAclIncludes": ["PUBLIC", "anon", "authenticated"],
+      "behavior": "Returns the role for auth.uid() only. No call was made."
+    },
+    {
+      "schema": "public",
+      "name": "set_updated_at",
+      "securityDefiner": false,
+      "searchPathConfig": null
+    }
+  ],
+  "selectedTriggers": [
+    {
+      "table": "project_members",
+      "name": "trg_notify_project_member_join",
+      "event": "AFTER INSERT"
+    },
+    {
+      "table": "tool_bookings",
+      "name": "trg_notify_booking_status_change",
+      "event": "AFTER UPDATE OF status"
+    },
+    {
+      "table": "user_profiles",
+      "name": "trg_user_profiles_updated_at",
+      "event": "BEFORE UPDATE"
+    },
+    {
+      "table": "user_education",
+      "name": "trg_user_education_updated_at",
+      "event": "BEFORE UPDATE"
+    }
+  ],
+  "policyFindings": [
+    {
+      "table": "users",
+      "policy": "users_read_all",
+      "command": "SELECT",
+      "roles": [
+        "authenticated"
+      ],
+      "using": "true"
+    },
+    {
+      "table": "users",
+      "policy": "users_insert_own",
+      "command": "INSERT",
+      "roles": [
+        "public"
+      ],
+      "withCheck": "auth.uid() = id"
+    },
+    {
+      "table": "users",
+      "policy": "users_update_own",
+      "command": "UPDATE",
+      "roles": [
+        "public"
+      ],
+      "using": "auth.uid() = id",
+      "explicitWithCheck": null
+    },
+    {
+      "table": "project_members",
+      "policy": "members_insert_auth",
+      "command": "INSERT",
+      "roles": [
+        "public"
+      ],
+      "withCheck": "auth.uid() = user_id"
+    },
+    {
+      "table": "knowledge_articles",
+      "policy": "articles_insert_auth",
+      "command": "INSERT",
+      "roles": [
+        "public"
+      ],
+      "withCheck": "auth.uid() = author_id"
+    }
+  ],
+  "storage": {
+    "buckets": [
+      {
+        "id": "events",
+        "public": true,
+        "fileSizeLimitBytes": 5242880,
+        "allowedMimeTypes": [
+          "image/png",
+          "image/jpeg",
+          "image/webp"
+        ]
+      },
+      {
+        "id": "inventory",
+        "public": true,
+        "fileSizeLimitBytes": 10485760,
+        "allowedMimeTypes": [
+          "image/png",
+          "image/jpeg",
+          "image/webp"
+        ]
+      },
+      {
+        "id": "profiles",
+        "public": true,
+        "fileSizeLimitBytes": 5242880,
+        "allowedMimeTypes": [
+          "image/png",
+          "image/jpeg",
+          "image/webp"
+        ]
+      },
+      {
+        "id": "projects",
+        "public": true,
+        "fileSizeLimitBytes": 10485760,
+        "allowedMimeTypes": [
+          "image/png",
+          "image/jpeg",
+          "image/webp"
+        ]
+      }
+    ],
+    "policies": [
+      {
+        "name": "Avatar Read",
+        "command": "SELECT",
+        "roles": [
+          "public"
+        ],
+        "bucketPredicate": "bucket_id = 'avatars'"
+      },
+      {
+        "name": "Avatar Upload",
+        "command": "INSERT",
+        "roles": [
+          "authenticated"
+        ],
+        "bucketPredicate": "bucket_id = 'avatars'"
+      },
+      {
+        "name": "Avatar Update",
+        "command": "UPDATE",
+        "roles": [
+          "authenticated"
+        ],
+        "bucketPredicate": "bucket_id = 'avatars'"
+      },
+      {
+        "name": "Avatar Delete",
+        "command": "DELETE",
+        "roles": [
+          "authenticated"
+        ],
+        "bucketPredicate": "bucket_id = 'avatars'"
+      }
+    ],
+    "bucketReferencedByPoliciesExists": false,
+    "objectAccessTested": false
+  },
+  "securityAdvisorFindings": [
+    "Mutable search path on public.get_user_role",
+    "Mutable search path on public.set_updated_at",
+    "public can execute SECURITY DEFINER public.get_user_role",
+    "authenticated can execute SECURITY DEFINER public.get_user_role",
+    "Leaked-password protection disabled",
+    "btree_gist extension installed in public"
+  ],
+  "reconciliation": {
+    "sourceMigrationMapping": "Not established. The two live migration names do not identify exact tracked source files; compare schema/policies file-by-file before any migration plan.",
+    "authProviderSettingsRead": false,
+    "authUsersRead": false,
+    "productionSchemaChanged": false,
+    "accountRowsRead": false,
+    "storageObjectsRead": false,
+    "apiMutationAttempted": false
+  }
+}

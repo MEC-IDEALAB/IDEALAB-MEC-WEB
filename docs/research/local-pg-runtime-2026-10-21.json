@@ -1,0 +1,20 @@
+{
+  "capturedAt": "2026-10-21T04:58:23.938Z",
+  "nodeVersion": "v24.19.0",
+  "version": "postgres (PostgreSQL) 16.1",
+  "scope": "Native PostgreSQL runtime only; no application schema, Supabase Auth, Data API or shared project accessed.",
+  "checks": {
+    "privateScratchDirectory": true,
+    "isolatedIdentity": true,
+    "wrongCredentialDenied": true,
+    "transactionRollback": true,
+    "clusterStoppedAndRemoved": true
+  },
+  "database": {
+    "version": "16.1",
+    "encoding": "UTF8",
+    "locale": "C"
+  },
+  "result": "passed",
+  "started": true
+}

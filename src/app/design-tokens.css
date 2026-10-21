@@ -1,0 +1,89 @@
+/* IDEALAB MEC color standard. See docs/design-system.md for roles and usage. */
+:root {
+  --brand-cobalt: #3159db;
+  --brand-cobalt-hover: #2547b7;
+  --accent-yellow: #ffe029;
+  --accent-pink: #ff3994;
+  --accent-blue: #a8c6ff;
+  --accent-purple: #c4b5f5;
+  --accent-red: #f39488;
+  --accent-green: #a6d9b5;
+  --accent-mint: var(--accent-green);
+  --accent-lavender: var(--accent-purple);
+  --accent-apricot: #f5bc98;
+  --accent-amber: var(--accent-yellow);
+  --accent-ink: #1d252c;
+  --art-paper: #fffef9;
+  --art-neutral: #dbe3dd;
+  --primary: var(--brand-cobalt);
+  --on-primary: #ffffff;
+  --primary-hover: var(--brand-cobalt-hover);
+  --paper: #fcfbf7;
+  --surface: #fffef9;
+  --ink: #1d252c;
+  --muted: #52616b;
+  --line: #b9c3c3;
+  --blue: var(--brand-cobalt);
+  --lime: var(--accent-mint);
+  --coral: var(--accent-red);
+  --yellow: var(--accent-amber);
+  --outline: var(--accent-ink);
+  --strip-bg: var(--accent-ink);
+  --focus: var(--brand-cobalt);
+  --section-tint: #eaf0eb;
+  --notice-bg: #f5e9c6;
+  --notice-ink: #51421e;
+  --success-bg: #e0f1e6;
+  --success-ink: #23523c;
+  --danger-bg: #fae6e1;
+  --danger-ink: #842f28;
+  --pattern: color-mix(in srgb, var(--ink) 7%, transparent);
+  --border-width: 2px;
+  --hard-shadow: 5px 5px 0 var(--outline);
+  --motion-fast: 180ms;
+  --motion-enter: 520ms;
+  --motion-ease: cubic-bezier(.2, .7, .2, 1);
+  color-scheme: light;
+}
+
+html[data-theme=dark] {
+  --paper: #000000;
+  --surface: #0b0b0b;
+  --ink: #f4f4f1;
+  --muted: #bdbdbd;
+  --line: #4b4b4b;
+  --blue: #acc0ff;
+  --outline: #000000;
+  --strip-bg: #0b0b0b;
+  --focus: #b9e6ce;
+  --section-tint: #111111;
+  --notice-bg: #342f21;
+  --notice-ink: #f1dfae;
+  --success-bg: #1b352b;
+  --success-ink: #bee8ce;
+  --danger-bg: #3c2527;
+  --danger-ink: #f4bab0;
+  color-scheme: dark;
+}
+
+@media (prefers-color-scheme: dark) {
+  html:not([data-theme=light]):not([data-theme=dark]) {
+    --paper: #000000;
+    --surface: #0b0b0b;
+    --ink: #f4f4f1;
+    --muted: #bdbdbd;
+    --line: #4b4b4b;
+    --blue: #acc0ff;
+    --outline: #000000;
+    --strip-bg: #0b0b0b;
+    --focus: #b9e6ce;
+    --section-tint: #111111;
+    --notice-bg: #342f21;
+    --notice-ink: #f1dfae;
+    --success-bg: #1b352b;
+    --success-ink: #bee8ce;
+    --danger-bg: #3c2527;
+    --danger-ink: #f4bab0;
+    color-scheme: dark;
+  }
+}

@@ -40,6 +40,13 @@ Notebook/content validation passed (session 11250, exit 0): lint, production bui
 
 Public desktop navigation links to curated homepage sections and sign-in; project/event record links enter the signed-in app. Mobile uses a labeled disclosure menu. Online account creation remains planned; `/sign-up` provides honest joining information and a working contact path without implying registration success. Signed-in desktop anchors are Home / Lab / Profile; contextual Projects / Events / Requests and permissioned Workspace follow. Mobile retains three bottom anchors; modules are reached from Home/Lab. Staff section navigation uses a compact menu, breadcrumb and explicit machine/room scope.
 
+Public links identify the current page with an underline and `aria-current="page"`.
+The mobile disclosure retains native HTML behavior without JavaScript. With
+enhancement, Escape closes it and restores focus to its control; Tab departure,
+outside pointer and link activation close it without trapping focus. Crossing
+the 800 px desktop breakpoint closes it and transfers any focused mobile control
+to the current desktop link (or the first link on the homepage).
+
 ## Account creation and onboarding
 
 Follow [the onboarding requirements](onboarding-requirements.md): any verified-email student account starts as Student, and the member app remains gated until **name, phone, roll number, department, year, and college/institution** are saved successfully. The public `/sign-up` page is currently informational; functional account creation, email confirmation, onboarding persistence and Google acceptance remain gated by the shared-backend review.

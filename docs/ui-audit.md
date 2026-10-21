@@ -1,5 +1,30 @@
 # UI audit and corrections
 
+## Public navigation follow-up — 21 October 2026
+
+UI UX Pro Max is installed locally and was used for this keyboard-navigation
+audit. The native mobile disclosure stayed open after Escape, and neither
+navigation layout identified the current page. It now closes on Escape with
+focus restored, closes on Tab departure, outside pointer and route selection,
+and uses an underlined `aria-current="page"` link. Native HTML navigation still
+works without JavaScript; no ARIA menu role or focus trap was introduced.
+
+Real browser testing also reproduced a resize race after page navigation:
+the browser can blur a hidden mobile control before its media-change listener
+runs. Both event paths now restore focus to the current desktop link. The
+regression journeys cover open and closed disclosure focus, the 800/801 px
+boundary, selecting the current page, focusable and non-focusable outside
+targets, and navigation without JavaScript. Screenshots are in
+`artifacts/acceptance/navigation-mobile-open.png` and `navigation-mobile-closed.png`.
+
+Node 24.19.0 lint, TypeScript, all 28 boundary tests, the isolated production
+build and full Chromium acceptance passed locally on this change. Dependency
+audit reported zero vulnerabilities. Independent source review found no
+remaining concrete defect after the resize correction. Documentation/link
+and diff checks are part of the pre-push gate; exact revision and hosted results
+are recorded on draft PR #14. This public-navigation check does not establish
+live Auth, profile persistence or operational database acceptance.
+
 | Finding | Correction | Verification |
 | --- | --- | --- |
 | First-visit loader felt like a large reversing word wall and vanished at unpredictable points | Quiet repeated IDEALAB marks sit behind a maker card with an animated cube, circuit trace and indeterminate progress. Readiness waits for fonts and a paint; a 560 ms brand reveal exits with a 190 ms fade, while slow loads exit as soon as ready. Content becomes inert before its controls are parsed, the watchdog always releases it, and reduced motion skips the reveal. | Current-source browser run checks moving marks, pre-hydration Tab isolation, keyboard restoration after the normal exit and no-hydration watchdog, fast/slow readiness, fade, reload/navigation, reduced motion, jet-black theme and 320 px layout. See `artifacts/acceptance/wordmark-loading.png` and `wordmark-loading-dark-mobile.png`. |

@@ -27,6 +27,16 @@ async function setTheme(page, theme) {
   const dark = await page.locator('.theme-toggle').getAttribute('aria-pressed') === 'true';
   if (dark !== (theme === 'dark')) await page.locator('.theme-toggle').click();
 }
+async function elementContrast(page, selector) {
+  return page.locator(selector).evaluate(element => {
+    const luminance = color => color.match(/[\d.]+/g).slice(0, 3).map(channel => {
+      const value = Number(channel) / 255;
+      return value <= .04045 ? value / 12.92 : ((value + .055) / 1.055) ** 2.4;
+    }).reduce((sum, value, index) => sum + value * [.2126, .7152, .0722][index], 0);
+    const [foreground, background] = [getComputedStyle(element).color, getComputedStyle(element).backgroundColor].map(luminance).sort((a, b) => b - a);
+    return (foreground + .05) / (background + .05);
+  });
+}
 async function loadPageImages(page) {
   for (const image of await page.locator('img').all()) await image.scrollIntoViewIfNeeded();
   await page.waitForFunction(() => [...document.images].every(image => image.complete && image.naturalWidth > 0));
@@ -479,6 +489,45 @@ try {
   await page.emulateMedia({ reducedMotion: 'reduce' });
   await page.waitForFunction(() => document.getAnimations().every(animation => animation.playState !== 'running'));
   assert(await page.getByRole('link', { name: 'Discover projects', exact: true }).isVisible(), 'Changing motion preference preserves card access');
+
+  await page.setViewportSize({ width: 1440, height: 1050 });
+  await page.goto(base + '/design/workspace');
+  await setTheme(page, 'light');
+  await page.getByRole('heading', { name: 'A workspace built around the work.' }).waitFor();
+  assert.equal(await page.locator('meta[name="robots"]').getAttribute('content'), 'noindex, nofollow', 'Staff wireframe preview is excluded from search indexing');
+  assert(await elementContrast(page, '.staff-preview-state') >= 4.5, 'Not-connected status meets text contrast in light mode');
+  assert(await page.getByText('no account, assignments, records or actions are connected', { exact: false }).isVisible());
+  assert.equal(await page.getByRole('button', { name: 'Machine / Room Head' }).getAttribute('aria-pressed'), 'true', 'Machine/room layout is initially selected');
+  const previewStorage = await storageSnapshot(page);
+  const layoutChoices = [
+    ['Operations Head', 'Operations workspace'],
+    ['Events Head', 'Events workspace'],
+    ['Super Admin', 'Administration workspace'],
+    ['Machine / Room Head', 'Machine & room workspace'],
+  ];
+  for (const [label, heading] of layoutChoices) {
+    await page.getByRole('button', { name: label, exact: true }).click();
+    assert.equal(await page.getByRole('button', { name: label, exact: true }).getAttribute('aria-pressed'), 'true', `${label} layout announces selection`);
+    assert(await page.getByRole('heading', { name: heading, exact: true }).isVisible(), `${label} layout updates its scope description`);
+  }
+  assert.deepEqual(await storageSnapshot(page), previewStorage, 'Changing staff layout previews does not persist data');
+  assert(await page.getByText('This preview contains no requests, people, counts or machine records.', { exact: false }).isVisible(), 'Inbox is empty without fabricated records');
+  assert.equal(await page.getByRole('button', { name: /assign|approve|confirm|publish|issue|refund/i }).count(), 0, 'Design preview exposes no operational actions');
+  for (const width of [320, 375, 768, 1024, 1440]) {
+    await page.setViewportSize({ width, height: 1000 });
+    assert(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth), `Staff preview fits ${width}px without horizontal scrolling`);
+    if (width === 375) await page.screenshot({ path: 'artifacts/acceptance/staff-workspace-mobile.png', fullPage: true });
+  }
+  await setTheme(page, 'dark');
+  assert.equal(await page.evaluate(() => getComputedStyle(document.body).backgroundColor), 'rgb(0, 0, 0)', 'Staff preview keeps the jet-black dark canvas');
+  assert(await elementContrast(page, '.staff-preview-state') >= 4.5, 'Not-connected status meets text contrast in dark mode');
+  await page.screenshot({ path: 'artifacts/acceptance/staff-workspace-dark.png', fullPage: true });
+  await page.setViewportSize({ width: 375, height: 1000 });
+  assert(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth), 'Dark staff preview fits mobile width');
+  await page.screenshot({ path: 'artifacts/acceptance/staff-workspace-dark-mobile.png', fullPage: true });
+  await page.emulateMedia({ reducedMotion: 'reduce' });
+  assert.equal(await page.locator('.staff-preview-heading').evaluate(element => getComputedStyle(element).animationName), 'none', 'Staff preview entrance respects reduced motion');
+  await setTheme(page, 'light');
   assert.deepEqual(errors, [], 'No browser runtime errors');
   assert.deepEqual(cspErrors, [], 'CSP allows the application scripts, styles and assets needed for the public journey');
   const offPort = await availablePort();
@@ -499,7 +548,8 @@ try {
   assert.equal((await fetch(offBase + '/design/request')).status, 404, 'Design preview must be unavailable when disabled');
   assert.equal((await fetch(offBase + '/design/requests')).status, 404, 'Request workspace preview must be unavailable when disabled');
   assert.equal((await fetch(offBase + '/design/onboarding')).status, 404, 'Onboarding design preview must be unavailable when disabled');
-  console.log('PASS: public journey, 5 widths in light/dark, auth layouts/themes, palette contrast, no-JavaScript content, scroll/card motion and live reduced-motion cancellation, assets, keyboard navigation, gated six-field onboarding preview with validation/no storage, route denial, sample draft journeys, 404 and security headers.');
+  assert.equal((await fetch(offBase + '/design/workspace')).status, 404, 'Staff workspace design preview must be unavailable when disabled');
+  console.log('PASS: public journey, 5 widths in light/dark, auth layouts/themes, palette contrast, no-JavaScript content, scroll/card motion and live reduced-motion cancellation, assets, keyboard navigation, gated six-field onboarding and staff workspace previews, safe empty states/no storage/no actions, route denial, sample draft journeys, 404 and security headers.');
   console.log('UNVERIFIED: live account success/recovery/OAuth, draft under a real member session, scoped permissions and operational backend workflows.');
 } catch (error) {
   const activePage = browser?.contexts()[0]?.pages()[0];

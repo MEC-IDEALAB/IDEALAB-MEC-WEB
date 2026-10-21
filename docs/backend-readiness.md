@@ -8,8 +8,9 @@ below pass.
 The [shared profile contract proposal](shared-profile-contract-proposal.md) turns
 this gate into a concrete mapping, state/API/permission design, rollout sequence
 and 14-journey acceptance matrix. It includes a fresh [metadata-only catalog
-snapshot](research/shared-profile-catalog-2026-10-21.json). No SQL migration or
-application persistence is implemented by that proposal.
+snapshot](research/shared-profile-catalog-2026-10-21.json) and a later
+[storage/security catalog recheck](research/shared-backend-followup-2026-10-21.json).
+No SQL migration or application persistence is implemented by that proposal.
 
 ## Current evidence
 
@@ -21,6 +22,20 @@ only; no user rows were read. The project is healthy on PostgreSQL 17.6.1.166.
 The deployed ledger contains only `20260503073726 create_initial_schema` and
 `20260503073744 add_rls_policies`; it materially differs from the tracked Grow
 migration history and current Flutter auth/profile consumers.
+
+The source-to-live comparison is now feature-level, not migration attribution.
+The live ledger names do not identify the checked-in SQL files or record their
+source hashes. The current catalog differs from `001_initial_schema.sql`:
+live `users` uses `role` rather than `base_role`/`system_role`, and the listed
+public schema does not contain `project_updates`, `inventory_items` or
+`inventory_transactions`. Rich-profile tables are present, but the live
+policy names/conditions cannot be mapped to `003`, `006` or `008` from the two
+ledger labels. The storage catalog differs from `004_storage_buckets.sql`;
+`btree_gist` exists as noted below, but that alone does not prove `005` or
+`rc43_backend_authority.sql` was applied. The live notification trigger names
+match those in the `rc43` candidate, but the ledger still does not attribute
+their source. Keep the exact migration-by-migration reconciliation open; do
+not infer an applied history from similar names or surviving objects.
 
 A follow-up read-only metadata check confirmed Supabase organization ID
 `yhhsdxbhpsyovqlvdoha` and the Free organization tier. The project still has no
@@ -45,10 +60,12 @@ safe instruction to drop an index.
 
 The live `public.users` table has 19 columns, including `role`, `is_active`,
 `profile_completed`, `name`, `phone` and `college_roll`. It lacks the approved
-`institution`, `department` and current `study_year` fields. `college_roll` is
-globally unique. The earlier product decision was institution-scoped uniqueness;
-the current MEC-only pilot requires one normalized MEC registration claim, with
-no institution-label alias bypass.
+`institution`, `department` and current `study_year` fields. `college_roll` has
+a raw global unique constraint. The earlier multi-institution, institution-scoped
+rule is superseded by the MEC-only pilot: one normalized MEC registration claim
+must be unique regardless of case or repeated/surrounding spaces. The existing
+constraint does not enforce that normalization or prove ownership of the first
+claim.
 The database also has `user_profiles.department` and
 `user_education.institution`, but neither is an approved substitute for the
 six-field private onboarding contract; `user_education.end_year` represents a
@@ -94,6 +111,18 @@ Security advisors report mutable search paths on `get_user_role` and
 disabled leaked-password protection, and `btree_gist` installed in `public`.
 No user rows were read, no exploit was attempted, no identity was created, and
 no database or permission was changed.
+
+A second read-only catalog check at 08:39 UTC reconfirmed the two-migration
+ledger, public policies, effective grants on the selected account/operations
+tables and security-advisor findings. It also found four storage buckets:
+`events`, `inventory`, `profiles` and `projects`; each is marked public and has
+PNG/JPEG/WebP MIME restrictions, with 5 MiB limits for `events`/`profiles` and
+10 MiB for `inventory`/`projects`. The only `storage.objects` policies refer
+to bucket ID `avatars`, which is not in that bucket list. This is a metadata
+observation only: no objects, signed/public URLs or upload/delete requests were
+inspected or sent, so effective access through the Storage API remains
+unverified. Preserve the catalog mismatch as a separate storage gate; do not
+rename buckets or apply the historical Storage migrations to production.
 
 An independent read-only review of the same live authorization metadata found
 two additional authority paths that must be reconciled before exposing the

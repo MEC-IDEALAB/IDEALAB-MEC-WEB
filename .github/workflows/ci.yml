@@ -17,8 +17,6 @@ jobs:
     timeout-minutes: 15
     env:
       NEXT_TELEMETRY_DISABLED: '1'
-      NEXT_PUBLIC_SUPABASE_URL: ''
-      NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: ''
       ENABLE_MEMBER_PLATFORM: 'false'
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
@@ -33,7 +31,7 @@ jobs:
       - run: npm run typecheck
       - run: npm run test:boundaries
       - run: npm audit --audit-level=high
-      - run: npm run build
+      - run: npm run build:acceptance
       - run: npx playwright install --with-deps chromium
       - run: npm run test:acceptance
       - name: Retain public and sample browser evidence

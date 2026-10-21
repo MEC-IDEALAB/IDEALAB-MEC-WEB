@@ -34,12 +34,12 @@ The server binds to `127.0.0.1`. Backend activation is off by default; sign-in i
 npm run lint
 npm run typecheck
 npm audit --audit-level=high
-npm run build
+npm run build:acceptance
 npx playwright install chromium
 npm run test:acceptance
 ```
 
-The browser acceptance script starts a real local production server and checks the public journey, responsive widths, assets, menu, configuration state, signed-out route denial, error route, security headers and reduced motion. It does not simulate authenticated success or verify live backend/RLS workflows. Live account/member/staff acceptance remains required before enabling/releasing those services. See [delivery plan](docs/delivery-plan.md).
+`build:acceptance` compiles a reserved `.invalid` Supabase URL and dummy publishable-key fixture because Next.js inlines `NEXT_PUBLIC_` variables at build time. The member gate stays off by default, and the acceptance suite never submits credentials or contacts that host. The browser suite starts a real local production server and checks the public journey, responsive widths, assets, menu, disabled and configured recovery states, signed-out route denial, security headers and reduced motion. It does not simulate authenticated success or verify live backend/RLS workflows. Run `npm run build` separately for a normal production build. Live account/member/staff acceptance remains required before enabling/releasing those services. See [delivery plan](docs/delivery-plan.md).
 
 ## Product and delivery records
 

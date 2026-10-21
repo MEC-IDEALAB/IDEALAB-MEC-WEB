@@ -9,6 +9,7 @@
     "dev": "next dev --hostname 127.0.0.1",
     "build": "next build",
     "start": "next start --hostname 127.0.0.1",
+    "build:acceptance": "node scripts/build-acceptance.mjs",
     "typecheck": "tsc --noEmit",
     "lint": "eslint .",
     "test:acceptance": "node scripts/acceptance.mjs",

@@ -1,9 +1,10 @@
 # Shared backend readiness and onboarding gate
 
-Status: review plan only. This is not approved SQL, a migration, a production
-change, or permission to create a billable Supabase branch. Account activation
-must remain disabled until the compatibility, privacy and account journeys
-below pass.
+Status: production remains review-plan only. A storage-only validation candidate
+has been tested and applied to the owner-approved Free validation project; it is
+not a production/shared Grow migration or profile API. This does not approve a
+production change or a billable branch. Account activation must remain disabled
+until the compatibility, privacy and account journeys below pass.
 
 The [shared profile contract proposal](shared-profile-contract-proposal.md) turns
 this gate into a concrete mapping, state/API/permission design, rollout sequence
@@ -373,3 +374,56 @@ data or satisfy this matrix.
 - [Column Level Security](https://supabase.com/docs/guides/database/postgres/column-level-security)
 - [Auth server-side integration](https://supabase.com/docs/guides/auth/server-side/creating-a-client)
 - [Supabase Auth trigger guidance](https://supabase.com/docs/guides/auth/managing-user-data#using-triggers)
+
+## Validation-only claim storage and pending guard — 21 October 2026
+
+The isolated `idealab-mec-validation` project passed a fresh preflight as
+PostgreSQL 17.11, `postgres` migration role, empty application namespaces,
+expected Supabase API roles and a current `idealab_private.mec_registration_ci`
+collation (`und-u-ks-level2`, ICU `153.121`). No production rows or schema were
+accessed for this change. The validation source lives at
+[`supabase/validation/20261021120000_mec_claim_storage_validation.sql`](../supabase/validation/20261021120000_mec_claim_storage_validation.sql),
+outside the deployable `supabase/migrations/` directory.
+
+The storage source was first applied together with its 21-test pgTAP suite
+inside a transaction; `finish(true)` passed and the transaction was rolled
+back. Those assertions verify catalog metadata, normalization behavior and a
+temporary-table unique-collision probe; the persistent claims table was not
+populated because no Auth identity was created. The candidate was then applied
+only to project `gvvqlfachzbufstzoiwi`; Supabase recorded
+`20261021120000_mec_claim_storage_validation` at ledger version `20261021110522`.
+
+A follow-up validation-only migration,
+[`20261021130000_mec_pending_claim_commit_guard.sql`](../supabase/validation/20261021130000_mec_pending_claim_commit_guard.sql),
+adds a private, initially deferred constraint trigger. It rejects a claim that
+is still pending when its deferred check runs and permits a pending claim that
+has been resolved to current in the same transaction. The migration is not in
+`supabase/migrations/` and is not a production rollout artifact. Its separate
+five-assertion pgTAP suite,
+[`mec_pending_claim_commit_guard.test.sql`](../supabase/tests/database/mec_pending_claim_commit_guard.test.sql),
+passed with `finish(true)` both in a rollback-only preflight and after the
+migration was installed. The behavior checks use a temporary probe table and
+force the initially deferred constraint with `SET CONSTRAINTS ... IMMEDIATE`;
+the suite does not observe a real outer `COMMIT` rejection against a persistent
+claim row. A catalog check verified the persistent trigger is initially
+deferred. The test transaction was rolled back.
+
+Post-apply catalog reads confirmed RLS enabled and forced, zero policies, no
+`anon`/`authenticated`/`service_role` schema usage, table privileges, or helper
+execution, and no public application relations. The guard function is
+`SECURITY INVOKER`, has an empty `search_path`, and cannot be executed by those
+three API roles. No claim rows or persistent pgTAP extension remain. The
+security advisor's single `rls_enabled_no_policy` INFO finding reflects this
+intentionally private table; no PostgREST request or role-level API journey was
+run. The performance advisor returned no findings.
+
+The validation schema now contains private storage, unique indexes, a normalizer
+and the deferred pending-claim guard. It still has no claim RPC or profile
+writer. No Auth provisioning, real-user or Google sign-in, PostgREST/RLS role
+journey, Flutter/web acceptance, concurrency, collision throttling or
+production rollout has been tested. The actual COMMIT path against a persistent
+claim row also remains unverified. The validation table's direct input limits
+remain incomplete by design while no API roles can access it. Keep the exact
+five-per-15-minute threshold unapproved and member activation disabled. The
+[sanitized test evidence](research/validation-storage-slice-2026-10-21.json)
+records the verified boundary and remaining gates.

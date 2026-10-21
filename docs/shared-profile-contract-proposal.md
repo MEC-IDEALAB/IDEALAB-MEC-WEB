@@ -547,27 +547,36 @@ documentation-only change; the existing application acceptance is recorded in th
 
 ## Review and next action
 
-This contract is a review candidate. No migration, profile API, six-field production
-form, client patch or live permission fix has been implemented by this document.
+This contract is a review candidate. No production migration, profile API,
+six-field production form, client patch or live permission fix has been
+implemented by this document.
 The [backend readiness gate](backend-readiness.md) remains open.
 
 The current owner answers close the pilot product-policy questions for MEC
 self-declaration and registration claims, with the false-first-claim risk above.
-The isolated project contains only the validation schema/collation; read-only
-comparison probes also covered NFC/NFD, non-breaking space, Greek/Latin lookalike
-letters and sharp-s behavior. No application table, RPC, Auth account or migration
-is installed there. Independent follow-up review found no remaining issue in the
-specified model, timing, or evidence trail. The transaction-local
-[claim fixture](research/registration-claim-fixture.sql) passed on the approved
-Free project and was rolled back; a follow-up catalog query found no persistent
-fixture tables or functions. It covers only the documented model, not an app RPC,
-concurrent sessions, Auth, RLS, grants, Data API or either client. The numeric
-five-per-15-minute threshold still needs owner confirmation. The connected
-Supabase tool catalog has no Auth account creation operation, so a real
-signup/Google/confirmation journey has not been run.
+Read-only comparison probes covered NFC/NFD, non-breaking space, Greek/Latin
+lookalike letters and sharp-s behavior. The approved Free project now has a
+private storage validation table, normalizer and initially deferred pending
+claim guard; their sources, exact ledger versions, catalog checks and pgTAP
+boundaries are recorded in
+[validation evidence](research/validation-storage-slice-2026-10-21.json). It has
+no application API. The original 21-test suite verifies the persistent index
+declarations while normalization/collision behavior uses a temporary probe; it
+does not insert a claim row tied to Auth. A separate five-test suite passed
+against a temporary table using the installed trigger function: it resolves a
+pending row to current and forces the deferred check to pass, then confirms an
+unresolved pending row raises a check violation and is rolled back to the test
+savepoint. Catalog reads verify that the persistent trigger is initially
+deferred and its helper remains inaccessible to API roles. The tests do not
+observe an outer `COMMIT` rejection against a persistent claim row. Neither
+suite covers an app RPC, concurrent sessions, Auth, a PostgREST role journey,
+Flutter/web or production. The numeric five-per-15-minute threshold still needs
+owner confirmation. The connected Supabase tool catalog has no Auth account
+creation operation, so a real signup/Google/confirmation journey has not been
+run.
 
-Next: implement and test the reviewed claim model in a validation-only application
-schema, then add real Auth/Data API and coordinated Flutter/web acceptance. Keep
+Next: complete the claim API and lifecycle invariants in the validation project,
+then add real Auth/Data API and coordinated Flutter/web acceptance. Keep
 legacy-schema reconciliation and the production cutover as separate release gates.
 The exact shared-project change still needs explicit authorization after concrete
 SQL and full acceptance evidence are available.

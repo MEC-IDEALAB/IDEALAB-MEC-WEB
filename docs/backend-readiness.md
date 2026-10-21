@@ -16,6 +16,12 @@ The deployed ledger contains only `20260503073726 create_initial_schema` and
 `20260503073744 add_rls_policies`; it materially differs from the tracked Grow
 migration history and current Flutter auth/profile consumers.
 
+A follow-up read-only metadata check confirmed Supabase organization ID
+`yhhsdxbhpsyovqlvdoha` and the Free organization tier. The project still has no
+development branch. No branch cost quote was retrieved and no branch was
+created; any billable test branch remains subject to a current cost quote and
+explicit approval.
+
 The branch-list API returned no development branches. The fresh performance
 advisor also reports eight unindexed foreign keys, 62 RLS auth-function
 initplan findings, three pairs of duplicate permissive `SELECT` policies, and

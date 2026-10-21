@@ -57,6 +57,7 @@ server.stdout.on('data', chunk => { serverOutput = (serverOutput + chunk).slice(
 server.stderr.on('data', chunk => { serverOutput = (serverOutput + chunk).slice(-5000); });
 let browser;
 let previewOffServer;
+let recoveryConfigServer;
 try {
   let ready = false;
   for (let attempt = 0; attempt < 60; attempt++) {
@@ -298,6 +299,7 @@ try {
   assert(await page.getByRole('button', { name: /Sign in/ }).isDisabled(), 'Missing config must disable sign-in');
   assert(await page.getByLabel('Email address').isDisabled());
   assert(await page.getByText('Account access is being connected.').isVisible());
+  assert(await page.getByRole('link', { name: 'Forgot password?' }).isVisible(), 'Sign-in offers a direct recovery path');
   await page.screenshot({ path: 'artifacts/acceptance/sign-in-mobile.png', fullPage: true });
   for (const route of ['sign-in', 'sign-up']) {
     for (const theme of ['light', 'dark']) {
@@ -311,6 +313,13 @@ try {
       }
     }
   }
+  for (const route of ['forgot-password', 'reset-password']) {
+    const response = await fetch(`${base}/${route}`);
+    assert.equal(response.status, 200, `${route} remains available while member access is gated`);
+    const html = await response.text();
+    assert.match(html, /noindex, nofollow/, `${route} stays out of search results`);
+    assert.match(html, /paused while the shared account platform is being secured/i, `${route} explains the disabled shared-account gate`);
+  }
   for (const route of ['sign-in', 'sign-up']) {
     for (const theme of ['light', 'dark']) {
       for (const viewport of [{width:1366,height:768},{width:1440,height:900},{width:390,height:844},{width:375,height:667},{width:320,height:568}]) {
@@ -320,6 +329,19 @@ try {
         assert(await page.evaluate(() => getComputedStyle(document.body).backgroundColor !== 'rgba(0, 0, 0, 0)'), route + ' must load the global theme stylesheet');
         assert(await page.evaluate(() => document.documentElement.scrollHeight <= window.innerHeight + 1), route + ' fits ' + viewport.width + 'x' + viewport.height + ' in ' + theme);
         assert(await page.getByRole('button', {name:'Continue with Google'}).isDisabled(), 'Unverified Google activation stays disabled');
+      }
+    }
+  }
+  for (const route of ['forgot-password', 'reset-password']) {
+    for (const theme of ['light', 'dark']) {
+      for (const width of [320, 375, 768, 1440]) {
+        await page.setViewportSize({ width, height: 568 });
+        await page.goto(`${base}/${route}`);
+        await setTheme(page, theme);
+        assert(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth), `${route} fits ${width}px in ${theme} mode`);
+        assert(await page.locator('.theme-toggle').isVisible(), `${route} keeps the direct theme toggle visible`);
+        assert.equal(await page.locator('meta[name="robots"]').getAttribute('content'), 'noindex, nofollow');
+        if (width === 320) await page.screenshot({ path: `artifacts/acceptance/${route}-${theme}-320.png`, fullPage: true });
       }
     }
   }
@@ -549,8 +571,46 @@ try {
   assert.equal((await fetch(offBase + '/design/requests')).status, 404, 'Request workspace preview must be unavailable when disabled');
   assert.equal((await fetch(offBase + '/design/onboarding')).status, 404, 'Onboarding design preview must be unavailable when disabled');
   assert.equal((await fetch(offBase + '/design/workspace')).status, 404, 'Staff workspace design preview must be unavailable when disabled');
-  console.log('PASS: public journey, 5 widths in light/dark, auth layouts/themes, palette contrast, no-JavaScript content, scroll/card motion and live reduced-motion cancellation, assets, keyboard navigation, gated six-field onboarding and staff workspace previews, safe empty states/no storage/no actions, route denial, sample draft journeys, 404 and security headers.');
-  console.log('UNVERIFIED: live account success/recovery/OAuth, draft under a real member session, scoped permissions and operational backend workflows.');
+  const recoveryPort = await availablePort();
+  const recoveryBase = `http://127.0.0.1:${recoveryPort}`;
+  let recoveryOutput = '';
+  recoveryConfigServer = spawn(process.execPath, ['node_modules/next/dist/bin/next', 'start', '--hostname', '127.0.0.1', '--port', String(recoveryPort)], { env: { ...env, NEXT_PUBLIC_SUPABASE_URL: 'https://configuration-fixture.invalid', NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: 'sb_publishable_configuration_fixture', ENABLE_MEMBER_PLATFORM: 'true', AUTH_SITE_URL: recoveryBase, ENABLE_GOOGLE_SIGN_IN: 'false' }, stdio: ['ignore', 'pipe', 'pipe'] });
+  recoveryConfigServer.stdout.on('data', chunk => { recoveryOutput = (recoveryOutput + chunk).slice(-5000); });
+  recoveryConfigServer.stderr.on('data', chunk => { recoveryOutput = (recoveryOutput + chunk).slice(-5000); });
+  let recoveryReady = false;
+  for (let attempt = 0; attempt < 60; attempt++) {
+    if (recoveryConfigServer.exitCode !== null) throw new Error(`Recovery configuration server exited: ${recoveryOutput}`);
+    if (recoveryOutput.includes('Ready in')) {
+      try { if ((await fetch(recoveryBase)).ok && recoveryConfigServer.exitCode === null) { recoveryReady = true; break; } } catch { /* Server starting. */ }
+    }
+    await new Promise(resolve => setTimeout(resolve, 500));
+  }
+  assert(recoveryReady, 'Recovery configuration fixture must start; its .invalid backend is never contacted');
+  for (const route of ['forgot-password', 'reset-password']) {
+    await page.setViewportSize({ width: 320, height: 568 });
+    await page.goto(`${recoveryBase}/${route}`);
+    assert.equal(await page.locator('meta[name="robots"]').getAttribute('content'), 'noindex, nofollow');
+    assert.equal(await page.locator('form input:disabled').count(), 0, `${route} form enables only with explicit member and valid origin configuration`);
+    assert(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth), `${route} configuration fixture has no horizontal overflow at 320px`);
+    if (route === 'reset-password') {
+      assert.equal(await page.locator('input[name="new_password"]').count(), 1);
+      assert.equal(await page.locator('input[name="confirm_password"]').count(), 1);
+      assert.equal(await page.getByRole('button', { name: 'Show password' }).count(), 2, 'Both password fields have keyboard-operable visibility toggles');
+    } else {
+      assert(await page.getByLabel('Email address').isEnabled());
+    }
+  }
+  const rejectedRecovery = await fetch(`${recoveryBase}/auth/recovery/callback?error=access_denied&next=https%3A%2F%2Fevil.invalid`, { redirect: 'manual' });
+  assert.equal(rejectedRecovery.status, 307, 'Malformed/rejected recovery callback exits without contacting Supabase');
+  assert.match(rejectedRecovery.headers.get('cache-control') ?? '', /private, no-store/);
+  assert.equal(new URL(rejectedRecovery.headers.get('location')).origin, recoveryBase, 'Recovery callback stays on the configured canonical origin');
+  assert.equal(new URL(rejectedRecovery.headers.get('location')).pathname, '/forgot-password', 'Callback ignores untrusted return paths');
+  assert(!new URL(rejectedRecovery.headers.get('location')).searchParams.has('next'), 'Callback does not reflect attacker-controlled query data');
+  const genericRecovery = await page.goto(`${recoveryBase}/forgot-password?notice=requested`);
+  assert(genericRecovery?.ok(), 'Recovery request status page renders');
+  assert(await page.getByText(/same whether or not an account exists/i).isVisible(), 'Recovery status avoids revealing whether an account exists');
+  console.log('PASS: public journey, 5 widths in light/dark, login/signup and recovery layouts/themes, palette contrast, no-JavaScript content, scroll/card motion and live reduced-motion cancellation, assets, keyboard navigation, gated onboarding/staff previews, request drafts, recovery callback rejection, generic recovery response and security headers.');
+  console.log('UNVERIFIED: live account creation, email delivery, email/Google sign-in, recovery-link exchange/password update, draft under a real member session, scoped permissions and operational backend workflows.');
 } catch (error) {
   const activePage = browser?.contexts()[0]?.pages()[0];
   if (activePage) {
@@ -565,7 +625,7 @@ try {
   throw error;
 } finally {
   if (browser) await browser.close();
-  for (const child of [server, previewOffServer]) {
+  for (const child of [server, previewOffServer, recoveryConfigServer]) {
     if (!child || child.exitCode !== null) continue;
     const exit = once(child, 'exit');
     child.kill();

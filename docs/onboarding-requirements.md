@@ -92,3 +92,14 @@ The parent Grow workspace has useful upstream context in `docs/01_Product/PRODUC
 These sources disagree in age and authority. The product decision delta allows any email domain for eligible signed-in participants; the latest owner answers now specify any verified email for a Student account and the six required fields above. The profile decision gate's older `name` plus optional `phone`/`college_roll` rule is superseded for this product decision. Historical `product_architecture.md` says Google-only and requires profile photo, username, bio and exactly five interests; those requirements conflict with current email-plus-Google auth and the compact minimum profile, so they must not be implemented as mandatory onboarding. Historical SharedPreferences migration notes describe implementation exploration, not a source-of-truth backend contract.
 
 Current website status and evidence are maintained in [requirements.md](requirements.md), [experience.md](experience.md), [architecture.md](architecture.md) and [ui-audit.md](ui-audit.md). This document records requirements; it does not claim working signup, live database writes, approved production SQL, or a passing real-account journey.
+
+## Password-recovery UX status
+
+The website has a responsive, noindex password-request page and a separate
+new-password page. It uses generic request feedback, a fixed-origin PKCE
+callback, session-verified password changes, visible password controls, and
+the same direct light/dark toggle as the account screens. These actions remain
+disabled with the shared member-platform flag. Local Chromium and configuration
+fixtures validate layouts and rejection boundaries only; delivery, provider
+allowlisting, recovery exchange and password update against a real shared
+account are still unverified. See [deployment setup](deployment.md#environment-boundary).

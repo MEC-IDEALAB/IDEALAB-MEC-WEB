@@ -79,6 +79,26 @@ disabled leaked-password protection, and `btree_gist` installed in `public`.
 No user rows were read, no exploit was attempted, no identity was created, and
 no database or permission was changed.
 
+An independent read-only review of the same live authorization metadata found
+two additional authority paths that must be reconciled before exposing the
+respective modules. `project_members` permits an authenticated user to insert
+their own membership with a client-selected `admin`, `lead` or `mentor` role;
+the policy checks the user ID but not an authorized project owner or allowed
+role. `knowledge_articles` permits an author to set `is_approved=true` on their
+own insert, while approved articles are visible to authenticated users. These
+are policy/grant conclusions from metadata, not exploit attempts. No content
+or account rows were read, and no API mutation was sent. Fix each with a
+trusted ownership/moderation path and negative authorization tests before
+enabling project membership or knowledge publication.
+
+The current website branch also implements only a gated recovery slice:
+email requests have a generic response, the recovery callback uses a fixed
+configured origin and PKCE code exchange, and password updates require a
+server-verified session. Source-level configuration and local browser checks
+do not establish provider redirect allowlisting, email delivery, a successful
+recovery exchange or a shared account's password update. No live Auth request
+or recovery email was sent. Keep the website member flag disabled.
+
 ## Required shared contract
 
 Signup and onboarding must preserve one Supabase Auth identity across the web

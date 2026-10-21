@@ -56,6 +56,16 @@ the six required onboarding fields. Keep member activation disabled until the
 shared profile contract and private authorization rules are implemented and
 tested.
 
+The password-recovery slice uses the same gated server-side Supabase client.
+Email requests return generic feedback to avoid account enumeration; callback
+exchange uses the configured canonical origin and fixed
+`/auth/recovery/callback` path; password updates require a session confirmed
+with `auth.getUser()`, and the local session is cleared afterward. These routes
+are noindex and remain disabled while `ENABLE_MEMBER_PLATFORM` is false. Local
+configuration and browser fixtures do not verify provider redirect allowlists,
+email delivery, a real PKCE exchange or password change; see the [deployment
+requirements](deployment.md#environment-boundary).
+
 ## Shared business API proposal
 
 One Postgres authority serves Next.js and Flutter. Each business mutation should use a transactional RPC, with actor derived from `auth.uid()`, ownership/scoped position checks, row locks where needed, idempotent retries and atomic history/audit/notification updates. These are proposed contracts, not callable API claims:

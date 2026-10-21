@@ -26,6 +26,18 @@ member identity; Google/email account success, six-field onboarding persistence,
 profile privacy, staff scope and operational workflows remain unverified. Keep
 member activation disabled.
 
+The current local change adds responsive noindex recovery and reset-password
+pages, direct light/dark toggles, focused feedback, and show/hide controls for
+both new-password fields. The email-request response does not reveal whether
+an account exists. Source uses a PKCE exchange against the fixed site callback
+and ignores caller-provided return paths; browser acceptance exercised rejected
+callback paths while password change requires a server-side authenticated user.
+The production Chromium suite passed 320, 375, 768 and
+1440 px checks in both themes and verified no horizontal overflow. It does not
+send a live email or call the configured Supabase project; successful recovery,
+email delivery and password update remain unverified. Keep member activation
+disabled until the shared Auth/schema/security gate passes.
+
 Exact code revision `d2a310edf80d176bd10768e04dd31cde030b389e` passed hosted
 [Website CI and the required gate](https://github.com/MEC-IDEALAB/IDEALAB-MEC-WEB/actions/runs/39510291937)
 and [Documentation CI](https://github.com/MEC-IDEALAB/IDEALAB-MEC-WEB/actions/runs/39510291938).

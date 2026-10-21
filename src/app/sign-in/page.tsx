@@ -13,6 +13,7 @@ const notices: Record<string, string> = {
   connection: 'We couldn’t reach the account service. Please try again shortly.',
   session: 'Please sign in to continue to your workspace.',
   configuration: 'Account access is being connected. Please check back soon.',
+  'password-updated': 'Your password is ready. Sign in with your new password.',
 };
 export const metadata = { title: 'Sign in' };
 export default async function SignIn({ searchParams }: { searchParams: Promise<{ notice?: string }> }) {
@@ -23,7 +24,7 @@ export default async function SignIn({ searchParams }: { searchParams: Promise<{
     <section className="auth-card" aria-labelledby="sign-in-title"><span className="eyebrow">WELCOME BACK</span><h2 id="sign-in-title">Make yourself at home.</h2><p>Sign in with your existing lab account.</p>
       {(!configured || (notice && notices[notice])) && <div className="notice" role="status">{!configured ? notices.configuration : notices[notice!]}</div>}
       <form action={signIn} className="form-stack"><label htmlFor="email">Email address</label><input id="email" name="email" type="email" autoComplete="username" required maxLength={254} placeholder="you@example.com" disabled={!configured} />
-        <label htmlFor="password">Password</label><PasswordField disabled={!configured} />
+        <div className="auth-label-row"><label htmlFor="password">Password</label><Link href="/forgot-password">Forgot password?</Link></div><PasswordField disabled={!configured} />
         <SubmitButton disabled={!configured} pendingText="Signing in…">Sign in <ArrowUpRight size={18} /></SubmitButton>
       </form><div className="auth-divider">or</div><GoogleSignIn /><p className="small-copy">Need help? <a href="mailto:idealab@mec.ac.in">Contact the lab</a>. New here? <Link href="/sign-up">Explore joining</Link>.</p>
     </section></div>

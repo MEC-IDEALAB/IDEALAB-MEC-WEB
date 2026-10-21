@@ -9,6 +9,7 @@ import './brand-loading.css';
 import './audit-polish.css';
 import './onboarding-preview.css';
 import './staff-preview.css';
+import './auth-recovery.css';
 import { BrandLoading } from '@/components/brand-loading';
 import { BootReady } from '@/components/boot-ready';
 

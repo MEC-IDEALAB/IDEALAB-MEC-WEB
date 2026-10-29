@@ -6,7 +6,7 @@
 - The private organization project [IDEALAB MEC — V1 delivery](https://github.com/orgs/MEC-IDEALAB/projects/1) contains 24 items: 17 website issues, the merged PR #14, and six Grow issues (#84, #86, #87, #88, #97 and #113).
 - The organization fork's default branch contains three workflow files and repository Actions permission is enabled, but the Actions workflow API returns zero workflows and the fork has no runs. The parent Grow repository's main workflows remain active; its CI and schema checks last passed on the matching `3015c4e` commit on 19 October. The organization fork therefore does not yet provide hosted CI evidence.
 - Website issues #17 and #18 remain open. The latest recovery progress and unresolved server-intent design are recorded in [#18](https://github.com/MEC-IDEALAB/IDEALAB-MEC-WEB/issues/18).
-- The current local website changes remain uncommitted and unpushed. Hosted CI on the local changes has therefore not run. PR #14 is merged at `0504b41`; this does not represent the current local changes.
+- Draft PR #19 was opened at head `673dff04b2d09b9949555e29c47c7679831e5409`, based on merged PR #14. Its initial Documentation CI run found links from four quality reports to ignored local screenshots/manifests. Those reports now describe the files as local-only artifacts; the local docs check passes at 48 files / 277 links. The correction is a documentation-only follow-up and will be pushed to PR #19 for a fresh hosted run.
 
 ## Local source verification
 
@@ -20,7 +20,7 @@ The commands below ran against the current website worktree using Node.js 24.22.
 - `npm run test:project-journal` — Chromium journal reload, concurrent tabs, account separation, missing journal, storage denial and stale-marker recovery passed; no real account or server mutation was tested.
 - `npm run build:acceptance` — optimized Next.js build passed.
 - `npm run test:acceptance` — passed against the gated source. Chromium covered the public journey at five widths in both themes, auth/recovery layouts, no-JS content, motion and reduced motion, keyboard access, gated onboarding/staff previews, student module layouts, drafts and security headers. It explicitly reports real accounts, email delivery, live auth, recovery and operational workflows as unverified.
-- `node scripts/check-docs.mjs` — 48 files / 283 local links pass. `git diff --cached --check` — passed after formatting cleanup.
+- `node scripts/check-docs.mjs` — 48 files / 277 local links pass after the docs-path correction. `git diff --check` — passed.
 - `http://127.0.0.1:3015/` — local site returned HTTP 200.
 
 An independent security review found that Lab/visit actions originally relied on the member flag without requiring their isolated backend. The reads and writes now require the pinned validation backend plus their feature-specific flags; the preview workflow requires those flags explicitly false. Independent re-review found no remaining bypass in the scoped paths. This is source/config evidence; authenticated production behavior is still unverified.

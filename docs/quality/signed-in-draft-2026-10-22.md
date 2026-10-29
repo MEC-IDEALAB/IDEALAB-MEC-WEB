@@ -20,8 +20,9 @@ reference. All comparisons returned booleans; no account identifiers or private
 field values were captured. Review fitted 320, 390, 768 and 1366px without
 horizontal overflow and kept Lab marked as the parent navigation location.
 
-Screenshot of sample-only review:
-[draft capture](../../artifacts/acceptance/signed-in-request-draft.png).
+Screenshot of the sample-only review is a local-only generated artifact at
+`artifacts/acceptance/signed-in-request-draft.png`; it is intentionally not
+committed with the documentation.
 
 The owner subsequently approved deleting only the temporary test draft titled
 `TEMP UI CHECK — not a lab request`. Cleanup has **not** been performed:

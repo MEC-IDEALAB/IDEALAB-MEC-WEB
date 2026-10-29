@@ -42,7 +42,9 @@ One test launch via `node --run` inherited Node 20 from shell PATH and failed
 TypeScript loading. Explicit Node 24 invocation of the full test list passed all
 64. This was an environment invocation failure, not a substituted test pass.
 
-Rendered proof: [live own-visit history](../../artifacts/acceptance/live-own-visits-read.png).
+Rendered proof is a local-only generated artifact at
+`artifacts/acceptance/live-own-visits-read.png`; it is intentionally not
+committed with the documentation.
 The successful empty read is real database integration; it does not prove a
 nonempty history or check-in/out workflow. No personal fields are in the proof.
 

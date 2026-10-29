@@ -37,10 +37,9 @@ An initial reviewer report about disabled prior-step fields was stale and withdr
 Current wizard SHA-256 `8b4045e6673b0b0635ad49033e88b9ab25e13d07c555ecd2e02cb2d5418db289`
 uses pending-only disabling. The actual database save confirms this source works.
 
-Screenshots:
-[Home phone](../../artifacts/acceptance/grow-inspired-home-phone.png),
-[Lab phone](../../artifacts/acceptance/grow-inspired-lab-phone.png),
-[Lab desktop](../../artifacts/acceptance/grow-inspired-lab-desktop.png).
+Local-only screenshots (generated under the ignored `artifacts/acceptance/`
+folder and intentionally not committed): `grow-inspired-home-phone.png`,
+`grow-inspired-lab-phone.png`, and `grow-inspired-lab-desktop.png`.
 No email, phone, registration number, credential or session was captured.
 
 ## Profile detail visibility follow-up — 23 October 2026

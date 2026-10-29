@@ -5,8 +5,9 @@
 read-only GitHub inspection found no open pull request. These working changes
 have not been pushed, reviewed in hosted CI or deployed.
 
-Current source hashes (source, scripts, package/lock/config and workflow files):
-[SHA-256 manifest](../../artifacts/acceptance/current-source-sha256.json).
+Current source hashes (source, scripts, package/lock/config and workflow files)
+are recorded in the local-only generated artifact
+`artifacts/acceptance/current-source-sha256.json`, intentionally not committed.
 No environment files, account values or credentials are included.
 
 | Check | Result | Scope |

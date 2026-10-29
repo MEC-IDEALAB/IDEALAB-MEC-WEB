@@ -1,9 +1,21 @@
 {
+  "checkedAt": "2026-10-29",
   "repository": "https://github.com/MEC-IDEALAB/IDEALAB-MEC-WEB",
   "private": true,
   "project": "https://github.com/orgs/MEC-IDEALAB/projects/1",
   "projectPrivate": true,
-  "projectItems": 15,
+  "projectItems": 24,
+  "websiteIssueCount": 17,
+  "trackedGrowIssueCount": 6,
+  "pullRequestItems": 1,
+  "trackedGrowIssues": [
+    { "repository": "https://github.com/NAVANEETHVVINOD/Grow-by-IL", "number": 84, "title": "Release: require real configuration and upload signing" },
+    { "repository": "https://github.com/NAVANEETHVVINOD/Grow-by-IL", "number": 86, "title": "Add real Android and backend end-to-end release tests" },
+    { "repository": "https://github.com/NAVANEETHVVINOD/Grow-by-IL", "number": 87, "title": "Make paid event seat confirmation atomic and auditable" },
+    { "repository": "https://github.com/NAVANEETHVVINOD/Grow-by-IL", "number": 88, "title": "Verify backend authorization and RLS for all roles" },
+    { "repository": "https://github.com/NAVANEETHVVINOD/Grow-by-IL", "number": 97, "title": "Define real inventory, borrowing, return verification, and non-event billing" },
+    { "repository": "https://github.com/NAVANEETHVVINOD/Grow-by-IL", "number": 113, "title": "Configure reliable Supabase Auth email delivery" }
+  ],
   "fields": [
     "Title",
     "Assignees",
@@ -41,5 +53,5 @@
       "url": "https://github.com/MEC-IDEALAB/IDEALAB-MEC-WEB/milestone/4"
     }
   ],
-  "issueCount": 14
+  "issueCount": 17
 }

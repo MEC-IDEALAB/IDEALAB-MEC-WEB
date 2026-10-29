@@ -1,0 +1,64 @@
+{
+  "recordedAt": "2026-10-22T03:45:35.024815+00:00",
+  "project": "idealab-mec-validation",
+  "projectRef": "gvvqlfachzbufstzoiwi",
+  "scope": "Persistent isolated account-test baseline ONLY; not a production migration or activation approval",
+  "installed": true,
+  "productionChanged": false,
+  "sourceHashes": {
+    "supabase/validation/mec_profile_api_candidate.sql": "bdf8e52813a49dc0dbe044db13e482b288a0bbd286e75c4dfa24d0e4f416cf8f",
+    "supabase/validation/mec_profile_read_provisioning_candidate.sql": "5bc657ebd800b9325a8920ef3ce0f69b7dc6bea7a226e7e81c84662a6bbb52b7",
+    "supabase/validation/mec_profile_admission_read_candidate.sql": "285c03b7f6707aeb6afa2c9937b94783bf679f4f58380f621e31aa3c32136894",
+    "supabase/validation/mec_profile_save_candidate.sql": "7819b750a01cfa0ad14d831ad6574f6cbc96e1fc73d975c9a199766c316a7a1e",
+    "supabase/validation/mec_registration_claim_candidate.sql": "825a1d493492d50797d4c204dcac692da16508ba3a8fafd91c9e7331bbfaf91b"
+  },
+  "preflight": "One BEGIN/COMMIT; SHARE lock on auth.users; zero Auth identities and absent noninternal Auth triggers asserted inside transaction; same-transaction empty-public guards in all candidate sources",
+  "postCommit": {
+    "profileForcedRls": true,
+    "profileRows": 0,
+    "authAccounts": 0,
+    "provisioningTriggers": 2,
+    "clientProfileWrites": false,
+    "anonymousProfileRead": false,
+    "clientClaimTableAccess": false,
+    "claimRpcInstalled": true
+  },
+  "postCommitSqlTests": {
+    "planned": 28,
+    "executed": 28,
+    "failed": 0,
+    "suiteChangesRolledBack": true
+  },
+  "postCommitDataApi": {
+    "privateSchema": {
+      "httpStatus": 406,
+      "code": "PGRST106"
+    },
+    "anonymousProfileRead": {
+      "httpStatus": 401,
+      "code": "42501"
+    },
+    "anonymousProfileRpc": {
+      "httpStatus": 401,
+      "code": "42501"
+    }
+  },
+  "securityAdvisor": {
+    "errors": 0,
+    "warnings": 0,
+    "informational": [
+      "RLS with no direct policies for private claims table",
+      "RLS with no direct policies for private collision-state table"
+    ],
+    "interpretation": "Intentional deny-direct-access tables; fixed caller-bound postgres writers perform internal operations. No policy added to silence these notices."
+  },
+  "notVerified": [
+    "Real account signup/confirmation and provisioning",
+    "Verified JWT own-profile read/save/claim",
+    "Cross-account/concurrency/claim swap/retry/expiry",
+    "Google OAuth and recovery email",
+    "Shared production migration and Flutter compatibility",
+    "Auth email-change synchronization and staff profile editing compatibility",
+    "Club foreign key and operational baseline fidelity"
+  ]
+}

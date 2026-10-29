@@ -68,7 +68,7 @@ const screenCopy: Record<StudentPreviewScreen, { title: string; eyebrow: string;
   profile: {
     title: 'Your details, in your control.',
     eyebrow: 'PROFILE',
-    intro: 'The planned student profile keeps required account details private by default.',
+    intro: 'The planned student profile collects required account details. Shared database privacy rules are still under review.',
   },
   projects: {
     title: 'Projects take shape together.',
@@ -178,7 +178,7 @@ function HomeScreen() {
           <ModuleLink screen="notifications" title="Notifications" detail="Return to an update or next step" icon={Bell} tone="blue" stagger={0} />
           <ModuleLink screen="visits" title="Lab visits" detail="See visit guidance and history" icon={DoorOpen} tone="green" stagger={1} />
           <ModuleLink screen="borrowing" title="Borrowing" detail="Browse tools and track a return" icon={Package} tone="blue" stagger={2} />
-          <ModuleLink screen="profile" title="Your profile" detail="Review the planned private profile" icon={UserRound} tone="red" stagger={2} />
+          <ModuleLink screen="profile" title="Your profile" detail="Review planned fields and privacy status" icon={UserRound} tone="red" stagger={2} />
         </div>
       </section>
 
@@ -218,7 +218,7 @@ function ProfileScreen() {
     <>
       <section className="student-preview-profile-card student-preview-panel" data-reveal="section">
         <div className="student-preview-profile-icon"><UserRound size={26} aria-hidden="true" /></div>
-        <div><p className="student-preview-kicker">PRIVATE BY DEFAULT</p><h2>Profile details stay yours.</h2><p>The planned account uses the minimum details needed for the MEC student pilot. This wireframe contains no personal information.</p></div>
+        <div><p className="student-preview-kicker">PROFILE · ACCESS RULES UNDER REVIEW</p><h2>Profile details for the MEC pilot.</h2><p>The planned account uses the minimum details needed for the MEC student pilot. This wireframe contains no personal information, and shared database privacy rules are not yet verified.</p></div>
         <span className="student-preview-profile-badge"><LockKeyhole size={15} aria-hidden="true" /> No profile loaded</span>
       </section>
       <section className="student-preview-panel student-preview-field-plan" aria-labelledby="student-preview-profile-fields" data-reveal="section">
@@ -228,7 +228,7 @@ function ProfileScreen() {
       </section>
       <section className="student-preview-panel student-preview-profile-edit" aria-labelledby="student-preview-profile-edit-heading" data-reveal="section">
         <div className="student-preview-section-heading"><div><p className="student-preview-kicker">EDIT YOUR DETAILS</p><h3 id="student-preview-profile-edit-heading">Profile editing layout</h3></div><span className="student-preview-section-aside">FIELDS NOT LOADED</span></div>
-        <p className="student-preview-profile-edit-intro">Your required details are private by default. Editing will update only your own profile after the shared account rules are approved.</p>
+        <p className="student-preview-profile-edit-intro">These fields are intended for the account owner. Editing will be offered after the shared account privacy rules are approved.</p>
         <div className="student-preview-edit-grid" aria-label="Planned profile edit fields">
           {['Full name', 'Phone number · +country code', 'MEC registration number', 'Department', 'Current study year · Year 1–8', 'Institution · Model Engineering College'].map((field, index) => <div className="student-preview-edit-field" key={field}><span className="student-preview-field-label">{field}</span><span className="student-preview-input-wireframe">{index === 5 ? 'Fixed for the MEC pilot' : 'No profile loaded'}</span></div>)}
         </div>
@@ -269,7 +269,7 @@ function SettingsScreen() {
       <div className="student-preview-settings-row"><div><strong>Colour theme</strong><p>The light and dark control in the top bar switches immediately and remembers your choice on this device.</p></div><span className="student-preview-settings-state"><span aria-hidden="true" /> Available</span></div>
     </section>
     <section className="student-preview-panel student-preview-settings-card" aria-labelledby="student-preview-settings-account" data-reveal="section">
-      <div className="student-preview-section-heading"><div><p className="student-preview-kicker">ACCOUNT</p><h2 id="student-preview-settings-account">Your details stay private</h2></div><span className="student-preview-section-aside">NO ACCOUNT LOADED</span></div>
+      <div className="student-preview-section-heading"><div><p className="student-preview-kicker">ACCOUNT</p><h2 id="student-preview-settings-account">Account privacy under review</h2></div><span className="student-preview-section-aside">NO ACCOUNT LOADED</span></div>
       <div className="student-preview-settings-row"><div><strong>Student profile</strong><p>Review the planned MEC pilot fields and profile privacy notes.</p></div><Link className="student-preview-text-link" href={screenHref('profile')}>Open profile <ArrowRight size={17} aria-hidden="true" /></Link></div>
       <p className="student-preview-privacy-copy"><LockKeyhole size={17} aria-hidden="true" /> This design preview has no signed-in account and does not save profile or notification preferences.</p>
     </section>

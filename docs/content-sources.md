@@ -19,8 +19,18 @@ The root Flutter files named as fonts contain HTML. They were left untouched; on
 - [AICTE offer letter](https://www.mec.ac.in/model_media/notifications/AICTE-offer_letter.pdf) confirms programme selection on 30 March 2022; `/explore` summarizes this as March 2022.
 - [Official FDP brochure](https://www.mec.ac.in/model_media/notifications/AICTE_IDEA_LAB_FDP_Brochure_24-11-203.pdf) supports joint AICTE/CogniCor support and broad facility types.
 - `src/content/lab.ts` holds 11 published facility entries from the user’s copy of the official IDEA Lab website. This is a curated directory, not a fresh CMS check or operational service catalog. `/lab` displays all 11; the homepage features three facility images. No current team-role or stock/access claim is seeded.
-- Two fresh Firecrawl homepage reads returned only a loader, including a four-second wait; the web reader returned blank. These attempts did not verify current CMS records.
-- The supplied attachment `C:/Users/PC/.codex/attachments/fda9f184-71c2-49a6-b46e-52280d2bc586/Pasted text.txt` contains 29 historical event entries with month/day/year dates. Public content uses only three broad activity themes; no individual event records were published, preserving the signed-in-record policy.
+- The public [IDEA Lab events archive](https://idealab.mec.ac.in/events) is client-rendered; a static scrape returns its loading shell. The loaded public archive data was inspected on 21 October 2026 and four past events with their published photos were selected for the homepage carousel. These are historical highlights, not a live calendar, registration list or proof that an event is recurring.
+
+| Local photo | Published event | Published date |
+| --- | --- | --- |
+| `public/events/triad.jpeg` | TRIAD | 10 September 2025 |
+| `public/events/arduignite.jpeg` | ARDUIGNITE | 2 August 2025 |
+| `public/events/robotics-training.jpg` | Robotics Training (alternate archive workshop photo for the third slide) | 16 October 2022 |
+| `public/events/raspberry-pi-workshop.jpg` | Raspberry-Pi Workshop (alternate archive workshop photo for the fourth slide) | 28 March 2023 |
+
+The third and fourth slides retain their published labels and dates: Technical Training for School Students (4 August 2024) and TinyML Hands-on workshop (22 August 2023). Only their image assets use alternate IDEA Lab archive workshop photos for clearer presentation.
+
+The user-supplied attachment `C:/Users/PC/.codex/attachments/fda9f184-71c2-49a6-b46e-52280d2bc586/Pasted text.txt` remains a separate source of historical event copy. Homepage event photos are saved locally from the public IDEA Lab archive and rendered in grayscale; the changing color blocks are original CSS decoration. No broader photo reuse license is implied.
 
 Facility PNGs were downloaded unchanged from the user-supplied URLs to `public/facilities/`:
 
@@ -51,3 +61,6 @@ The three supplied facility PNGs are native 200 × 200 px; render size is capped
 - Facility image `sublimation.png`: https://images.ctfassets.net/gqdozd79aet8/63VyofntmSrlGv3z5mQ4pf/ffb66f9e301fa41da5f7249d248cdc0a/sublimation1.png (user-supplied official-site asset, saved unchanged).
 
 Retro typography: Press Start 2P, official Google Fonts repository at pinned commit `47d54ca1ebb14fd864695f1d39dc734f39017c33`, directory `ofl/pressstart2p`; font-specific OFL retained alongside the local TTF. All eleven facility images now render locally from the supplied source assets.
+
+
+Bricolage Grotesque is self-hosted from the official Google Fonts repository at pinned commit `6ce172f74aa355ea43eb964fa4a91570a4d3064d`, directory `ofl/bricolagegrotesque`. The variable TTF and its OFL license are stored together under `src/app/fonts/`. The official homepage loader was inspected in a real browser for the repeated lowercase wordmark and staggered-row composition; the prototype mark, type masks and transitions in this implementation are original code. The three lower-ribbon quotations are original site mottos with no third-party attribution.

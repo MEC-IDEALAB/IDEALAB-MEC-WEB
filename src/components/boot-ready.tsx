@@ -33,7 +33,7 @@ export function BootReady() {
       } else if (reducedMotion.matches) {
         finish();
       } else if (exitTimer === undefined) {
-        exitTimer = window.setTimeout(finish, 190);
+        exitTimer = window.setTimeout(finish, 280);
       }
     };
 
@@ -50,7 +50,12 @@ export function BootReady() {
       }
 
       const fontsReady = document.fonts?.ready.then(() => undefined).catch(() => undefined) ?? Promise.resolve();
-      await Promise.race([fontsReady, new Promise<void>(resolve => window.setTimeout(resolve, 1200))]);
+      const priorityImages = [...document.images].filter(image => image.fetchPriority === 'high');
+      const imagesReady = Promise.all(priorityImages.map(image => image.decode().catch(() => undefined)));
+      await Promise.race([
+        Promise.all([fontsReady, imagesReady]),
+        new Promise<void>(resolve => window.setTimeout(resolve, 1600)),
+      ]);
       await new Promise<void>(resolve => window.requestAnimationFrame(() => window.requestAnimationFrame(() => resolve())));
       if (finished || root.dataset.boot !== 'loading') {
         leave();
@@ -58,7 +63,7 @@ export function BootReady() {
       }
 
       const started = Number(root.dataset.bootStarted) || performance.now();
-      const remaining = Math.max(0, 560 - (performance.now() - started));
+      const remaining = Math.max(0, 840 - (performance.now() - started));
       readyTimer = window.setTimeout(leave, remaining);
     };
 

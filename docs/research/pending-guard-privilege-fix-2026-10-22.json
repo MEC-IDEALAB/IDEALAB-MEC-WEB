@@ -1,0 +1,26 @@
+{
+  "scope": "idealab-mec-validation only",
+  "genuine_profile_save": "Owner saved complete version-1 profile at revision 3; no navigation samples remain",
+  "observed_failure": "Declaration UI reported RPC failure; sanitized PostgreSQL logs identified SQLSTATE 42501 in enforce_no_committed_pending_mec_claim_v1",
+  "cause": "Deferred SECURITY INVOKER trigger read private claims after privileged RPC returned to authenticated caller context",
+  "correction": {
+    "source": "supabase/validation/mec_pending_claim_guard_privilege_candidate.sql",
+    "execution": "Existing postgres-owned function uses SECURITY DEFINER and fixed empty search path",
+    "context": "Exact internal schema/table/trigger, AFTER ROW INSERT or UPDATE only",
+    "query": "Static private claims table, matching NEW.claim_id and pending state",
+    "preserved": ["23514 rejection for unresolved pending claim", "initially deferred constraint binding", "all API execution revocations", "private-table deny-direct grants/RLS", "existing profile and claims"]
+  },
+  "independent_review": "accepted before isolated trial",
+  "tests": {
+    "suite": "supabase/tests/database/mec_pending_claim_commit_guard.test.sql",
+    "assertions": 13,
+    "rollback_trial": "passed with finish(true); original guard restored after rollback",
+    "same_transaction_installation": "passed and committed only in isolated project",
+    "wrong_context_under_postgres_and_authenticated": "rejected; no probe rows remain",
+    "does_not_prove": "genuine resolved or unresolved real-claim transaction behavior"
+  },
+  "old_temporary_probe_tests": "Replaced: they ran under postgres against another table and missed the authenticated deferred permission failure",
+  "real_declaration_retry": "Owner retry succeeded; browser reached /app and aggregate database check found one current claim and zero pending claims. See admission-positive-2026-10-22.json. This proves the resolved positive path, not unresolved-claim rejection.",
+  "production_change": false,
+  "private_values_recorded": false
+}

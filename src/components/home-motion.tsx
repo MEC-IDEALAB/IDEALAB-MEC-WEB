@@ -32,9 +32,20 @@ export function HomeMotion() {
           observer?.unobserve(element);
           if (element.matches('[data-reveal]') && !element.contains(document.activeElement)) {
             const stagger = Math.min(2, Math.max(0, Number(element.getAttribute('data-stagger')) || 0));
-            play(element, [{ opacity: .55, translate: '0 18px' }, { opacity: 1, translate: '0 0' }], {
-              duration: 520, delay: stagger * 85, easing: 'cubic-bezier(.2,.7,.2,1)', fill: 'backwards',
+            const timeline = element.matches('[data-reveal="timeline-step"]');
+            const card = element.matches('[data-reveal="card"]');
+            play(element, [
+              { opacity: .3, translate: timeline ? '26px 0' : '0 28px', rotate: card ? '-1deg' : '0deg' },
+              { opacity: 1, translate: '0 0', rotate: '0deg' },
+            ], {
+              duration: 650, delay: stagger * 110, easing: 'cubic-bezier(.2,.7,.2,1)', fill: 'backwards',
             });
+            if (timeline) {
+              const number = element.querySelector('span');
+              if (number) play(number, [{ scale: '.8', rotate: '-12deg' }, { scale: '1', rotate: '0deg' }], {
+                duration: 520, delay: stagger * 110, easing: 'cubic-bezier(.2,.7,.2,1)',
+              });
+            }
           }
           if (element.matches('.doodle')) {
             play(element, [{ translate: '0 0' }, { translate: '0 -5px' }, { translate: '0 0' }], {
@@ -49,7 +60,7 @@ export function HomeMotion() {
           }
         }
       }, { threshold: .12, rootMargin: '0px 0px -24px 0px' });
-      document.querySelectorAll('.playful-site [data-reveal], .playful-site .doodle, .student-preview-app [data-reveal]').forEach(element => {
+      document.querySelectorAll('.playful-site [data-reveal], .playful-site .doodle, .member-shell--preview [data-reveal]').forEach(element => {
         if (!seen.has(element)) observer?.observe(element);
       });
     }

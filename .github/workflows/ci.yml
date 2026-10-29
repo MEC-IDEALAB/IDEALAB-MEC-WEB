@@ -18,6 +18,8 @@ jobs:
     env:
       NEXT_TELEMETRY_DISABLED: '1'
       ENABLE_MEMBER_PLATFORM: 'false'
+      ENABLE_LAB_OPENING_VALIDATION: 'false'
+      ENABLE_OWN_VISITS_VALIDATION: 'false'
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
         with:
@@ -33,6 +35,8 @@ jobs:
       - run: npm audit --audit-level=high
       - run: npm run build:acceptance
       - run: npx playwright install --with-deps chromium
+      - run: npm run test:request-journal
+      - run: npm run test:project-journal
       - run: npm run test:acceptance
       - name: Retain public and sample browser evidence
         if: always()

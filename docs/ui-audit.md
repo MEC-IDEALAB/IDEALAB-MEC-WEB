@@ -1,18 +1,46 @@
 # UI audit and corrections
 
+## Modern brutalist print layer — 21 October 2026
+
+The homepage now uses the newly supplied vector and poster references as a
+visual direction: an original black print field with a warped grid, orbit rings,
+checker sphere, magenta sunburst, lime pixel blocks and a barcode sits behind the
+yellow photo panel. The Snapmaker A350T product photo now fills a larger,
+captioned paper cutout in that panel; the earlier machine illustration has been
+removed. Signal-lime, magenta and cobalt details continue
+through the cards, activity marks and CTA, while the yellow/pink IDEALAB anchors,
+notebook grid, readable copy and black dark-mode surfaces remain intact. The
+reference screenshots themselves are not embedded or copied; the vector study
+is local, original SVG artwork. The palette roles and motion constraints are in
+[the design standard](design-system.md).
+
+The first production-browser run caught 29 px of horizontal overflow at 768 px:
+the hero art's aspect ratio forced its two-column grid track wider than the
+available space. The tablet layout now sizes the artwork to its grid track and
+retains the square composition at phone widths. Final full-page captures at
+1440, 768 and 320 px, along with explicit dark-theme phone/desktop captures, are
+in `artifacts/acceptance/`. The 768 px page was visually inspected after the
+fix. The Impeccable detector returned no findings. The local Chromium acceptance
+journey passed five widths in both themes, reduced-motion checks and the
+no-horizontal-overflow assertions.
+
+Node 24.19.0 lint and TypeScript checks passed, all 28 boundary tests passed,
+`npm audit --audit-level=high` found zero vulnerabilities, the optimized
+production build passed, and the full Chromium acceptance journey passed.
+This is a visual/public-route acceptance result; live accounts, authentication,
+member data and operational backend workflows remain unverified.
+
 ## Poster-reference collage follow-up — 21 October 2026
 
-The homepage hero now pairs its original maker illustration with a compact,
-tilted Snapmaker A350T equipment print, using the supplied poster references for
-the layered-paper composition. The photo comes from the site's locally stored
+The homepage hero now uses a local Snapmaker A350T facility photo as its main
+machine visual, presented as a tilted paper cutout with a factual caption. It
+replaces the earlier 3D-printer drawing while retaining the yellow panel and
+poster-like editorial details. The photo comes from the site's locally stored
 IDEA Lab facilities assets; the caption names the equipment and its actual
-three functions. The editorial activity list above already applies the supplied
+three functions. The editorial activity list above applies the supplied
 event-list reference through numbered metadata, colored marks, serif titles,
 short descriptions and thin separators. These rows remain learning themes,
-not a claim that dated events are scheduled. Desktop and 320 px production
-captures were inspected; no horizontal overflow appeared. Current snapshots are
-`artifacts/acceptance/home-hero-1440.png` and
-`artifacts/acceptance/home-320.png`.
+not a claim that dated events are scheduled.
 
 The current source passed Node 24.19.0 ESLint, TypeScript, all 28 boundary tests,
 an optimized production build, the full local Chromium acceptance journey and
@@ -262,3 +290,105 @@ explicitly requested notebook-cross surfaces and supplied split-panel auth
 references. The bundled detector ran; its separate `audit` verb is not supported
 by this installed executable, so technical verification used the browser suite,
 the detector output and independent source review.
+
+## Reference-led poster composition — 21 October 2026
+
+The reference-led section now pairs a large, offset lime/magenta typography
+poster with an original grayscale portrait poster. The first keeps the confirmed
+“Less ‘what if’. More ‘let’s try’.” copy and adds stepped fields, margin notes
+and print-style labels. The second uses a locally stored generated portrait, a
+22-square lime mask and oversized “IDEAS” footer, matching the supplied pixel
+poster structure without presenting a real MEC student. The IDEA Lab lockup
+uses a gray grid tile with stepped pink IDEA and blue LAB panels beside “A lab
+for the way you think.” Both light and dark themes retain the vivid poster
+surfaces while the rest of dark mode remains jet black. Poster text remains
+real selectable HTML; pixel blocks and stepped edges are decorative.
+
+Responsive browser checks assert the poster copy, image, pixel tiles and
+overflow at 320, 375, 768, 1024 and 1440 px in both themes. Production-size
+poster and lockup captures are stored under `artifacts/acceptance/`. Local
+public-page verification does not establish live member or backend behavior.
+
+Current Node 24.19.0 lint, TypeScript, optimized acceptance build, full local
+Chromium acceptance, 28 boundary tests, documentation validation (18 Markdown
+files/121 local links) and `git diff --check` passed. Browser coverage asserts
+the headline, portrait mask and fitting display text at all five widths and
+captures the poster pair and IDEA Lab lockup at each width. The render review
+confirmed the portrait and typography compositions at desktop and phone sizes.
+These checks cover the public visual experience; real login, Google OAuth and
+shared-backend workflows remain independently gated and unverified.
+
+## Sign-in and account switch — 21 October 2026
+
+The sign-in card now keeps the primary “Sign in” action visible at phone size
+without page scrolling at 320×568 and 390×844. A “Create a new account” control
+switches to the account-access panel with a restrained 3D card twist, moves
+keyboard focus to the new heading, and returns to sign-in from either the
+switcher or `/sign-up`. The homepage “Get started” link opens the account panel.
+The motion is disabled for reduced-motion preferences. Dark mode gives the
+account card a jet-black surface and keeps the primary action legible against
+it.
+
+The sign-in and Google buttons are intentionally disabled while the shared
+account service is gated off. The account panel gives a direct lab-contact path
+instead of implying that registration is live. The floating Next.js dev-tools
+button is hidden in local development; it is a framework development overlay,
+not a website control. Chromium checks at 320×568, 390×844, 768×900 and
+1440×900 verified visible actions, no page overflow, both card directions,
+reduced motion, a black dark-mode surface, no dev-tools overlay and no browser
+page errors. These are UI checks only; password authentication, Google OAuth
+and shared-backend account journeys remain unverified.
+
+## Historical event carousel replaces the portrait card — 21 October 2026
+
+The maker portrait beside “Less what if. More let’s try.” has been replaced by
+one card-style carousel using four past event photos from the public IDEA Lab
+archive. TRIAD, ARDUIGNITE, school technical training and TinyML workshop each
+have their published date, monochrome photo, distinct accent and pixel-block
+pattern. The controls, slide labels and archive link remain keyboard accessible;
+the carousel fits 320, 375, 390, 768, 1024 and 1440 px without horizontal
+overflow. The mask now spreads event-specific rectangular pixels across the
+photo, and the vivid lime, magenta, blue and yellow accents change with each
+slide. Automatic advance runs only while the carousel is visible and pauses on
+hover or keyboard focus. It has no visible pause/play control. Reduced motion
+turns off auto-advance. Dark mode preserves the jet-black page canvas and the
+event photos remain grayscale.
+
+The local Chromium check loaded all four image assets, verified automatic
+advance and hover pause, changed slides with the event selector, checked each
+slide’s distinct accent/mask and reduced-motion behavior, and verified the
+mobile-navigation breakpoint. The official photo/content source is recorded in
+[content provenance](content-sources.md). This is a browser check against the
+local development server; no hosted deployment or live event registration was
+tested.
+
+## Current visual follow-up — 21 October 2026
+
+The event carousel keeps the TRIAD and ARDUIGNITE images and keeps all four
+event labels and dates. Only the third and fourth image sources now use clearer
+archive workshop photographs: Robotics Training for the third slide and
+Raspberry-Pi Workshop for the fourth. The third and fourth card copy remains
+Technical training for school students (04 AUG 2024) and TinyML hands-on
+workshop (22 AUG 2023); image alt text identifies the photos as alternate
+archive workshop imagery. The photos remain monochrome and the pixel masks keep
+their slide-specific colors. The visible pause buttons were removed; hover and
+keyboard focus pause the carousel, and reduced motion disables auto-advance.
+
+The homepage now has one black/yellow tilted ticker, reversing direction so it
+moves right. Dark mode changes it to lime/black. The small-screen auth layout
+hides the redundant story panel and has been checked at 320×568 with no page
+scrolling; the fixed mobile-navigation bottom padding applies only on routes
+that render that navigation. These remain local UI results. Shared Supabase
+signup, Google OAuth, real sessions and member data are still gated and
+unverified; see [backend readiness](backend-readiness.md).
+
+
+The follow-up production-browser acceptance passed across five viewport widths
+in both themes, including the lower quote ribbon, stable-color card movement,
+Bricolage facilities typography, timeline reveals, rounded Home navigation,
+and gated account layouts. The first-visit loader now uses drawn geometry,
+masked wordmark reveals, staggered outline rows and a coordinated exit.
+Desktop/mobile captures and `artifacts/acceptance/loader-motion-preview.webm`
+were inspected locally. Reduced motion and keyboard ticker access passed.
+Live account creation, email delivery, Google sign-in and shared-data permissions
+remain unverified; these frontend results do not clear the backend gate.

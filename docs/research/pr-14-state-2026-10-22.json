@@ -1,0 +1,18 @@
+{
+  "checkedAt": "2026-10-21T22:07:21.396947+00:00",
+  "source": "GitHub CLI read-only pr view 14",
+  "url": "https://github.com/MEC-IDEALAB/IDEALAB-MEC-WEB/pull/14",
+  "state": "MERGED",
+  "isDraft": false,
+  "headRefOid": "7219815bcb3f1216264ec8a85ea46ec4be2bb6df",
+  "mergeCommit": "0504b41a1427640bd8fcbdeda48423f5ea24c05a",
+  "mergedAt": "2026-10-21T12:51:22Z",
+  "formalReviews": 0,
+  "checks": {
+    "Documentation gate": "SUCCESS",
+    "Public foundation acceptance": "SUCCESS",
+    "Required gate": "SUCCESS"
+  },
+  "scope": "Earlier foundation head only; current working changes and live account workflows unverified by these hosted checks",
+  "mutationPerformed": false
+}

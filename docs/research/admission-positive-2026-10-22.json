@@ -1,0 +1,21 @@
+{
+  "scope": "idealab-mec-validation only",
+  "owner_report": "The workspace opened after the declaration retry",
+  "browser_observation": {"route": "/app", "workspace_visible": true},
+  "database_aggregate": {"verified_accounts": 1, "complete_active_profiles": 1, "current_claims": 1, "pending_claims": 0},
+  "admitted_onboarding_redirect": "/account-access to /app",
+  "unchecked_claim_update": {
+    "rejected": true,
+    "checkbox_remained_unchecked": true,
+    "aria_invalid": true,
+    "inline_feedback_visible": true,
+    "error_summary_focused": true,
+    "aggregate_claim_counts_unchanged": true
+  },
+  "validation_feedback_fix": "Invalid action state also drives field feedback if local attempted state is lost",
+  "independent_review": "No concrete concern; consent and server authority unchanged",
+  "checks": {"targeted_eslint": "passed", "registration_claim_tests": "7 passed", "production_build_and_typescript": "passed"},
+  "not_proven": ["second-account ownership isolation", "concurrent claims", "unresolved pending claim rejection with genuine caller", "email/password confirmation and recovery", "shared Flutter compatibility", "production deployment"],
+  "private_values_recorded": false,
+  "production_change": false
+}

@@ -13,8 +13,10 @@
     "typecheck": "tsc --noEmit",
     "lint": "eslint .",
     "test:acceptance": "node scripts/acceptance.mjs",
+    "test:request-journal": "node scripts/pending-submission-browser.mjs",
+    "test:project-journal": "node scripts/project-journal-browser.mjs",
     "test:db-runtime": "node scripts/db-runtime.mjs",
-    "test:boundaries": "node --test scripts/config.test.mjs scripts/draft-storage.test.mjs scripts/auth-config.test.mjs scripts/security-headers.test.mjs scripts/vercel-preview-env.test.mjs scripts/member-access.test.mjs"
+    "test:boundaries": "node --test scripts/config.test.mjs scripts/draft-storage.test.mjs scripts/draft-workspace-copy.test.mjs scripts/auth-config.test.mjs scripts/auth-input.test.mjs scripts/form-account.test.mjs scripts/security-headers.test.mjs scripts/vercel-preview-env.test.mjs scripts/member-access.test.mjs scripts/member-profile.test.mjs scripts/profile-save.test.mjs scripts/registration-claim.test.mjs scripts/own-visits.test.mjs scripts/lab-opening.test.mjs scripts/visit-command.test.mjs scripts/projects.test.mjs scripts/work-request.test.mjs scripts/events.test.mjs scripts/local-auth-exit.test.mjs scripts/signup-cleanup.test.mjs scripts/cookie-write.test.mjs"
   },
   "dependencies": {
     "@supabase/ssr": "0.12.7",

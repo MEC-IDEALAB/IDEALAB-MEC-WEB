@@ -1,3 +1,4 @@
+import { readAuthCode } from '@/lib/auth-input';
 import { NextResponse, type NextRequest } from 'next/server';
 import { serverClient } from '@/lib/supabase';
 import { googleAuthConfig } from '@/lib/auth-config';
@@ -5,22 +6,22 @@ import { googleAuthConfig } from '@/lib/auth-config';
 export async function GET(request: NextRequest) {
   const config = googleAuthConfig();
   // Canonical origin comes from deployment configuration, never forwarded headers.
-  const origin = config ? new URL(config.callback).origin : request.nextUrl.origin;
+  if (!config) return new NextResponse('Account callback is unavailable.', { status: 404, headers: { 'Cache-Control': 'private, no-store', 'Referrer-Policy': 'no-referrer' } });
+  const origin = new URL(config.callback).origin;
   const response = (path: string) => {
     const result = NextResponse.redirect(new URL(path, origin));
     result.headers.set('Cache-Control', 'private, no-store');
     result.headers.set('Referrer-Policy', 'no-referrer');
     return result;
   };
-  if (!config) return response('/sign-in?notice=configuration');
-  const code = request.nextUrl.searchParams.get('code');
-  if (!code || code.length > 4096 || request.nextUrl.searchParams.has('error')) return response('/sign-in?notice=invalid');
+  const input = readAuthCode(request.nextUrl.searchParams);
+  if (!input) return response('/sign-in?notice=oauth');
   try {
-    const client = await serverClient();
+    const client = await serverClient({ writable: true });
     if (client) {
-      const { error } = await client.auth.exchangeCodeForSession(code);
+      const { error } = await client.auth.exchangeCodeForSession(input.code, input.options);
       if (!error) return response('/app');
     }
   } catch { /* Fail closed; do not reflect OAuth parameters. */ }
-  return response('/sign-in?notice=invalid');
+  return response('/sign-in?notice=oauth');
 }

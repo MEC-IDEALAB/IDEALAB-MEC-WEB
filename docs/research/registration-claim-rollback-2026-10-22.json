@@ -1,0 +1,39 @@
+{
+  "recordedAt": "2026-10-22T03:38:24.096886+00:00",
+  "project": "idealab-mec-validation",
+  "projectRef": "gvvqlfachzbufstzoiwi",
+  "scope": "Rollback-only claim structure, pure prefix/bounds validator and actual SQL role denials",
+  "planned": 28,
+  "executed": 28,
+  "failed": 0,
+  "finishTrue": true,
+  "transactionRolledBack": true,
+  "postRollback": {
+    "profileTableAbsent": true,
+    "collisionTableAbsent": true,
+    "candidateRoutinesAbsent": true,
+    "authNoninternalTriggers": 0,
+    "pgtapAbsent": true,
+    "anonPrivateUsage": false,
+    "authenticatedPrivateUsage": false,
+    "authAccounts": 0
+  },
+  "files": {
+    "supabase/validation/mec_profile_api_candidate.sql": "bdf8e52813a49dc0dbe044db13e482b288a0bbd286e75c4dfa24d0e4f416cf8f",
+    "supabase/validation/mec_profile_read_provisioning_candidate.sql": "5bc657ebd800b9325a8920ef3ce0f69b7dc6bea7a226e7e81c84662a6bbb52b7",
+    "supabase/validation/mec_profile_admission_read_candidate.sql": "285c03b7f6707aeb6afa2c9937b94783bf679f4f58380f621e31aa3c32136894",
+    "supabase/validation/mec_profile_save_candidate.sql": "7819b750a01cfa0ad14d831ad6574f6cbc96e1fc73d975c9a199766c316a7a1e",
+    "supabase/validation/mec_registration_claim_candidate.sql": "825a1d493492d50797d4c204dcac692da16508ba3a8fafd91c9e7331bbfaf91b",
+    "supabase/tests/database/mec_registration_claim_candidate.test.sql": "37ed31de91c4992c5c5a0e4e23cfd37475882a701fe889162c8e5e879afbbdaf"
+  },
+  "independentReview": "Owner lock/counter/atomic claim swap reviewed; guaranteed raw4096 cap added before normalization after resource-bound finding",
+  "notVerified": [
+    "Real account claim creation and stored self-declaration",
+    "Concurrent cross-account claims and collisions",
+    "Display edits, lost-response retry and window expiry",
+    "Caller-forced immediate pending-guard state preservation",
+    "Signed JWT/Data API privacy and Flutter compatibility"
+  ],
+  "installed": false,
+  "productionChanged": false
+}

@@ -1,0 +1,46 @@
+{
+  "capturedAt": "2026-10-21T22:14:45.887534+00:00",
+  "project": "idealab-mec-validation",
+  "projectRef": "gvvqlfachzbufstzoiwi",
+  "scope": "Isolated rollback-only profile projection/provisioning structure, permissions and catalog fidelity; not real account or production acceptance",
+  "planned": 35,
+  "executed": 35,
+  "failed": 0,
+  "finishTrue": true,
+  "transactionRolledBack": true,
+  "postRollback": {
+    "profileTableAbsent": true,
+    "readRpcAbsent": true,
+    "verifiedEmailHelperAbsent": true,
+    "provisionerAbsent": true,
+    "noninternalAuthTriggers": 0,
+    "pgtapAbsent": true,
+    "apiPrivateSchemaUsageAbsent": true
+  },
+  "fidelity": {
+    "retainedLegacyColumns": 19,
+    "retainedLegacyConstraints": 6,
+    "newChecks": 3,
+    "omitted": [
+      "club foreign key",
+      "operational schema",
+      "production data and migration parity"
+    ]
+  },
+  "independentReview": "profile_api_security_review: static review and read-only metadata; no pre-probe blocker",
+  "files": {
+    "supabase/validation/mec_profile_api_candidate.sql": "bdf8e52813a49dc0dbe044db13e482b288a0bbd286e75c4dfa24d0e4f416cf8f",
+    "supabase/validation/mec_profile_read_provisioning_candidate.sql": "5bc657ebd800b9325a8920ef3ce0f69b7dc6bea7a226e7e81c84662a6bbb52b7",
+    "supabase/tests/database/mec_profile_read_provisioning_candidate.test.sql": "9683752245e835bbd806605092074f6e131aa9e629e92a2edabb7390c7e1b2b8"
+  },
+  "notVerified": [
+    "Genuine Auth signup/conversion/idempotent profile provisioning",
+    "Existing staff/inactive account preservation",
+    "Real verified own/cross-owner Data API reads",
+    "Save/claim APIs and admission enforcement",
+    "Concurrent claims and save limits",
+    "Flutter and web live account journeys"
+  ],
+  "installed": false,
+  "productionChanged": false
+}

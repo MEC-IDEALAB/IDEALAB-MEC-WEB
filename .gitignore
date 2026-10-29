@@ -2,6 +2,7 @@ node_modules/
 node_modules.previous/
 package-lock.previous.json
 .next/
+.next-acceptance/
 out/
 coverage/
 artifacts/

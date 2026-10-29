@@ -1,7 +1,16 @@
 {
+  "checkedAt": "2026-10-29",
   "organization": "https://github.com/MEC-IDEALAB",
   "repository": "https://github.com/MEC-IDEALAB/IDEALAB-MEC-WEB",
   "private": true,
+  "growRepository": {
+    "organizationFork": "https://github.com/MEC-IDEALAB/Grow-by-IL",
+    "forkOf": "https://github.com/NAVANEETHVVINOD/Grow-by-IL",
+    "visibility": "public",
+    "defaultBranch": "main",
+    "checkedCommit": "3015c4ef6c6963c265fd644689fc8dd4fc2042be",
+    "forkMainMatchesSourceMain": true
+  },
   "project": "https://github.com/orgs/MEC-IDEALAB/projects/1",
   "projectNumber": 1,
   "issues": [
@@ -88,6 +97,24 @@
       "nodeId": "I_kwDOVQoAGc8AAAABYnjX0g",
       "title": "Block account activation until shared profile permissions and provisioning are secured",
       "url": "https://github.com/MEC-IDEALAB/IDEALAB-MEC-WEB/issues/15"
+    },
+    {
+      "number": 16,
+      "nodeId": "I_kwDOVQoAGc8AAAABY4cyvQ",
+      "title": "Polish homepage carousel motion, typography and mobile navigation",
+      "url": "https://github.com/MEC-IDEALAB/IDEALAB-MEC-WEB/issues/16"
+    },
+    {
+      "number": 17,
+      "nodeId": "I_kwDOVQoAGc8AAAABapvSXg",
+      "title": "Show nearest upcoming events first with stable pagination",
+      "url": "https://github.com/MEC-IDEALAB/IDEALAB-MEC-WEB/issues/17"
+    },
+    {
+      "number": 18,
+      "nodeId": "I_kwDOVQoAGc8AAAABawpjTQ",
+      "title": "Prevent duplicate projects after an uncertain create response",
+      "url": "https://github.com/MEC-IDEALAB/IDEALAB-MEC-WEB/issues/18"
     }
   ],
   "organizationMetadataUpdated": true

@@ -1,6 +1,6 @@
 # Vercel delivery preparation
 
-Verified against official documentation on 21 October 2026. No Vercel project, account connection, preview URL, domain or production deployment has been verified. GitHub CI is active; continuous deployment is not connected. The local Vercel CLI also reports that its saved token is invalid; no token value is recorded here.
+Verified against official documentation on 21 October 2026 and the connected hosting accounts on 23 October 2026. Vercel account access works, but a scoped project lookup for `MEC-IDEALAB/IDEALAB-MEC-WEB` returned no project. Render has no IDEALAB web service in its connected workspace; its unrelated service was left untouched. No preview URL, domain or deployment is available, and continuous deployment is not connected. The local Vercel CLI also reports that its saved token is invalid; no token value is recorded here.
 
 ## Account prerequisite
 
@@ -27,11 +27,15 @@ The initial `main` commit contains planning/governance only. Application source 
 
 ## Environment boundary
 
-Set `ENABLE_MEMBER_PLATFORM=false` and `ENABLE_DESIGN_PREVIEW=false` in production and ordinary previews. The public foundation needs no Supabase keys. A dedicated design preview may explicitly enable the sample composer; it remains unsubmitted browser data and does not establish member/backend acceptance.
+Set `ENABLE_MEMBER_PLATFORM=false`, `ENABLE_MEMBER_PLATFORM_TEST=false`, `ENABLE_DESIGN_PREVIEW=false`, `ENABLE_LAB_OPENING_VALIDATION=false`, `ENABLE_OWN_VISITS_VALIDATION=false`, `ENABLE_WORK_REQUEST_INTAKE=false` and `ENABLE_PROJECT_CORE=false` in production and ordinary previews until each shared backend gate is separately approved. Lab opening and visit operations currently have no production contract and enforce their own pinned-validation feature gates. Website production account integration is additionally rejected in source; no environment variable can enable it. The shared Grow user-table policies must be reviewed and migrated, Flutter compatibility verified, and cross-client security journeys passed before the source gate is changed. The public foundation needs no Supabase keys. A dedicated design preview may explicitly enable the sample composer; it remains unsubmitted browser data and does not establish member/backend acceptance.
 
-When shared account recovery is approved for a specific environment, set `AUTH_SITE_URL` to that environment's exact HTTPS origin and add its exact `/auth/callback` and `/auth/recovery/callback` URLs to Supabase Auth's redirect allow list. Local development uses `http://127.0.0.1:3015` and the corresponding two callback paths. The recovery callback exchanges Supabase's PKCE code and redirects only to the fixed local reset form; it does not accept a caller-provided return URL. Configure and test email delivery and recovery templates in a safe environment before enabling the member platform. The recovery UI and actions currently remain disabled by the shared member-platform flag; setting callback URLs here does not authorize enabling that flag.
+When shared account recovery is approved for a specific environment, set `AUTH_SITE_URL` to that environment's exact HTTPS origin and add its exact `/auth/confirm`, `/auth/callback` and `/auth/recovery/callback` URLs to Supabase Auth's redirect allow list. Local validation uses `http://127.0.0.1:3015` and those three callback paths. The recovery callback exchanges Supabase's PKCE code and redirects only to the fixed local reset form; it does not accept a caller-provided return URL. Configure and test email delivery and recovery templates in a safe environment before enabling the member platform. Setting callback URLs here does not authorize enabling production member access.
 
 Future backend activation needs verified shared configuration and the identity/permission/operational gates in [architecture](architecture.md) and [delivery plan](delivery-plan.md). Keep secrets in the provider's environment controls, never in GitHub issues, source, screenshots or command output.
+
+## Connected-hosting recheck — 29 October 2026
+
+The connected Vercel account was rechecked for the exact `MEC-IDEALAB/IDEALAB-MEC-WEB` Git repository and returned no matching project. An existing project named `web` could not be verified as belonging to this repository, so it was not used. The connected Render workspace contains only the unrelated `LINKER` service backed by `NAVANEETHVVINOD/UNOFFICAL`; it was left untouched. No website deployment or new hosting resource was created. The current local source still needs a reviewed GitHub delivery and hosted checks, and Vercel plan eligibility, project credentials, environment variables and preview behavior remain unverified.
 
 ## Verification before promotion
 

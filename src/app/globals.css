@@ -93,9 +93,6 @@ html:not([data-ticker-motion=ready]) .ticker-motion-toggle{display:none}
  .ticker-motion-toggle{display:none}
 }
 
-/* The native checkbox also works before hydration; explicit Resume wins over hover/focus. */
-html[data-ticker-motion=ready]:not(:has(.ticker-motion-checkbox:checked)) .ticker-region:hover .ticker-track,
-html[data-ticker-motion=ready]:not(:has(.ticker-motion-checkbox:checked)) .ticker-region:focus-within .ticker-track{animation-play-state:running}
 
 /* The upper band follows the public navigation and uses the requested ink/yellow contrast. */
 .maker-ticker-band{min-height:58px;background:#000;color:#ffe029;border-block:2px solid #000;transform:rotate(-.65deg)}

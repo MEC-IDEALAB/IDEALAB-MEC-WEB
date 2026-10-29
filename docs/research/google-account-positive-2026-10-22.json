@@ -1,0 +1,18 @@
+{
+  "scope": "idealab-mec-validation and actual Chrome local website",
+  "genuine_google_token_exchange": "passed after owner corrected provider credentials",
+  "callback_destination": "/account-access",
+  "auth_accounts": 1,
+  "confirmed_accounts": 1,
+  "linked_profiles": 1,
+  "initial_profile_checks": {
+    "role_student": true,
+    "active": true,
+    "profile_incomplete": true,
+    "contract_version_zero": true
+  },
+  "later_navigation_regression": "See onboarding-wizard-2026-10-22.json for sample save, guarded restoration and no-submit recheck",
+  "account_identifiers_or_secrets_recorded": false,
+  "production_change": false,
+  "does_not_prove": ["password/email signup or recovery", "real MEC admission", "cross-user authorization", "production compatibility"]
+}

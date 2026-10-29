@@ -1,3 +1,4 @@
+import { readAuthCode } from '@/lib/auth-input';
 import { NextResponse, type NextRequest } from 'next/server';
 import { serverClient } from '@/lib/supabase';
 import { passwordRecoveryConfig } from '@/lib/auth-config';
@@ -13,14 +14,14 @@ export async function GET(request: NextRequest) {
     return result;
   };
 
-  const code = request.nextUrl.searchParams.get('code');
-  if (!code || code.length > 4096 || request.nextUrl.searchParams.has('error')) return response('/forgot-password?notice=expired');
+  const input = readAuthCode(request.nextUrl.searchParams);
+  if (!input) return response('/forgot-password?notice=expired');
   try {
-    const client = await serverClient();
+    const client = await serverClient({ writable: true });
     if (client) {
-      const { error } = await client.auth.exchangeCodeForSession(code);
+      const { error } = await client.auth.exchangeCodeForSession(input.code, input.options);
       if (!error) return response('/reset-password');
     }
-  } catch { /* Fail closed; do not reflect callback parameters or credentials. */ }
+  } catch { return response('/forgot-password?notice=callback'); }
   return response('/forgot-password?notice=expired');
 }

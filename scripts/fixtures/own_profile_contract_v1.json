@@ -1,0 +1,35 @@
+{
+  "owner": "11111111-2222-4333-8444-555555555555",
+  "base": {
+    "id": "11111111-2222-4333-8444-555555555555",
+    "name": "Student Fixture",
+    "phone": "+919876543210",
+    "college_roll": "MDL24CS219",
+    "institution": "Model Engineering College",
+    "department": "Computer Science",
+    "study_year": 2,
+    "role": "student",
+    "is_active": true,
+    "profile_completed": true,
+    "profile_contract_version": 1,
+    "profile_revision": "1",
+    "mec_admitted": true
+  },
+  "cases": [
+    {"name":"complete student", "changes":{}, "state":"ready"},
+    {"name":"declaration pending", "changes":{"mec_admitted":false}, "state":"admission-required"},
+    {"name":"legacy profile", "changes":{"profile_contract_version":0}, "state":"incomplete"},
+    {"name":"inactive staff", "changes":{"role":"lab_admin","is_active":false}, "state":"inactive"},
+    {"name":"trusted staff path", "changes":{"role":"lab_admin","profile_completed":false}, "state":"ready"},
+    {"name":"other owner", "changes":{"id":"aaaaaaaa-bbbb-4ccc-8ddd-eeeeeeeeeeee"}, "state":"unavailable"},
+    {"name":"extra field", "changes":{"email":"fixture@example.test"}, "state":"unavailable"},
+    {"name":"revision max", "changes":{"profile_revision":"9223372036854775807"}, "state":"ready"},
+    {"name":"revision overflow", "changes":{"profile_revision":"9223372036854775808"}, "state":"unavailable"},
+    {"name":"phone newline", "changes":{"phone":"+919876543210\n"}, "state":"incomplete"},
+    {"name":"invalid year", "changes":{"study_year":9}, "state":"incomplete"},
+    {"name":"integral JSON decimals", "changes":{"study_year":2.0,"profile_contract_version":1.0}, "state":"ready"},
+    {"name":"fractional year", "changes":{"study_year":2.5}, "state":"unavailable"},
+    {"name":"unsafe negative year", "changes":{"role":"lab_admin","study_year":-9223372036854775808}, "state":"unavailable"},
+    {"name":"control character", "changes":{"department":"Dept\u0085Hidden"}, "state":"incomplete"}
+  ]
+}

@@ -46,8 +46,10 @@ Keep Auth identity, email verification, Student role/active status, six-field
 profile completion and the self-declared pilot admission state distinct.
 Admission follows the required self-declaration and a unique claim, not
 number-format feedback alone. Do not create a staff-review pending state for
-this pilot. These dependent states and server enforcement are not implemented
-yet.
+this pilot. These dependent states and server enforcement are implemented and
+the owner's genuine positive journey passed in the isolated validation project;
+see [account delivery status](account-readiness.md). Shared production rollout,
+cross-owner and concurrency acceptance remain gated.
 
 Preserve existing identities, required profile privacy, staff roles and inactive
 account states. Do not delete, ban or reclassify legacy accounts from their email

@@ -2,11 +2,13 @@
 
 Next.js and TypeScript website for IDEA Lab at Model Engineering College. Public institutional content and a signed-in platform share one intended Supabase backend with the existing Flutter client.
 
-**Status:** local foundation, not a production-ready V1. Public branding/layout, existing-account sign-in source, protected member routes and browser-only request drafts exist. Live identity/profile/permissions and operational workflows remain acceptance gates. Sample catalog entries are design examples, not verified services, stock or prices.
+**Status:** local development; V1 is not production-ready. Public pages, protected member routes, account flows and several guarded operational slices exist. Google sign-in and onboarding have been tested in the isolated validation project; email/password delivery, shared Grow permissions and full operational journeys remain acceptance gates. Sample catalog entries are design examples, not verified services, stock or prices. See [account readiness](docs/account-readiness.md) and [release readiness](docs/release-readiness-2026-10-23.md).
 
 The owner prioritized UI and GitHub setup first. The current review phase covers the public UI, sample draft preview and access-denial states. Shared-account activation is disabled by default with `ENABLE_MEMBER_PLATFORM=false`; live member, permission and operational acceptance must pass before activation. A frontend foundation PR is not the full V1 release.
 
 ## Project layout
+
+The standalone website is at `F:\kannan\projects\IDEALAB\idealab-mec-web`. The Grow Flutter app is its sibling at `F:\kannan\projects\IDEALAB\Grow`; each is a separate Git repository.
 
 - `src/app`: Next.js routes, layouts and server actions.
 - `src/components`: reusable branding, navigation and controls.
@@ -23,10 +25,10 @@ Use Node 24 and the committed npm lockfile.
 
 ```sh
 npm ci
-npm run dev
+npm run dev -- --port 3015
 ```
 
-The server binds to `127.0.0.1`. Backend activation is off by default; sign-in is disabled and protected routes inaccessible. For local design review, set `ENABLE_DESIGN_PREVIEW=true` and open `/design/request`. After the shared-service acceptance gate, its public URL and publishable/legacy anon key belong in an ignored `.env.local` with explicit member activation. Never supply a service-role key. Production credentials, member data, payment proofs and test-session tokens must not enter source, logs or issues.
+The server binds to `127.0.0.1`. Port 3015 matches the configured isolated validation callbacks; a different port needs matching Auth callback configuration. Backend activation is off by default; sign-in is disabled and protected routes inaccessible unless an explicitly approved environment is configured. For local design review, set `ENABLE_DESIGN_PREVIEW=true` and open `/design/request`. Public URL and publishable/legacy anon key belong in an ignored `.env.local` with explicit member activation. Never supply a service-role key. Production credentials, member data, payment proofs and test-session tokens must not enter source, logs or issues.
 
 ## Verification
 

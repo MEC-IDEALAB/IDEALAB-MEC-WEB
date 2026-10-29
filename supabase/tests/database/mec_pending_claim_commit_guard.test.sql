@@ -1,95 +1,29 @@
--- Database-only invariant tests. The temporary probe uses the installed
--- trigger function without inserting a synthetic Auth identity.
-BEGIN;
+-- Current guard boundary tests, following the privilege-correction candidate.
+-- Run inside an outer BEGIN/ROLLBACK (or reviewed installation transaction).
+-- The temporary table is a wrong-context attack probe, not a substitute claim.
+-- No Auth identities or real claim rows are inserted/updated by this suite.
+SAVEPOINT pending_guard_tests;
 CREATE EXTENSION IF NOT EXISTS pgtap WITH SCHEMA extensions;
-SET LOCAL search_path = pg_catalog, public, extensions, idealab_private;
-
-SELECT plan(5);
-
-SELECT ok(
-  EXISTS (
-    SELECT 1
-    FROM pg_catalog.pg_trigger AS trigger_row
-    WHERE trigger_row.tgrelid =
-      'idealab_private.mec_registration_claims_v1'::regclass
-      AND trigger_row.tgname =
-        'mec_registration_claims_v1_no_pending_at_commit'
-      AND trigger_row.tgconstraint <> 0
-      AND trigger_row.tgdeferrable
-      AND trigger_row.tginitdeferred
-  ),
-  'persistent claim table has an initially deferred commit guard'
-);
-
-CREATE TEMP TABLE pending_claim_commit_probe (
-  claim_id uuid PRIMARY KEY,
-  claim_state text NOT NULL CHECK (claim_state IN ('current', 'pending'))
-);
-
-CREATE CONSTRAINT TRIGGER pending_claim_commit_probe_guard
-AFTER INSERT OR UPDATE OF claim_state
-ON pg_temp.pending_claim_commit_probe
-DEFERRABLE INITIALLY DEFERRED
-FOR EACH ROW
-EXECUTE FUNCTION
-  idealab_private.enforce_no_committed_pending_mec_claim_v1();
-
-CREATE FUNCTION pg_temp.resolve_pending_probe()
-RETURNS boolean
-LANGUAGE plpgsql
-AS $function$
-DECLARE
-  v_claim_id uuid := pg_catalog.gen_random_uuid();
-BEGIN
-  INSERT INTO pg_temp.pending_claim_commit_probe (claim_id, claim_state)
-  VALUES (v_claim_id, 'pending');
-
-  UPDATE pg_temp.pending_claim_commit_probe
-  SET claim_state = 'current'
-  WHERE claim_id = v_claim_id;
-
-  SET CONSTRAINTS pending_claim_commit_probe_guard IMMEDIATE;
-  RETURN true;
-END;
-$function$;
-
-CREATE FUNCTION pg_temp.leave_pending_probe()
-RETURNS boolean
-LANGUAGE plpgsql
-AS $function$
-BEGIN
-  INSERT INTO pg_temp.pending_claim_commit_probe (claim_id, claim_state)
-  VALUES (pg_catalog.gen_random_uuid(), 'pending');
-
-  SET CONSTRAINTS pending_claim_commit_probe_guard IMMEDIATE;
-  RETURN true;
-END;
-$function$;
-
-SELECT lives_ok(
-  'SELECT pg_temp.resolve_pending_probe()',
-  'pending may transition to current before transaction end'
-);
-SELECT is(
-  (SELECT pg_catalog.count(*)::integer
-   FROM pg_temp.pending_claim_commit_probe
-   WHERE claim_state = 'current'),
-  1,
-  'resolved claim is current after the deferred check'
-);
-SELECT throws_ok(
-  'SELECT pg_temp.leave_pending_probe()',
-  '23514',
-  NULL,
-  'an unresolved pending claim fails the deferred check'
-);
-SELECT is(
-  (SELECT pg_catalog.count(*)::integer
-   FROM pg_temp.pending_claim_commit_probe
-   WHERE claim_state = 'pending'),
-  0,
-  'failed pending insert is rolled back by the test savepoint'
-);
-
+SET LOCAL search_path = pg_catalog, extensions;
+SELECT plan(13);
+SELECT ok((SELECT prosecdef FROM pg_proc WHERE oid='idealab_private.enforce_no_committed_pending_mec_claim_v1()'::regprocedure),'deferred guard uses its reviewed owner context');
+SELECT ok((SELECT pg_get_userbyid(proowner)='postgres' FROM pg_proc WHERE oid='idealab_private.enforce_no_committed_pending_mec_claim_v1()'::regprocedure),'guard owner is postgres');
+SELECT ok((SELECT proconfig=ARRAY['search_path=""'] FROM pg_proc WHERE oid='idealab_private.enforce_no_committed_pending_mec_claim_v1()'::regprocedure),'guard has empty fixed search path');
+SELECT ok(EXISTS(SELECT 1 FROM pg_trigger WHERE tgrelid='idealab_private.mec_registration_claims_v1'::regclass AND tgname='mec_registration_claims_v1_no_pending_at_commit' AND tgfoid='idealab_private.enforce_no_committed_pending_mec_claim_v1()'::regprocedure AND tgconstraint<>0 AND tgdeferrable AND tginitdeferred AND tgenabled='O' AND tgtype=21),'real pending guard stays deferred AFTER INSERT/UPDATE FOR EACH ROW');
+SELECT ok(NOT has_function_privilege('anon','idealab_private.enforce_no_committed_pending_mec_claim_v1()','EXECUTE'),'anon has no guard execution');
+SELECT ok(NOT has_function_privilege('authenticated','idealab_private.enforce_no_committed_pending_mec_claim_v1()','EXECUTE'),'authenticated has no guard execution');
+SELECT ok(NOT has_function_privilege('service_role','idealab_private.enforce_no_committed_pending_mec_claim_v1()','EXECUTE'),'service role has no direct guard execution');
+SELECT ok(NOT EXISTS(SELECT 1 FROM pg_proc p CROSS JOIN LATERAL aclexplode(coalesce(p.proacl,acldefault('f',p.proowner))) a WHERE p.oid='idealab_private.enforce_no_committed_pending_mec_claim_v1()'::regprocedure AND a.grantee=0 AND a.privilege_type='EXECUTE'),'PUBLIC has no guard execution');
+SELECT ok(NOT has_table_privilege('authenticated','idealab_private.mec_registration_claims_v1','SELECT,INSERT,UPDATE,DELETE'),'authenticated still cannot read or write private claims directly');
+SELECT ok((SELECT relrowsecurity AND relforcerowsecurity FROM pg_class WHERE oid='idealab_private.mec_registration_claims_v1'::regclass),'private claims forced RLS remains enabled');
+CREATE TEMP TABLE pending_claim_context_probe(claim_id uuid,claim_state text);
+CREATE TRIGGER mec_registration_claims_v1_no_pending_at_commit AFTER INSERT ON pg_temp.pending_claim_context_probe FOR EACH ROW EXECUTE FUNCTION idealab_private.enforce_no_committed_pending_mec_claim_v1();
+SELECT throws_ok('INSERT INTO pg_temp.pending_claim_context_probe VALUES (gen_random_uuid(),''pending'')','P0001','MEC claim commit guard requires its exact internal trigger','even owner cannot attach definer guard to an arbitrary table');
+GRANT INSERT,SELECT ON pg_temp.pending_claim_context_probe TO authenticated;
+SET LOCAL ROLE authenticated;
+SELECT throws_ok('INSERT INTO pg_temp.pending_claim_context_probe VALUES (gen_random_uuid(),''pending'')','P0001','MEC claim commit guard requires its exact internal trigger','authenticated wrong-context trigger invocation is rejected');
+RESET ROLE;
+SELECT is((SELECT count(*)::integer FROM pg_temp.pending_claim_context_probe),0,'rejected probe writes leave no row');
 SELECT * FROM finish(true);
-ROLLBACK;
+ROLLBACK TO SAVEPOINT pending_guard_tests;
+RELEASE SAVEPOINT pending_guard_tests;

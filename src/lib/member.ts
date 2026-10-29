@@ -3,8 +3,11 @@ import { redirect } from 'next/navigation';
 import { cache } from 'react';
 import { serverClient } from './supabase';
 import { loadProfileForVerifiedUser } from './member-access';
+import { evaluateOwnProfile } from './member-profile';
 
-export const requireMember = cache(async () => {
+// Account status is available outside the operational workspace so onboarding,
+// inactive and unavailable states never depend on rendering a protected child.
+export const loadMemberAccount = cache(async () => {
   const client = await serverClient();
   if (!client) redirect('/sign-in?notice=configuration');
   let user;
@@ -14,14 +17,20 @@ export const requireMember = cache(async () => {
   // the member contract. The helper guarantees that unverified users do not
   // trigger a profile lookup.
   const result = await loadProfileForVerifiedUser(user, async () => {
-    // Read only the signed-in member's minimum profile. Never read a public directory.
+    // This versioned RPC derives admission in the database. A missing/older
+    // projection fails closed rather than reverting to the old active-only read.
     try {
-      const { data, error } = await client.from('users').select('id,name,is_active').eq('id', user.id).maybeSingle();
-      if (error || !data) return { profile: null, profileState: 'unavailable' as const };
-      if (!data.is_active) return { profile: null, profileState: 'inactive' as const };
-      return { profile: data as { id: string; name: string; is_active: boolean }, profileState: 'ready' as const };
+      const { data, error } = await client.rpc('get_own_profile_v1');
+      if (error) return { profile: null, profileState: 'unavailable' as const };
+      return evaluateOwnProfile(data, user.id);
     } catch { return { profile: null, profileState: 'unavailable' as const }; }
   });
   if (!result.emailVerified) return { user, profile: null, profileState: 'unverified' as const };
   return { user, ...result.profile };
+});
+
+export const requireMember = cache(async () => {
+  const member = await loadMemberAccount();
+  if (member.profileState !== 'ready') redirect('/account-access');
+  return member;
 });

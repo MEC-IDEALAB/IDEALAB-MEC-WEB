@@ -24,9 +24,11 @@ export async function proxy(request: NextRequest) {
     return response;
   };
   const config = backendConfig();
-  const protectedRoute = request.nextUrl.pathname.startsWith('/app');
+  const protectedRoute = request.nextUrl.pathname === '/account-access'
+    || request.nextUrl.pathname === '/app'
+    || request.nextUrl.pathname.startsWith('/app/');
   const privateResponse = (response: NextResponse) => {
-    if (protectedRoute || request.nextUrl.pathname.startsWith('/auth')) {
+    if (protectedRoute || ['/sign-in', '/sign-up', '/confirm-email', '/forgot-password', '/reset-password'].includes(request.nextUrl.pathname) || request.nextUrl.pathname.startsWith('/auth')) {
       response.headers.set('Cache-Control', 'private, no-store');
       response.headers.set('Vary', 'Cookie');
     }
@@ -34,9 +36,9 @@ export async function proxy(request: NextRequest) {
   };
   if (!config) {
     if (protectedRoute) return privateResponse(applyPolicy(NextResponse.redirect(new URL('/sign-in?notice=configuration', request.url))));
-    return nextResponse();
+    return privateResponse(nextResponse());
   }
-  if (!protectedRoute) return nextResponse();
+  if (!protectedRoute) return privateResponse(nextResponse());
   let response = nextResponse();
   const client = createServerClient(config.url, config.key, { cookieOptions: supabaseCookieOptions(), cookies: {
     getAll: () => request.cookies.getAll(),

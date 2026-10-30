@@ -154,7 +154,7 @@ Keep the member feature flag off and PR #14 draft.
 ## GitHub work tracking
 
 - [Private repository](https://github.com/MEC-IDEALAB/IDEALAB-MEC-WEB)
-- [Private organization project](https://github.com/orgs/MEC-IDEALAB/projects/1), linked to the repository with all 14 issues and PR #14
+- [Private organization project](https://github.com/orgs/MEC-IDEALAB/projects/1), linked to this repository; see the tracker below for active work and acceptance gates
 - [V1 delivery tracker and acceptance gates](https://github.com/MEC-IDEALAB/IDEALAB-MEC-WEB/issues/1)
 - [Public website and branding](https://github.com/MEC-IDEALAB/IDEALAB-MEC-WEB/issues/2) and [UX flows/wireframes/design system](https://github.com/MEC-IDEALAB/IDEALAB-MEC-WEB/issues/3)
 - [CI, PR gates, Vercel delivery and pilot readiness](https://github.com/MEC-IDEALAB/IDEALAB-MEC-WEB/issues/13)

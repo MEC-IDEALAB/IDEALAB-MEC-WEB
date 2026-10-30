@@ -12,7 +12,7 @@ Documentation CI passed on both the exact PR head and the merged commit. On
 the exact PR head, Node 24.19.0 checks passed: lint, typecheck, 128 boundary
 tests, dependency audit, optimized acceptance build, Chromium acceptance, both
 browser-journal checks, and documentation validation (49 files / 278 links).
-The 31 October docs recheck also passed (49 files / 279 links). See the [current
+The 31 October docs recheck also passed (49 files / 281 links). See the [current
 GitHub coordination record](quality/github-coordination-2026-10-29.md).
 
 The merged PWA scope is the web manifest and app icons; no hosted installation

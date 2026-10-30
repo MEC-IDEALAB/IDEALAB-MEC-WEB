@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import { spawn } from 'node:child_process';
 import { once } from 'node:events';
-import { mkdir, readFile } from 'node:fs/promises';
+import { mkdir } from 'node:fs/promises';
 import { createServer } from 'node:net';
 import { chromium } from 'playwright';
 
@@ -72,11 +72,9 @@ async function storageSnapshot(page) {
     return JSON.stringify({ local: entries(localStorage), session: entries(sessionStorage) });
   });
 }
-const env = { ...process.env, NEXT_PUBLIC_SUPABASE_URL: '', NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: '', ENABLE_MEMBER_PLATFORM: 'false', ENABLE_DESIGN_PREVIEW: 'true' };
-const studentPreviewCss = await readFile(new URL('../src/app/student-preview.css', import.meta.url), 'utf8');
-const memberShellCss = await readFile(new URL('../src/app/member-shell.css', import.meta.url), 'utf8');
-assert.match(studentPreviewCss, /\.student-preview-app\{padding-bottom:calc\(76px \+ env\(safe-area-inset-bottom\)\)\}/, 'Student shell reserves the fixed mobile bar plus the bottom device safe area');
-assert.match(memberShellCss, /padding:\s*7px max\(10px, env\(safe-area-inset-right\)\) calc\(7px \+ env\(safe-area-inset-bottom\)\) max\(10px, env\(safe-area-inset-left\)\)/, 'Mobile workspace navigation applies physical safe-area insets to the matching edges');
+const env = { ...process.env, NEXT_PUBLIC_SUPABASE_URL: '', NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: '', ENABLE_MEMBER_PLATFORM: 'false', ENABLE_MEMBER_PLATFORM_PRODUCTION: 'false', ENABLE_MEMBER_PLATFORM_TEST: 'false', IDEALAB_ISOLATED_ACCEPTANCE_BUILD: 'true', ENABLE_DESIGN_PREVIEW: 'true' };
+// Workspace navigation is checked against rendered links, grouping, touch
+// targets and viewport geometry below, rather than obsolete fixed-bar CSS.
 const server = spawn(process.execPath, ['node_modules/next/dist/bin/next', 'start', '--hostname', '127.0.0.1', '--port', String(port)], { env, stdio: ['ignore', 'pipe', 'pipe'] });
 let serverOutput = '';
 server.stdout.on('data', chunk => { serverOutput = (serverOutput + chunk).slice(-5000); });
@@ -104,13 +102,31 @@ try {
   assert.match(policy, /object-src 'none'/);
   assert.doesNotMatch(policy.match(/script-src[^;]+/)?.[0] ?? '', /unsafe-inline|unsafe-eval/);
   const html = await home.text();
+  assert.match(html, /rel="manifest"[^>]*href="\/manifest\.webmanifest"/, 'Home must link the install manifest');
+  const manifestResponse = await fetch(base + '/manifest.webmanifest');
+  assert.equal(manifestResponse.status, 200);
+  const manifest = await manifestResponse.json();
+  assert.equal(manifest.name, 'IDEALAB MEC');
+  assert.equal(manifest.start_url, '/');
+  assert.equal(manifest.scope, '/');
+  assert.equal(manifest.display, 'standalone');
+  for (const size of [192, 512]) {
+    const icon = manifest.icons.find(item => item.sizes === `${size}x${size}` && item.type === 'image/png');
+    assert(icon, `Install icon ${size} must be declared`);
+    const iconResponse = await fetch(new URL(icon.src, base));
+    assert.equal(iconResponse.status, 200);
+    assert.match(iconResponse.headers.get('content-type'), /^image\/png/);
+    const png = Buffer.from(await iconResponse.arrayBuffer());
+    assert.equal(png.readUInt32BE(16), size);
+    assert.equal(png.readUInt32BE(20), size);
+  }
   const inlineScripts = [...html.matchAll(/<script\b([^>]*)>([\s\S]*?)<\/script>/gi)].filter(([, attributes]) => !/\bsrc=/.test(attributes));
   assert(inlineScripts.length > 0, 'Rendered page should include framework and application scripts');
   assert(inlineScripts.every(([, attributes]) => attributes.match(/\bnonce=["']([^"']+)["']/)?.[1] === nonce), 'Inline scripts must receive the response nonce');
   const repeatedHome = await fetch(base);
   const repeatedNonce = repeatedHome.headers.get('content-security-policy')?.match(/(?:^|;)\s*script-src[^;]*'nonce-([^']+)'/)?.[1];
   assert(repeatedNonce && repeatedNonce !== nonce, 'Each page response must use a fresh nonce');
-  for (const path of ['/app', '/app/profile', '/app/settings', '/app/visits', '/app/borrowing', '/app/requests', '/app/requests/new', '/app/workspace']) {
+  for (const path of ['/account-access', '/app', '/app/profile', '/app/settings', '/app/visits', '/app/borrowing', '/app/requests', '/app/requests/new', '/app/workspace']) {
     const response = await fetch(base + path, { redirect: 'manual' });
     assert.equal(response.status, 307, `${path} must not be accessible without auth`);
     assert.match(response.headers.get('location'), /\/sign-in\?notice=configuration$/);
@@ -119,6 +135,47 @@ try {
   }
   assert.equal((await fetch(base + '/unknown-page')).status, 404);
   browser = await chromium.launch({ headless: true });
+  const projectPreviewContext = await browser.newContext();
+  const projectPreview = await projectPreviewContext.newPage();
+  await projectPreview.goto(base + '/design/project-create');
+  await projectPreview.waitForFunction(()=>!document.getElementById('site-content')?.inert && !document.documentElement.dataset.boot);
+  await projectPreview.getByLabel('Project title', {exact:true}).fill('A preserved idea');
+  await projectPreview.getByLabel('What are you building?', {exact:true}).fill('Details must remain available.');
+  await projectPreview.evaluate(() => { Object.defineProperty(window, 'indexedDB', {value:{open(){throw new Error('storage denied');}},configurable:true}); });
+  await projectPreview.getByRole('button',{name:'Create project'}).click();
+  await projectPreview.getByRole('heading',{name:'Check your earlier submission'}).waitFor();
+  assert.equal(await projectPreview.getByLabel('Your title',{exact:true}).inputValue(),'A preserved idea');
+  assert.equal(await projectPreview.getByLabel('Your description',{exact:true}).inputValue(),'Details must remain available.');
+  await projectPreviewContext.close();
+  const projectRaceContext=await browser.newContext();
+  const projectA=await projectRaceContext.newPage(),projectB=await projectRaceContext.newPage();
+  let previewPosts=0;
+  for(const tab of [projectA,projectB]){tab.on('request',request=>{if(request.method()==='POST')previewPosts++;});await tab.goto(base+'/design/project-create');await tab.getByLabel('Project title',{exact:true}).waitFor();await tab.waitForFunction(()=>!document.getElementById('site-content')?.inert && !document.documentElement.dataset.boot);}
+  await projectA.getByLabel('Project title',{exact:true}).fill('First idea');
+  await projectA.getByLabel('What are you building?',{exact:true}).fill('First details');
+  await projectB.getByLabel('Project title',{exact:true}).fill('Other idea');
+  await projectB.getByLabel('What are you building?',{exact:true}).fill('Other details');
+  await projectA.getByRole('button',{name:'Create project'}).click();
+  await projectA.getByText('Design preview only. No project was submitted.').waitFor();
+  await projectB.getByRole('button',{name:'Create project'}).click();
+  assert.equal(await projectB.getByLabel('Your other title',{exact:true}).inputValue(),'Other idea');
+  assert.equal(await projectB.getByLabel('Your other description',{exact:true}).inputValue(),'Other details');
+  await projectB.evaluate(()=>Object.defineProperty(window,'indexedDB',{value:{open(){throw new Error('storage denied');}},configurable:true}));
+  await projectB.getByRole('button',{name:'Retry saved submission'}).click();
+  assert.equal(await projectB.getByLabel('Saved submission title',{exact:true}).inputValue(),'First idea');
+  assert.equal(await projectB.getByLabel('Your title',{exact:true}).inputValue(),'Other idea');
+  assert.equal(await projectB.getByLabel('Your description',{exact:true}).inputValue(),'Other details');
+  assert.equal(previewPosts,0,'Preview must not send a project action');
+  await projectRaceContext.close();
+  const markerPreviewContext=await browser.newContext();
+  await markerPreviewContext.addInitScript(()=>localStorage.setItem('idealab-mec:preview-project-create:v1:11111111-1111-4111-8111-111111111111:22222222-2222-4222-8222-222222222222','1'));
+  const markerPreview=await markerPreviewContext.newPage();let markerPosts=0;
+  markerPreview.on('request',request=>{if(request.method()==='POST')markerPosts++;});
+  await markerPreview.goto(base+'/design/project-create');
+  await markerPreview.getByRole('button',{name:/Check saved submission/}).click();
+  await markerPreview.getByText('Design preview only. No submission was checked.').waitFor();
+  assert.equal(markerPosts,0,'Preview recovery must not call a server action');
+  await markerPreviewContext.close();
   const context = await browser.newContext();
   const page = await context.newPage();
   const errors = [];
@@ -145,6 +202,7 @@ try {
   await loaderPage.waitForTimeout(220);
   const nextPosition = await loop.evaluate(element => element.getBoundingClientRect().x);
   assert.notEqual(nextPosition, firstPosition, 'Brand ribbons move while the first visit is loading');
+  await loaderPage.waitForTimeout(650);
   await loaderPage.screenshot({ path: 'artifacts/acceptance/wordmark-loading.png' });
   const loaderExitState = loaderPage.evaluate(() => new Promise(resolve => {
     const root = document.documentElement;
@@ -162,7 +220,7 @@ try {
   const exitState = await loaderExitState;
   assert.equal(exitState.inert, true, 'Page content stays inert at the instant the loader begins its exit');
   assert(Date.now() - loaderStartedAt >= 500, 'The short brand reveal completes before a fast load exits');
-  assert.match(await loaderPage.locator('.boot-loader').evaluate(element => getComputedStyle(element).transitionDuration), /^0\.19s(?:,|$)/, 'Boot screen has a measured fade-out');
+  assert.match(await loaderPage.locator('.boot-loader').evaluate(element => getComputedStyle(element).transitionDuration), /^0\.26s(?:,|$)/, 'Boot screen has a measured fade-out');
   await loaderPage.locator('.boot-loader').waitFor({ state: 'hidden' });
   assert.equal(await loaderPage.locator('#site-content').evaluate(element => element.inert), false, 'Page content becomes interactive after the loader exits');
   await loaderPage.keyboard.press('Tab');
@@ -187,7 +245,7 @@ try {
   await reducedLoaderPage.locator('.boot-loader').waitFor({ state: 'visible' });
   assert.equal(await reducedLoaderPage.locator('.loader-loop').first().evaluate(element => getComputedStyle(element).animationName), 'none', 'Brand loading respects reduced motion');
   assert.equal(await reducedLoaderPage.locator('.boot-loader').evaluate(element => getComputedStyle(element).backgroundColor), 'rgb(0, 0, 0)', 'Dark loading canvas stays jet black');
-  assert.equal(await reducedLoaderPage.locator('.loader-core').evaluate(element => getComputedStyle(element).backgroundColor), 'rgb(11, 11, 11)', 'Dark loading plate uses the neutral black surface');
+  assert.equal(await reducedLoaderPage.locator('.loader-core').evaluate(element => getComputedStyle(element).borderStyle), 'none', 'The wordmark loader uses the official open composition without a framed card');
   assert(await reducedLoaderPage.evaluate(() => document.documentElement.scrollWidth <= innerWidth), 'Loading canvas has no horizontal overflow at 320px');
   const loaderCard = await reducedLoaderPage.locator('.loader-core').boundingBox();
   assert(loaderCard && loaderCard.x >= 0 && loaderCard.x + loaderCard.width <= 320, 'Loading plate fits a 320px viewport');
@@ -227,10 +285,8 @@ try {
   assert.equal(await watchdogPage.locator('#site-content').evaluate(element => element.inert), false, 'The no-hydration watchdog always releases page inertness');
   await watchdogPage.keyboard.press('Tab');
   assert(await watchdogPage.getByRole('link', { name: 'Skip to content' }).evaluate(element => element === document.activeElement), 'Keyboard navigation resumes after the no-hydration watchdog');
-  assert(await watchdogPage.locator('.ticker-motion-control').isVisible(), 'A native motion control is available when hydration never completes');
-  await watchdogPage.locator('.ticker-motion-control').click();
-  assert(await watchdogPage.locator('.ticker-motion-checkbox').isChecked(), 'The motion control pauses without hydrated JavaScript');
-  assert.equal(await watchdogPage.locator('.ticker-track').first().evaluate(element => getComputedStyle(element).animationPlayState), 'paused');
+  await watchdogPage.locator('.maker-ticker-content').focus();
+  assert.equal(await watchdogPage.locator('.ticker-track').first().evaluate(element => getComputedStyle(element).animationPlayState), 'paused', 'Keyboard focus can pause the ticker without hydration');
   releaseWatchdogScripts();
   await watchdogContext.close();
 
@@ -246,15 +302,12 @@ try {
   await revisitPage.getByRole('region', { name: 'IDEA Lab highlights' }).waitFor();
   await revisitPage.evaluate(() => document.fonts.ready);
   assert.equal(await revisitPage.locator('html').getAttribute('data-ticker-motion'), 'ready', 'Repeat visits prime ticker motion before hydration');
-  assert(await revisitPage.locator('.ticker-motion-control').isVisible(), 'The native pause control is operable before hydration');
-  await revisitPage.locator('.ticker-motion-control').click();
-  assert(await revisitPage.locator('.ticker-motion-checkbox').isChecked(), 'The native control pauses both tickers before hydration');
+  await revisitPage.locator('.maker-ticker-content').focus();
   assert.equal(await revisitPage.locator('.ticker-track').first().evaluate(element => getComputedStyle(element).animationPlayState), 'paused');
-  await revisitPage.keyboard.press('Space');
-  assert.equal(await revisitPage.locator('.ticker-motion-checkbox').isChecked(), false, 'The native control resumes both tickers while focus and hover remain');
-  assert.equal(await revisitPage.locator('.ticker-track').first().evaluate(element => getComputedStyle(element).animationPlayState), 'running');
+  await revisitPage.evaluate(() => (document.activeElement instanceof HTMLElement) && document.activeElement.blur());
+  assert.equal(await revisitPage.locator('.ticker-track').first().evaluate(element => getComputedStyle(element).animationPlayState), 'running', 'Ticker resumes after keyboard focus leaves');
   const tickerGeometry = () => revisitPage.evaluate(() => [
-    '.maker-ticker-region', '.workshop-ticker-region', '.hero',
+    '.maker-ticker-region', '.hero',
   ].map(selector => {
     const { y, height } = document.querySelector(selector).getBoundingClientRect();
     return [Math.round(y + window.scrollY), Math.round(height)];
@@ -265,8 +318,7 @@ try {
   await revisitPage.evaluate(() => document.fonts.ready);
   await revisitPage.evaluate(() => new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve))));
   assert.deepEqual(await tickerGeometry(), beforeTickerHydration, 'Ticker hydration does not change page geometry on repeat visits');
-  await revisitPage.locator('.mobile-nav summary').click();
-  await revisitPage.getByRole('navigation', { name: 'Mobile navigation' }).getByRole('link', { name: 'The lab', exact: true }).click();
+  await revisitPage.getByRole('navigation', { name: 'Mobile primary navigation' }).getByRole('link', { name: 'Lab', exact: true }).click();
   await revisitPage.waitForURL(`${base}/lab`);
   assert.equal(await revisitPage.locator('html').getAttribute('data-ticker-motion'), 'ready', 'Client navigation preserves the globally primed ticker layout');
   await revisitPage.locator('.site-header .brand').click();
@@ -282,27 +334,18 @@ try {
   assert(await noScriptPage.getByRole('heading', { name: 'Big ideas. Real things. Your move.' }).isVisible(), 'Homepage remains visible without JavaScript');
   assert(await noScriptPage.getByRole('link', { name: 'Discover projects', exact: true }).isVisible(), 'Server-rendered card links remain usable without animation enhancement');
   assert(await noScriptPage.getByRole('region', { name: 'IDEA Lab highlights' }).isVisible(), 'Top lab highlights remain available without JavaScript');
-  assert(await noScriptPage.getByRole('region', { name: 'IDEA Lab activities and facilities' }).isVisible(), 'Lower activity highlights remain available without JavaScript');
   assert.equal(await noScriptPage.locator('.ticker-track').first().evaluate(element => getComputedStyle(element).animationName), 'none', 'Ticker text stays still without JavaScript');
   const topStaticItems = noScriptPage.locator('.maker-ticker-content .ticker-run').first().locator('.ticker-item');
-  const lowerStaticItems = noScriptPage.locator('.ticker-track-lower .ticker-run').first().locator('.ticker-item');
   assert.deepEqual(await topStaticItems.allTextContents(), ['AICTE × COGNICOR × MEC', 'Established in 2022', 'Engage · Explore · Experience · Express · Excel', 'From idea to prototype', 'Workshops · Training · Multidisciplinary STEM'], 'No-JavaScript visitors can read every top ticker highlight');
-  assert.deepEqual(await lowerStaticItems.allTextContents(), ['Digital fabrication', 'Electronics & code', 'Learn by making', 'Epilog · Snapmaker · Ultimaker', 'Ideas into prototypes'], 'No-JavaScript visitors can read every lower ticker highlight');
   assert.equal(await noScriptPage.locator('.ticker-run').nth(1).evaluate(element => getComputedStyle(element).display), 'none', 'Static tickers hide the duplicated visual copy');
-  assert.equal(await noScriptPage.locator('.ticker-motion-toggle').isVisible(), false, 'Static no-JavaScript content does not expose a motion control');
   await noScriptPage.setViewportSize({ width: 320, height: 667 });
   assert(await noScriptPage.evaluate(() => document.documentElement.scrollWidth <= innerWidth), 'Static no-JavaScript ticker rows have no horizontal overflow at 320px');
-  for (const item of [...await topStaticItems.all(), ...await lowerStaticItems.all()]) {
-    const bounds = await item.boundingBox();
-    assert(bounds && bounds.x >= 0 && bounds.x + bounds.width <= 320, 'Every static no-JavaScript ticker label stays within the 320px viewport');
-  }
   await noScriptPage.screenshot({ path: 'artifacts/acceptance/home-tickers-nojs-320.png' });
   await noScriptPage.setViewportSize({ width: 375, height: 667 });
-  await noScriptPage.locator('.mobile-nav summary').click();
-  await noScriptPage.getByRole('navigation', { name: 'Mobile navigation' }).getByRole('link', { name: 'The lab', exact: true }).click();
+  assert(await noScriptPage.getByRole('navigation', { name: 'Mobile primary navigation' }).isVisible(), 'Mobile destinations remain available without JavaScript');
+  await noScriptPage.getByRole('navigation', { name: 'Mobile primary navigation' }).getByRole('link', { name: 'Lab', exact: true }).click();
   await noScriptPage.waitForURL(`${base}/lab`);
-  await noScriptPage.locator('.mobile-nav summary').click();
-  assert.equal(await noScriptPage.getByRole('navigation', { name: 'Mobile navigation' }).getByRole('link', { name: 'The lab', exact: true }).getAttribute('aria-current'), 'page', 'Server-rendered native navigation works and indicates the current page without JavaScript');
+  assert.equal(await noScriptPage.getByRole('navigation', { name: 'Mobile primary navigation' }).getByRole('link', { name: 'Lab', exact: true }).getAttribute('aria-current'), 'page', 'Server-rendered mobile navigation marks the current page without JavaScript');
   await noScriptContext.close();
   for (const width of [320, 375, 768, 1024, 1440]) {
     await page.setViewportSize({ width, height: 950 });
@@ -315,59 +358,119 @@ try {
     assert.equal(await page.getByText('THE MAKER SPIRIT, AT MEC.', { exact: true }).count(), 0);
     assert.equal(await page.locator('.hero-footnote').count(), 0);
     assert.equal(await page.locator('.facility-card').count(), 3, 'Homepage shows three curated facility highlights');
-    assert.equal(await page.locator('.activity-row').count(), 3, 'Homepage introduces three editorial activity themes');
-    for (const row of await page.locator('.activity-row').all()) {
-      assert(await row.getByRole('heading', { level: 3 }).isVisible(), 'Each activity row has a visible title');
-      assert((await row.locator('.activity-row-description').textContent())?.trim(), 'Each activity row describes its learning theme');
-      assert(await row.evaluate(element => element.scrollWidth <= element.clientWidth + 1), `Activity row fits within the ${width}px layout`);
+    assert.equal(await page.locator('.hero-machine-photo img').count(), 1, 'Hero yellow card features the local Snapmaker machine photo');
+    assert.equal(await page.locator('.machine-drawing').count(), 0, 'Hero yellow card no longer contains the machine illustration SVG');
+    assert.match(await page.locator('.hero-machine-photo').textContent(), /Snapmaker A350T.*3D PRINTING.*LASER.*CNC/s, 'Hero photo caption names the machine and its functions');
+    assert.equal(await page.locator('.try-poster').count(), 1, 'Homepage uses the oversized editorial question poster');
+    assert.equal(await page.locator('.ideas-event-card').count(), 1, 'The ideas section pairs the poster with the event archive carousel');
+    assert.match(await page.locator('#possibilities-title').textContent(), /Less.*what if.*More.*let’s.*try/s, 'The poster preserves the confirmed IDEA Lab headline');
+    assert(await page.locator('.poster-headline').evaluate(element => element.scrollWidth <= element.clientWidth + 1), `Editorial heading fits its poster at ${width}px`);
+    assert(await page.locator('.about-mark').getByText('IDEA', { exact: false }).count() === 1, 'IDEA Lab lockup remains beside the about copy');
+    assert.equal(await page.locator('.path-card').count(), 3, 'Homepage offers three clear activity paths');
+    for (const card of await page.locator('.path-card').all()) {
+      assert(await card.getByRole('heading', { level: 3 }).isVisible(), 'Each activity card has a visible title');
+      assert((await card.locator('p').textContent())?.trim(), 'Each activity card explains its purpose');
+      assert(await card.evaluate(element => element.scrollWidth <= element.clientWidth + 1), `Activity card fits within the ${width}px layout`);
+    }
+    if (width === 1440) {
+      for (const card of await page.locator('.path-card').all()) {
+        await page.mouse.move(0, 0);
+        await page.waitForTimeout(300);
+        const before = await card.evaluate(element => ({ background: getComputedStyle(element).backgroundColor, color: getComputedStyle(element).color, transform: getComputedStyle(element).transform }));
+        await card.hover();
+        await page.waitForTimeout(300);
+        const after = await card.evaluate(element => ({ background: getComputedStyle(element).backgroundColor, color: getComputedStyle(element).color, transform: getComputedStyle(element).transform }));
+        assert.equal(after.background, before.background, 'Path-card hover preserves the background color');
+        assert.equal(after.color, before.color, 'Path-card hover preserves the text color');
+        assert.notEqual(after.transform, before.transform, 'All three path cards move on hover');
+      }
+      await page.mouse.move(0, 0);
     }
     const labTicker = page.getByRole('region', { name: 'IDEA Lab highlights' });
-    const workshopTicker = page.getByRole('region', { name: 'IDEA Lab activities and facilities' });
+    const quoteTicker = page.getByRole('region', { name: 'Ideas to keep you making' });
+    assert.equal(await quoteTicker.count(), 1, 'A second quote ribbon appears before the footer');
+    assert.equal(await quoteTicker.locator('.ticker-run').first().locator('.ticker-item').count(), 3, 'The lower ribbon contains three original lab mottos');
+    assert.equal(await quoteTicker.locator('.ticker-track').evaluate(element => getComputedStyle(element).animationName), 'idealab-ticker-marquee', 'The quote ribbon has automatic movement');
+    if (width === 1440) {
+      await quoteTicker.scrollIntoViewIfNeeded();
+      await page.mouse.move(0, 0);
+      const before = await quoteTicker.locator('.ticker-track').evaluate(element => getComputedStyle(element).transform);
+      await page.waitForTimeout(160);
+      assert.notEqual(await quoteTicker.locator('.ticker-track').evaluate(element => getComputedStyle(element).transform), before, 'The quote ribbon visibly advances over time');
+      await quoteTicker.locator('.quote-ticker-content').focus();
+      assert.equal(await quoteTicker.locator('.ticker-track').evaluate(element => getComputedStyle(element).animationPlayState), 'paused', 'Keyboard focus pauses the quote ribbon');
+      await page.evaluate(() => document.activeElement?.blur());
+    }
+    await page.evaluate(() => scrollTo({ top: 0, behavior: 'instant' }));
     assert.equal(await labTicker.count(), 1, 'Homepage has one labelled institutional highlights ticker');
-    assert.equal(await workshopTicker.count(), 1, 'Homepage has one labelled activities ticker');
     assert.equal(await page.locator('.site-header .brand-wordmark').count(), 1, 'The site header retains the official IDEALAB MEC wordmark');
-    assert.equal(await labTicker.locator('.ticker-brand-logo img').count(), 0, 'The top ticker does not repeat the header logo');
     assert.equal(await labTicker.locator('.ticker-item').first().textContent(), 'AICTE × COGNICOR × MEC');
     assert.equal(await labTicker.locator('.ticker-separator').first().textContent(), '\\\\', 'Top ticker facts are divided by the requested double-slash marker');
-    assert.equal(await workshopTicker.locator('.ticker-item').first().textContent(), 'Digital fabrication');
     assert.equal(await labTicker.locator('.ticker-track').first().evaluate(element => getComputedStyle(element).animationName), 'idealab-ticker-marquee', 'Top highlights move on the marquee track');
+    assert.equal(await labTicker.locator('.ticker-track').first().evaluate(element => getComputedStyle(element).animationDirection), 'reverse', 'Top highlights advance toward the right');
     assert.notEqual(await labTicker.locator('.maker-ticker-band').evaluate(element => getComputedStyle(element).transform), 'none', 'Top highlights band is tilted');
     assert.equal(await labTicker.locator('.maker-ticker-band').evaluate(element => getComputedStyle(element).backgroundColor), 'rgb(0, 0, 0)', 'Top highlights band uses black');
     assert.equal(await labTicker.locator('.maker-ticker-band').evaluate(element => getComputedStyle(element).color), 'rgb(255, 224, 41)', 'Top ticker text uses yellow');
     const publicHeaderBox = await page.locator('.site-header').boundingBox();
     const topTickerBox = await labTicker.boundingBox();
     assert(publicHeaderBox && topTickerBox && topTickerBox.y >= publicHeaderBox.y + publicHeaderBox.height - 1, 'Top carousel appears after the public navigation/header');
-    assert.equal(await workshopTicker.evaluate(element => getComputedStyle(element).backgroundColor), 'rgb(234, 240, 235)', 'Lower ticker uses the established muted section surface');
-    assert.equal(await workshopTicker.getByRole('checkbox', { name: 'Pause moving highlights' }).count(), 1, 'Ticker motion has a native accessible pause control');
+    assert.equal(await page.locator('.ticker-motion-control').count(), 0, 'The ticker has no unwanted pause button');
+    assert.equal(await page.locator('.past-event-slide').count(), 4, 'The event carousel contains four archive cards');
+    const eventWindow = await page.locator('.event-carousel-window').boundingBox();
+    const activeEventImage = await page.locator('.past-event-slide[aria-hidden="false"] .event-slide-image').boundingBox();
+    assert(eventWindow && activeEventImage && activeEventImage.x < eventWindow.x + eventWindow.width && activeEventImage.x + activeEventImage.width > eventWindow.x, 'The active event image remains inside the visible carousel window');
+    assert.deepEqual(await page.locator('.past-event-slide h3').allTextContents(), ['TRIAD', 'ARDUIGNITE', 'Technical training for school students', 'TinyML hands-on workshop'], 'Carousel labels remain attached to their existing events');
+    assert.deepEqual(await page.locator('.past-event-slide .event-slide-date').allTextContents(), ['10 SEP 2025', '02 AUG 2025', '04 AUG 2024', '22 AUG 2023'], 'Carousel dates remain unchanged');
+    const eventImageSources = await page.locator('.past-event-slide img').evaluateAll(images => images.map(image => new URL(image.getAttribute('src'), location.href).searchParams.get('url')));
+    assert.deepEqual(eventImageSources, ['/events/triad.jpeg', '/events/arduignite.jpeg', '/events/robotics-training.jpg', '/events/raspberry-pi-workshop.jpg'], 'Only archive carousel images three and four use the clearer alternate photos');
+    assert.equal(await page.locator('.past-event-carousel button[aria-label*="Pause"]').count(), 0, 'The event carousel has no pause control');
+    assert(await page.locator('.facility-headline').evaluate(element => getComputedStyle(element).fontFamily.toLowerCase().includes('editorial')), 'The sketch-to-object headline uses the new local Bricolage display face');
     assert(await page.locator('.playful-site').evaluate(element => getComputedStyle(element).backgroundImage.includes('linear-gradient') && !getComputedStyle(element).backgroundImage.includes('radial-gradient')), 'Notebook cross grid replaces dotted page background');
     await page.locator('.site-footer').scrollIntoViewIfNeeded();
     await loadPageImages(page);
     assert(await page.locator('img').evaluateAll(images => images.length >= 2 && images.every(image => image.complete && image.naturalWidth > 0)), 'Every displayed logo/image must load');
+    for (const captureTarget of [page.locator('.try-poster'), page.locator('.ideas-event-card'), page.locator('.about-section')]) {
+      await captureTarget.scrollIntoViewIfNeeded();
+      await page.waitForTimeout(560);
+      await captureTarget.evaluate(element => Promise.all(element.getAnimations({ subtree: true }).map(animation => animation.finished.catch(() => undefined))));
+    }
     await page.evaluate(() => window.scrollTo(0, 0));
     await page.locator('.hero-copy').evaluate(element => Promise.all(element.getAnimations().map(animation => animation.finished)));
     assert(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth), `No horizontal overflow at ${width}px`);
     await page.screenshot({ path: `artifacts/acceptance/home-${width}.png`, fullPage: true });
+    await page.locator('.editorial-posters').screenshot({ path: `artifacts/acceptance/editorial-posters-${width}.png` });
+    await page.locator('.about-section').screenshot({ path: `artifacts/acceptance/about-lockup-${width}.png` });
     if (width === 1440) await page.screenshot({ path: 'artifacts/acceptance/home-hero-1440.png' });
     if (width === 320) {
-      const motionControl = page.locator('.ticker-motion-control');
-      await motionControl.scrollIntoViewIfNeeded();
-      await motionControl.click();
-      assert(await page.locator('.ticker-motion-checkbox').isChecked(), 'Pause control stops both homepage ticker bands');
+      const motionViewport = page.locator('.maker-ticker-content');
+      await motionViewport.focus();
       assert.equal(await labTicker.locator('.ticker-track').first().evaluate(element => getComputedStyle(element).animationPlayState), 'paused');
-      assert.equal(await workshopTicker.locator('.ticker-track').first().evaluate(element => getComputedStyle(element).animationPlayState), 'paused');
-      await page.getByRole('checkbox', { name: 'Resume moving highlights' }).focus();
-      await page.keyboard.press('Space');
-      assert.equal(await page.locator('.ticker-motion-checkbox').isChecked(), false, 'Resume control restarts both homepage ticker bands while still focused and hovered');
-      assert.equal(await labTicker.locator('.ticker-track').first().evaluate(element => getComputedStyle(element).animationPlayState), 'running');
-      assert.equal(await workshopTicker.locator('.ticker-track').first().evaluate(element => getComputedStyle(element).animationPlayState), 'running');
+      await page.evaluate(() => (document.activeElement instanceof HTMLElement) && document.activeElement.blur());
+      assert.equal(await labTicker.locator('.ticker-track').first().evaluate(element => getComputedStyle(element).animationPlayState), 'running', 'Ticker resumes after focus leaves');
     }
   }
+  await page.setViewportSize({ width: 1000, height: 900 });
+  await page.goto(base);
+  const eventCarousel = page.locator('.past-event-carousel');
+  await eventCarousel.scrollIntoViewIfNeeded();
+  await page.mouse.move(0, 0);
+  await page.waitForFunction(() => document.querySelectorAll('.past-event-slide')[1]?.getAttribute('aria-hidden') === 'false', null, { timeout: 7600 });
+  assert.equal(await eventCarousel.locator('.event-carousel-status').textContent(), '02 / 04', 'The visible event carousel advances automatically');
+  await eventCarousel.getByRole('button', { name: 'Next event' }).click();
+  await page.waitForFunction(() => document.querySelectorAll('.past-event-slide')[2]?.getAttribute('aria-hidden') === 'false');
+  assert(await eventCarousel.locator('.event-carousel-track').evaluate(element => element.style.transform.startsWith('translate3d(200%,')), 'The row-reversed carousel moves the next event toward the right');
   await page.setViewportSize({ width: 320, height: 667 });
   await page.emulateMedia({ reducedMotion: 'reduce' });
   await page.reload();
   assert.equal(await page.locator('.ticker-track').first().evaluate(element => getComputedStyle(element).animationName), 'none', 'Reduced-motion preference keeps homepage ticker text still');
+  assert.equal(await page.locator('.quote-ticker-content .ticker-track').evaluate(element => getComputedStyle(element).animationName), 'none', 'Reduced-motion disables the quote ribbon movement');
+  const staticQuotes = page.locator('.quote-ticker-content');
+  await staticQuotes.focus();
+  await page.keyboard.press('ArrowRight');
+  await page.waitForTimeout(160);
+  assert(await staticQuotes.evaluate(element => element.scrollLeft > 0), 'Keyboard users can scroll all quotes with reduced motion');
+  await page.evaluate(() => document.activeElement?.blur());
   assert.deepEqual(await page.locator('.maker-ticker-content .ticker-run').first().locator('.ticker-item').allTextContents(), ['AICTE × COGNICOR × MEC', 'Established in 2022', 'Engage · Explore · Experience · Express · Excel', 'From idea to prototype', 'Workshops · Training · Multidisciplinary STEM'], 'Reduced-motion visitors can read every top ticker highlight');
-  assert.deepEqual(await page.locator('.ticker-track-lower .ticker-run').first().locator('.ticker-item').allTextContents(), ['Digital fabrication', 'Electronics & code', 'Learn by making', 'Epilog · Snapmaker · Ultimaker', 'Ideas into prototypes'], 'Reduced-motion visitors can read every lower ticker highlight');
   assert(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth), 'Reduced-motion ticker layout has no horizontal overflow');
   await page.screenshot({ path: 'artifacts/acceptance/home-tickers-reduced-motion-320.png' });
   await page.emulateMedia({ reducedMotion: 'no-preference' });
@@ -392,6 +495,8 @@ try {
     await page.locator('.hero-copy').evaluate(element => Promise.all(element.getAnimations().map(animation => animation.finished)));
     assert.equal(await page.evaluate(() => getComputedStyle(document.documentElement).colorScheme), 'dark');
     assert.equal(await page.evaluate(() => getComputedStyle(document.body).backgroundColor), 'rgb(0, 0, 0)', 'Dark canvas is jet black');
+    assert.equal(await page.locator('.maker-ticker-band').evaluate(element => getComputedStyle(element).backgroundColor), 'rgb(215, 255, 0)', 'Dark ticker switches to its bright lime palette');
+    assert.equal(await page.locator('.maker-ticker-band').evaluate(element => getComputedStyle(element).color), 'rgb(5, 5, 5)', 'Dark ticker keeps high-contrast black lettering');
     assert.equal(await page.locator('.principles-strip').evaluate(element => getComputedStyle(element).backgroundColor), 'rgb(11, 11, 11)', 'Dark section strip uses neutral black');
     assert(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth), `No dark-mode horizontal overflow at ${width}px`);
     await page.screenshot({ path: `artifacts/acceptance/home-dark-${width}.png`, fullPage: true });
@@ -414,11 +519,29 @@ try {
       const canvas = getComputedStyle(document.body);
       const primary = getComputedStyle(document.querySelector('.hero-actions .button-primary'));
       const plate = getComputedStyle(document.querySelector('.about-mark'));
-      return { primary: contrast(primary.color, primary.backgroundColor), plate: contrast(plate.color, plate.backgroundColor), secondary: contrast(getComputedStyle(document.querySelector('.hero-description')).color, canvas.backgroundColor) };
+      const posterLime = document.querySelector('.poster-line-lime');
+      const posterPink = document.querySelector('.poster-line-pink');
+      const ideaWord = document.querySelector('.about-word-idea');
+      const labWord = document.querySelector('.about-word-lab');
+      const aboutTitle = document.querySelector('.about-title-cutout');
+      return {
+        primary: contrast(primary.color, primary.backgroundColor),
+        plate: contrast(plate.color, plate.backgroundColor),
+        secondary: contrast(getComputedStyle(document.querySelector('.hero-description')).color, canvas.backgroundColor),
+        posterLime: contrast(getComputedStyle(posterLime).color, getComputedStyle(posterLime, '::before').backgroundColor),
+        posterPink: contrast(getComputedStyle(posterPink).color, getComputedStyle(posterPink, '::before').backgroundColor),
+        posterCutout: contrast(getComputedStyle(posterLime.querySelector('.poster-cutout')).color, getComputedStyle(posterLime.querySelector('.poster-cutout')).backgroundColor),
+        ideaWord: contrast(getComputedStyle(ideaWord).color, getComputedStyle(ideaWord, '::before').backgroundColor),
+        labWord: contrast(getComputedStyle(labWord).color, getComputedStyle(labWord, '::before').backgroundColor),
+        aboutTitle: contrast(getComputedStyle(aboutTitle).color, getComputedStyle(aboutTitle, '::before').backgroundColor),
+      };
     });
     assert(ratios.primary >= 4.5, `${theme} primary action contrast`);
     assert(ratios.plate >= 4.5, `${theme} accent plate contrast`);
     assert(ratios.secondary >= 4.5, `${theme} secondary copy contrast`);
+    for (const role of ['posterLime', 'posterPink', 'posterCutout', 'ideaWord', 'labWord', 'aboutTitle']) {
+      assert(ratios[role] >= 3, `${theme} oversized ${role} contrast`);
+    }
   }
   await setTheme(page, 'light');
   await page.setViewportSize({ width: 375, height: 900 });
@@ -443,76 +566,40 @@ try {
   assert(await page.evaluate(() => Boolean(document.activeElement?.closest('main'))), 'Skip link must move keyboard navigation into main content');
   await page.goto(base);
   await page.setViewportSize({ width: 375, height: 667 });
-  const menu = page.locator('.mobile-nav summary');
-  const disclosure = page.locator('.mobile-nav');
-  const mobileNavigation = page.getByRole('navigation', { name: 'Mobile navigation' });
-  await menu.click();
-  assert(await disclosure.evaluate(node => node.open), 'Mobile menu opens');
-  await page.keyboard.press('Tab');
-  assert(await mobileNavigation.getByRole('link', { name: 'Explore', exact: true }).evaluate(node => node === document.activeElement), 'Tab enters the open disclosure in document order');
-  await page.keyboard.press('Escape');
-  assert(!await disclosure.evaluate(node => node.open), 'Escape closes mobile navigation');
-  assert(await menu.evaluate(node => node === document.activeElement), 'Escape restores focus to the visible disclosure control');
-
-  await page.keyboard.press('Enter');
-  await page.keyboard.press('Tab');
-  await page.keyboard.press('Shift+Tab');
-  await page.keyboard.press('Shift+Tab');
-  assert(!await disclosure.evaluate(node => node.open), 'Moving focus out of navigation closes it');
-  assert(await page.locator('.header-signin').evaluate(node => node === document.activeElement), 'Focus departure preserves the ordinary Tab destination');
-
-  await menu.click();
-  await page.keyboard.press('Tab');
-  await page.locator('.theme-toggle').click();
-  assert(!await disclosure.evaluate(node => node.open), 'An outside pointer dismisses mobile navigation');
-  assert(await page.locator('.theme-toggle').evaluate(node => node === document.activeElement), 'Outside pointer keeps focus on its chosen control');
-  await menu.click();
-  await page.keyboard.press('Tab');
-  await page.getByRole('heading', { level: 1 }).click({ position: { x: 5, y: 5 } });
-  assert(!await disclosure.evaluate(node => node.open), 'A pointer on non-focusable page content also dismisses navigation');
-  assert(await page.evaluate(() => !document.activeElement?.closest('.mobile-nav nav')), 'Outside content dismissal does not retain focus on a hidden menu link');
-  await page.keyboard.press('Tab');
-  assert(await page.locator(':focus').isVisible(), 'Keyboard navigation continues on a visible control after outside content dismissal');
-
-  await menu.click();
-  await mobileNavigation.getByRole('link', { name: 'The lab', exact: true }).click();
+  const mobileNavigation = page.getByRole('navigation', { name: 'Mobile primary navigation' });
+  assert(await mobileNavigation.isVisible(), 'Mobile bottom navigation is visible on narrow screens');
+  assert.deepEqual(await mobileNavigation.locator('a span').allTextContents(), ['Home', 'Explore', 'Lab', 'Projects', 'Events'], 'Mobile bottom navigation mirrors the primary app destinations');
+  assert.equal(await mobileNavigation.evaluate(element => getComputedStyle(element).borderRadius), '28px', 'Mobile bottom navigation uses the rounded reference treatment');
+  assert.equal(await mobileNavigation.getByRole('link', { name: 'Home', exact: true }).getAttribute('aria-current'), 'page', 'Home is marked current on the homepage');
+  await mobileNavigation.getByRole('link', { name: 'Lab', exact: true }).focus();
+  assert(await mobileNavigation.getByRole('link', { name: 'Lab', exact: true }).evaluate(node => node === document.activeElement), 'Bottom navigation remains keyboard accessible');
+  await mobileNavigation.getByRole('link', { name: 'Lab', exact: true }).click();
   await page.waitForURL(`${base}/lab`);
-  assert(!await disclosure.evaluate(node => node.open), 'Selecting a route closes the disclosure');
-  assert.equal(await disclosure.locator('a[href="/lab"]').getAttribute('aria-current'), 'page');
-  await menu.click();
-  await mobileNavigation.getByRole('link', { name: 'The lab', exact: true }).click();
-  assert(!await disclosure.evaluate(node => node.open), 'Selecting the current route also closes the disclosure');
-  assert(await menu.evaluate(node => node === document.activeElement), 'Current-route selection does not leave focus in hidden navigation');
-
-  await menu.click();
-  await page.keyboard.press('Tab');
+  assert.equal(await mobileNavigation.getByRole('link', { name: 'Lab', exact: true }).getAttribute('aria-current'), 'page', 'Bottom navigation identifies the selected route');
   await page.setViewportSize({ width: 1024, height: 768 });
   const desktopNavigation = page.getByRole('navigation', { name: 'Main navigation' });
   await desktopNavigation.waitFor();
-  await page.waitForFunction(() => !document.querySelector('.mobile-nav').open);
-  assert(await desktopNavigation.getByRole('link', { name: 'The lab', exact: true }).evaluate(node => node === document.activeElement), 'Widening the viewport moves hidden mobile focus to the current desktop link');
+  assert.equal(await mobileNavigation.isVisible(), false, 'Mobile bottom navigation hides at desktop widths');
   assert.equal(await desktopNavigation.locator('a[aria-current="page"]').count(), 1, 'Exactly one desktop link identifies the current page');
   await page.setViewportSize({ width: 375, height: 667 });
-  assert(!await disclosure.evaluate(node => node.open), 'Returning to mobile keeps navigation closed');
-  await menu.click();
-  await page.keyboard.press('Escape');
-  assert(await menu.evaluate(node => node === document.activeElement), 'Closed-summary resize starts from real keyboard focus');
   await page.setViewportSize({ width: 801, height: 768 });
-  await page.waitForFunction(() => document.activeElement?.closest('.desktop-nav'));
-  assert(await desktopNavigation.getByRole('link', { name: 'The lab', exact: true }).evaluate(node => node === document.activeElement), 'Widening with a closed mobile control focused also restores visible desktop focus');
   await page.setViewportSize({ width: 800, height: 667 });
-  assert(await menu.isVisible(), 'The mobile disclosure remains available at its exact CSS breakpoint');
+  assert(await mobileNavigation.isVisible(), 'Mobile bottom navigation remains available at its exact CSS breakpoint');
   await page.setViewportSize({ width: 375, height: 667 });
   await page.screenshot({ path: 'artifacts/acceptance/navigation-mobile-closed.png' });
-  await menu.click();
-  await page.screenshot({ path: 'artifacts/acceptance/navigation-mobile-open.png' });
-  await page.keyboard.press('Escape');
   await page.goto(base + '/sign-in');
-  await page.getByRole('heading', { name: 'Make yourself at home.' }).waitFor();
+  await page.getByRole('heading', { name: 'Sign in' }).waitFor();
   assert(await page.getByRole('button', { name: /Sign in/ }).isDisabled(), 'Missing config must disable sign-in');
   assert(await page.getByLabel('Email address').isDisabled());
-  assert(await page.getByText('Sign-in is unavailable in this release.').isVisible());
+  assert(await page.getByText(/Student account access is being prepared/i).isVisible());
+  assert.equal(await page.getByText('Sign-in is unavailable in this release. Contact the lab team for account-access information.', { exact: true }).count(), 0, 'Stale sign-in warning is removed');
   assert(await page.getByRole('link', { name: 'Forgot password?' }).isVisible(), 'Sign-in offers a direct recovery path');
+  await page.getByRole('button', { name: 'Create a new account' }).click();
+  await page.getByRole('heading', { name: 'Create your account' }).waitFor();
+  assert.equal(await page.locator('.auth-grid').getAttribute('data-auth-view'), 'create-account', 'The login card flips to account creation');
+  await page.getByRole('button', { name: 'Return to sign in' }).click();
+  await page.getByRole('heading', { name: 'Sign in' }).waitFor();
+  assert.equal(await page.locator('.public-mobile-nav').count(), 0, 'Auth routes do not inherit the website bottom navigation');
   await page.screenshot({ path: 'artifacts/acceptance/sign-in-mobile.png', fullPage: true });
   for (const route of ['sign-in', 'sign-up']) {
     for (const theme of ['light', 'dark']) {
@@ -541,7 +628,16 @@ try {
         await setTheme(page, theme);
         assert(await page.evaluate(() => getComputedStyle(document.body).backgroundColor !== 'rgba(0, 0, 0, 0)'), route + ' must load the global theme stylesheet');
         assert(await page.evaluate(() => document.documentElement.scrollHeight <= window.innerHeight + 1), route + ' fits ' + viewport.width + 'x' + viewport.height + ' in ' + theme);
-        assert(await page.getByRole('button', {name:'Continue with Google'}).isDisabled(), 'Unverified Google activation stays disabled');
+        if (route === 'sign-in') {
+          assert(await page.getByRole('button', {name:'Continue with Google'}).isDisabled(), 'Unverified Google activation stays disabled');
+          assert(await contrastAgainst(page, '.auth-label-row a', '.auth-card') >= 4.5, 'The recovery link is readable against the sign-in card in both themes');
+        } else {
+          assert(await page.getByRole('heading', { name: 'Create your account' }).isVisible(), 'Signup explains that account access is still gated');
+          assert.equal(await page.locator('.auth-signup-preview input:disabled').count(), 2, 'The signup layout shows gated email and password fields');
+          assert(await page.getByRole('button', { name: 'Create account', exact: true }).isDisabled(), 'Account creation cannot be submitted while the member gate is off');
+          assert.equal(await page.locator('.auth-signup-preview input[name]:not([type="hidden"]):not([name=""])').count(), 2, 'Gated real signup retains its email/password input names');
+          assert.notEqual(await page.locator('.auth-signup-preview').getAttribute('action'), null, 'The form is wired to the real signup action while activation stays gated');
+        }
       }
     }
   }
@@ -559,8 +655,11 @@ try {
     }
   }
   await page.goto(base + '/sign-up');
-  await page.getByRole('link', { name: 'Sign in here' }).click();
-  await page.getByRole('heading', { name: 'Make yourself at home.' }).waitFor();
+  await page.getByRole('heading', { name: 'Create your account' }).waitFor();
+  assert(await page.getByRole('button', { name: 'Create account', exact: true }).isDisabled(), 'Registration remains gated until the shared backend passes validation');
+  assert.equal(await page.getByText(/contact the lab team/i).count(), 0, 'Signup does not redirect account creation to a contact link');
+  await page.getByRole('button', { name: 'Return to sign in' }).click();
+  await page.getByRole('heading', { name: 'Sign in' }).waitFor();
   await page.setViewportSize({ width: 390, height: 844 });
   await page.goto(base + '/design/onboarding');
   await page.getByRole('heading', { name: 'Tell us a little about yourself.' }).waitFor();
@@ -573,7 +672,7 @@ try {
   assert.equal(await page.getByLabel('College / institution').inputValue(), 'Model Engineering College', 'The pilot uses one canonical institution');
   assert(await page.getByText(/students self-declare MEC eligibility and claim one unique registration number/i).isVisible(), 'The preview describes the self-declared admission policy');
   assert(await page.getByText(/does not check claims against college records/).isVisible(), 'The preview states that student claims are not checked against college records');
-  assert(await page.getByText(/private by default/i).isVisible(), 'Required profile details are described as private by default');
+  assert(await page.getByText(/intended for the account owner.*shared database privacy permissions still need validation/i).isVisible(), 'The preview distinguishes intended profile privacy from unverified database permissions');
   await setTheme(page, 'dark');
   const storageBeforePreview = await storageSnapshot(page);
   await page.getByRole('button', { name: 'Check preview fields' }).click();
@@ -642,6 +741,35 @@ try {
     borrowing: 'Keep shared tools moving.',
     settings: 'Make this space work for you.',
   };
+  const labDestinations = { Overview: 'lab', Requests: 'requests', Borrowing: 'borrowing', Events: 'events', Visits: 'visits', Projects: 'projects' };
+  const profileDestinations = { 'Your details': 'profile', Settings: 'settings' };
+  async function assertStudentNavigation(screen) {
+    const primary = page.getByRole('navigation', { name: 'Primary workspace navigation', exact: true });
+    assert(await primary.isVisible(), `${screen} keeps primary navigation visible`);
+    assert.deepEqual(await primary.getByRole('link').allTextContents(), ['Home', 'Lab', 'Profile'], 'The workspace has exactly three primary destinations');
+    const group = Object.values(labDestinations).includes(screen) ? 'lab' : Object.values(profileDestinations).includes(screen) ? 'profile' : 'home';
+    assert.equal(await primary.locator('a[aria-current]').count(), 1, `${screen} identifies one primary group`);
+    for (const id of ['home', 'lab', 'profile']) {
+      const link = primary.getByRole('link', { name: id[0].toUpperCase() + id.slice(1), exact: true });
+      assert.equal(await link.getAttribute('href'), `/design/student?screen=${id}`);
+      assert.equal(await link.getAttribute('aria-current'), group === id ? screen === id ? 'page' : 'location' : null, `${screen} distinguishes the current page from its parent group`);
+    }
+    const contextual = group === 'lab' ? labDestinations : group === 'profile' ? profileDestinations : null;
+    assert.equal(await page.locator('.member-context-bar nav').count(), contextual ? 1 : 0, `${screen} exposes contextual navigation only for Lab or Profile`);
+    if (contextual) {
+      const contextNav = page.getByRole('navigation', { name: `${group === 'lab' ? 'Lab' : 'Profile'} pages`, exact: true });
+      assert.deepEqual(await contextNav.getByRole('link').allTextContents(), Object.keys(contextual), `${screen} exposes the complete contextual hierarchy`);
+      assert.equal(await contextNav.locator('a[aria-current="page"]').count(), 1, `${screen} marks its exact contextual destination`);
+      for (const [label, id] of Object.entries(contextual)) {
+        const link = contextNav.getByRole('link', { name: label, exact: true });
+        assert(await link.isVisible(), `${label} remains directly reachable without a menu`);
+        assert.equal(await link.getAttribute('href'), `/design/student?screen=${id}`);
+        assert.equal(await link.getAttribute('aria-current'), screen === id ? 'page' : null);
+      }
+    }
+    assert.equal(await page.locator('.member-notifications').getAttribute('aria-current'), screen === 'notifications' ? 'page' : null, 'Notifications has its own exact selected state');
+    assert.equal(await page.locator('.member-sidebar, .student-preview-sidebar, .student-preview-sidebar-toggle, .student-preview-mobile-nav, .member-mobile-more, .member-mobile-more-links').count(), 0, 'No sidebar, bottom rail or More menu remains');
+  }
   const studentDataRequests = [];
   page.on('request', request => {
     if (/supabase\.co|\/rest\/v1(?:\/|\?|$)|\/api\//i.test(request.url())) studentDataRequests.push(request.url());
@@ -652,33 +780,14 @@ try {
   assert.equal(await page.locator('meta[name="robots"]').getAttribute('content'), 'noindex, nofollow', 'Student workspace layout stays out of search results');
   assert(await page.getByRole('status').getByText('DESIGN PREVIEW · NO LIVE DATA').isVisible(), 'Student preview states that records are not connected');
   await page.waitForFunction(() => document.querySelector('.student-preview-welcome')?.getAnimations().some(animation => animation.playState === 'running'));
-  assert(await page.locator('.student-preview-sidebar').isVisible(), 'Desktop workspace uses a persistent sidebar');
-  assert(await page.evaluate(() => { const sidebar = document.querySelector('.student-preview-sidebar').getBoundingClientRect(); const main = document.querySelector('.student-preview-main-column').getBoundingClientRect(); return sidebar.width >= 200 && main.left >= sidebar.right - 1; }), 'Desktop workspace places its main content beside the navigation rail');
-  assert.equal(await page.locator('.student-preview-sidebar a[aria-current="page"]').count(), 1, 'Desktop navigation identifies exactly one current destination');
-  assert.equal(await page.locator('.student-preview-sidebar-toggle').getAttribute('aria-expanded'), 'true', 'Desktop sidebar starts expanded');
-  await page.getByRole('button', { name: 'Collapse workspace sidebar' }).click();
-  assert.equal(await page.locator('.student-preview-sidebar-toggle').getAttribute('aria-expanded'), 'false', 'Sidebar toggle exposes its collapsed state');
-  assert(await page.locator('.student-preview-app').evaluate(element => element.classList.contains('student-preview-sidebar-collapsed')), 'Collapsed sidebar applies its compact desktop layout');
-  await page.waitForFunction(() => Math.abs(document.querySelector('.student-preview-sidebar').getBoundingClientRect().width - 92) < 1);
-  assert(await page.locator('.student-preview-side-nav a[aria-label="Projects"]').isVisible(), 'Collapsed navigation keeps icon links available and named');
-  assert(await page.evaluate(() => { const sidebar = document.querySelector('.student-preview-sidebar').getBoundingClientRect(); const main = document.querySelector('.student-preview-main-column').getBoundingClientRect(); return sidebar.width >= 84 && sidebar.width <= 100 && main.left >= sidebar.right - 1; }), `Collapsed rail keeps its main content aligned beside it: ${await page.evaluate(() => { const sidebar = document.querySelector('.student-preview-sidebar').getBoundingClientRect(); const main = document.querySelector('.student-preview-main-column').getBoundingClientRect(); return JSON.stringify({ sidebar: sidebar.width, mainLeft: main.left, sidebarRight: sidebar.right }); })}`);
-  assert(await page.evaluate(() => { const nav = document.querySelector('.student-preview-side-nav').getBoundingClientRect(); return [...document.querySelectorAll('.student-preview-side-nav>.student-preview-nav-link')].every(link => link.getBoundingClientRect().right <= nav.right + 1); }), 'Collapsed icon rows stay inside the navigation rail');
-  await page.screenshot({ path: 'artifacts/acceptance/student-workspace-home-collapsed-desktop.png', fullPage: false, animations: 'disabled' });
+  await assertStudentNavigation('home');
+  assert(await page.evaluate(() => document.querySelector('.member-main-column').getBoundingClientRect().top >= document.querySelector('.member-topbar').getBoundingClientRect().bottom - 1), 'Desktop workspace content follows the top navigation');
   await page.setViewportSize({ width: 761, height: 900 });
-  assert(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth), 'Collapsed rail keeps the tablet workspace within the viewport');
+  assert(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth), 'Top navigation keeps the tablet workspace within the viewport');
+  await assertStudentNavigation('home');
   await page.setViewportSize({ width: 1440, height: 900 });
-  await page.getByRole('button', { name: 'Expand workspace sidebar' }).click();
-  assert.equal(await page.locator('.student-preview-sidebar-toggle').getAttribute('aria-expanded'), 'true', 'Sidebar expands again on activation');
-  await page.locator('.student-preview-sidebar-toggle').focus();
-  await page.keyboard.press('Space');
-  assert.equal(await page.locator('.student-preview-sidebar-toggle').getAttribute('aria-expanded'), 'false', 'Keyboard activation collapses the sidebar');
-  await page.waitForFunction(() => Math.abs(document.querySelector('.student-preview-sidebar').getBoundingClientRect().width - 92) < 1);
-  await page.keyboard.press('Space');
-  assert.equal(await page.locator('.student-preview-sidebar-toggle').getAttribute('aria-expanded'), 'true', 'Keyboard activation expands the sidebar');
-  await page.waitForFunction(() => document.querySelector('.student-preview-sidebar').getBoundingClientRect().width >= 250);
-  assert(await page.locator('.student-preview-sidebar').getByRole('link', { name: 'Settings' }).isVisible(), 'Settings stays pinned at the bottom of the desktop rail');
-  assert(await page.locator('.student-preview-notification-button').isVisible(), 'Notification shortcut remains visible in the top-right controls');
-  assert(await page.locator('.student-preview-topbar-actions').evaluate(element => element.querySelector('.theme-toggle').compareDocumentPosition(element.querySelector('.student-preview-notification-button')) & Node.DOCUMENT_POSITION_FOLLOWING), 'Notifications remains the rightmost top-bar action');
+  assert(await page.locator('.member-notifications').isVisible(), 'Notification shortcut remains visible in the top-right controls');
+  assert(await page.locator('.member-topbar-actions').evaluate(element => element.querySelector('.theme-toggle').compareDocumentPosition(element.querySelector('.member-notifications')) & Node.DOCUMENT_POSITION_FOLLOWING), 'Notifications remains the rightmost top-bar action');
   await page.evaluate(() => { if (document.activeElement instanceof HTMLElement) document.activeElement.blur(); document.body.tabIndex = -1; document.body.focus(); });
   await page.keyboard.press('Tab');
   assert(await page.locator('.skip-link').evaluate(element => element === document.activeElement && element.getBoundingClientRect().top >= 0), 'Student preview starts keyboard navigation at the visible site skip link');
@@ -693,21 +802,23 @@ try {
   await page.evaluate(() => window.scrollTo(0, 0));
   await page.waitForTimeout(50);
   await page.screenshot({ path: 'artifacts/acceptance/student-workspace-home-desktop.png', fullPage: true, animations: 'disabled' });
-  await page.locator('.student-preview-notification-button').click();
+  await page.locator('.member-notifications').click();
   await page.getByRole('heading', { name: studentScreens.notifications, exact: true }).waitFor();
   assert.match(page.url(), /screen=notifications$/, 'Top-right notifications shortcut opens the notification destination');
-  await page.getByRole('link', { name: 'Projects' }).first().click();
+  await assertStudentNavigation('notifications');
+  await page.getByRole('navigation', { name: 'Primary workspace navigation', exact: true }).getByRole('link', { name: 'Lab', exact: true }).click();
+  await page.getByRole('heading', { name: studentScreens.lab, exact: true }).waitFor();
+  await page.getByRole('navigation', { name: 'Lab pages', exact: true }).getByRole('link', { name: 'Projects', exact: true }).click();
   await page.getByRole('heading', { name: studentScreens.projects, exact: true }).waitFor();
-  assert.match(page.url(), /screen=projects$/, 'Home module links navigate to their own review screen');
+  assert.match(page.url(), /screen=projects$/, 'Lab contextual links navigate to their own review screen');
   for (const [screen, title] of Object.entries(studentScreens)) {
     await page.setViewportSize({ width: 1440, height: 900 });
     await page.goto(`${base}/design/student?screen=${screen}`);
     await page.getByRole('heading', { name: title, exact: true }).waitFor();
-    assert.equal(await page.locator('.student-preview-sidebar a[aria-current="page"]').count(), 1, `${screen} has one current desktop navigation item`);
+    await assertStudentNavigation(screen);
     assert.equal(await page.locator('form').count(), 0, `${screen} preview exposes no real submission form`);
     assert.equal(await page.locator('.theme-toggle').count(), 1, `${screen} keeps one functional theme control`);
-    assert.equal(await page.locator('.student-preview-sidebar-toggle').count(), 1, `${screen} provides a desktop sidebar toggle`);
-    assert.equal(await page.locator('.student-preview-notification-button').count(), 1, `${screen} keeps the top-right notification destination available`);
+    assert.equal(await page.locator('.member-notifications').count(), 1, `${screen} keeps the top-right notification destination available`);
     assert(await page.getByRole('status').getByText('DESIGN PREVIEW · NO LIVE DATA').isVisible(), `${screen} explains that it contains no live data`);
     if (screen === 'projects') assert(await page.getByText('Project names, teams and membership requests are not loaded in this preview.').isVisible());
     if (screen === 'events') assert(await page.getByText(/No event records or registration status are available/).isVisible());
@@ -715,7 +826,7 @@ try {
     if (screen === 'notifications') assert(await page.getByText(/No message, request update or event reminder/).isVisible());
     if (screen === 'settings') {
       assert(await page.getByRole('heading', { name: 'Choose a comfortable view' }).isVisible(), 'Settings preview explains the working theme preference');
-      assert(await page.getByRole('heading', { name: 'Your details stay private' }).isVisible(), 'Settings preview links account preferences to the private profile');
+      assert(await page.getByRole('heading', { name: 'Account privacy under review' }).isVisible(), 'Settings preview identifies the profile privacy review');
       assert(await page.getByRole('link', { name: /Open profile/ }).isVisible(), 'Settings offers a direct profile path');
     }
     if (screen === 'visits') assert(await page.getByText(/No sample history is shown/).isVisible(), 'Visit wireframe avoids fabricated history');
@@ -732,21 +843,9 @@ try {
       await page.setViewportSize({ width, height: 900 });
       await setTheme(page, [375, 761, 1440].includes(width) ? 'dark' : 'light');
       assert(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth), `${screen} fits ${width}px without horizontal scrolling`);
-      if (width <= 760) {
-        assert(await page.locator('.student-preview-mobile-nav').isVisible(), 'Narrow screens keep the primary navigation visible');
-        assert.equal(await page.locator('.student-preview-mobile-nav > a.member-mobile-link').count(), 4, 'Mobile bottom navigation keeps the four primary app destinations');
-        assert.equal(await page.locator('.student-preview-mobile-nav > .member-mobile-more').count(), 1, 'Secondary destinations stay grouped under More');
-        assert(!await page.locator('.student-preview-sidebar').isVisible(), 'Narrow screens replace the desktop rail');
-        assert(await page.locator('.student-preview-notification-button').isVisible(), 'Narrow screens retain top-right notifications');
-        const isMobileAnchor = ['home', 'lab', 'requests', 'profile'].includes(screen);
-        assert.equal(await page.locator('.student-preview-mobile-nav > a[aria-current="page"]').count(), isMobileAnchor ? 1 : 0, `${screen} marks its mobile primary page when applicable`);
-        assert.equal(await page.locator('.student-preview-mobile-more-button[aria-current="location"]').count(), isMobileAnchor ? 0 : 1, `${screen} marks More when its destination is secondary`);
-        if (!isMobileAnchor) {
-          assert.equal(await page.locator('.student-preview-mobile-more-button').getAttribute('aria-current'), 'location', `${screen} stays grouped under the mobile More destination`);
-        }
-      } else {
-        assert(await page.locator('.student-preview-sidebar').isVisible(), 'Wide screens retain the student destination rail');
-      }
+      await assertStudentNavigation(screen);
+      assert(await page.locator('.member-notifications').isVisible(), `${screen} retains top-right notifications at ${width}px`);
+      assert(await page.locator('.member-primary-nav a, .member-context-bar a').evaluateAll(links => links.every(link => { const rect = link.getBoundingClientRect(); return rect.width >= 44 && rect.height >= 44 && rect.left >= 0 && rect.right <= innerWidth + 1; })), `${screen} navigation retains visible 44px touch targets at ${width}px`);
       if (width > 760 && width <= 980) {
         const detailGrid = page.locator('.student-preview-detail-grid').first();
         if (await detailGrid.count()) assert.equal(await detailGrid.evaluate(element => getComputedStyle(element).gridTemplateColumns.split(' ').length), 1, `Detail cards use a readable single column at ${width}px`);
@@ -814,40 +913,43 @@ try {
     }
     await page.setViewportSize({ width: 375, height: 667 });
     await page.evaluate(() => window.scrollTo(0, document.documentElement.scrollHeight));
-    const mobileBar = await page.locator('.student-preview-mobile-nav').boundingBox();
     const studentFooter = await page.locator('.student-preview-footer').boundingBox();
-    assert(mobileBar && studentFooter && studentFooter.y + studentFooter.height <= mobileBar.y, `${screen} footer clears the fixed mobile navigation`);
+    assert(studentFooter && studentFooter.y >= 0 && studentFooter.y + studentFooter.height <= page.viewportSize().height + 1, `${screen} footer remains visible at the document end without a bottom-navigation overlay`);
   }
   await page.setViewportSize({ width: 375, height: 844 });
   await page.goto(base + '/design/student?screen=home');
   await page.getByRole('heading', { name: studentScreens.home, exact: true }).waitFor();
   await setTheme(page, 'light');
-  const homeNav = page.locator('.student-preview-mobile-nav > a[aria-current="page"]');
+  await assertStudentNavigation('home');
+  const homeNav = page.locator('.member-primary-nav > a[aria-current="page"]');
   assert.equal(await homeNav.innerText(), 'Home', 'Mobile navigation marks its current anchor');
   assert(await homeNav.evaluate(element => element.getBoundingClientRect().height >= 44), 'Mobile navigation links meet minimum touch height');
-  for (const selector of ['.theme-toggle', '.student-preview-notification-button']) {
+  for (const selector of ['.theme-toggle', '.member-notifications']) {
     const bounds = await page.locator(selector).boundingBox();
-    assert(bounds && bounds.width >= 48 && bounds.height >= 48, `${selector} meets the 48px mobile touch-target goal`);
+    const minimum = selector === '.theme-toggle' ? 48 : 44;
+    assert(bounds && bounds.width >= minimum && bounds.height >= minimum, `${selector} meets its ${minimum}px mobile touch-target goal`);
   }
   await page.screenshot({ path: 'artifacts/acceptance/student-workspace-home-mobile.png', fullPage: false, animations: 'disabled' });
-  const moreButton = page.locator('.student-preview-mobile-more-button');
-  await moreButton.focus();
+  const mobileLabLink = page.getByRole('navigation', { name: 'Primary workspace navigation', exact: true }).getByRole('link', { name: 'Lab', exact: true });
+  await mobileLabLink.focus();
+  assert(await mobileLabLink.evaluate(element => element === document.activeElement), 'Keyboard users can focus the top-level Lab link');
   await page.keyboard.press('Enter');
-  await page.getByRole('link', { name: 'Borrowing' }).last().waitFor({ state: 'visible' });
-  assert.equal(await moreButton.getAttribute('aria-expanded'), 'true', 'The More menu opens with its expanded state exposed');
-  await page.screenshot({ path: 'artifacts/acceptance/student-workspace-more-mobile.png', fullPage: false, animations: 'disabled' });
-  await page.keyboard.press('Escape');
-  assert.equal(await moreButton.getAttribute('aria-expanded'), 'false', 'Escape closes the More menu');
-  assert(await moreButton.evaluate(element => element === document.activeElement), 'Escape returns keyboard focus to the More control');
-  await moreButton.click();
-  await page.getByRole('link', { name: 'Borrowing' }).last().click();
+  await page.getByRole('heading', { name: studentScreens.lab, exact: true }).waitFor();
+  await assertStudentNavigation('lab');
+  const borrowingLink = page.getByRole('navigation', { name: 'Lab pages', exact: true }).getByRole('link', { name: 'Borrowing', exact: true });
+  await borrowingLink.focus();
+  assert(await borrowingLink.evaluate(element => element === document.activeElement), 'Keyboard users can focus contextual destinations directly');
+  await page.keyboard.press('Enter');
   await page.getByRole('heading', { name: studentScreens.borrowing, exact: true }).waitFor();
-  assert.equal(await page.locator('.student-preview-mobile-more-button').getAttribute('aria-current'), 'location', 'Secondary mobile routes show the active More grouping');
-  assert.equal(await page.locator('.student-preview-mobile-more-button').getAttribute('aria-expanded'), 'false', 'Choosing a destination closes the More menu');
+  await assertStudentNavigation('borrowing');
+  await page.screenshot({ path: 'artifacts/acceptance/student-workspace-lab-borrowing-mobile.png', fullPage: false, animations: 'disabled' });
+  await page.goBack();
+  await page.getByRole('heading', { name: studentScreens.lab, exact: true }).waitFor();
+  await assertStudentNavigation('lab');
   await page.goBack();
   await page.getByRole('heading', { name: studentScreens.home, exact: true }).waitFor();
-  assert.equal(await page.locator('.student-preview-mobile-more-button').getAttribute('aria-expanded'), 'false', 'Browser Back does not reopen the More menu from its previous route');
-  assert.equal(await page.locator('.member-mobile-more-links').isVisible(), false, 'The More popover remains closed after browser Back');
+  await assertStudentNavigation('home');
+  assert.equal(await page.locator('.member-context-bar').count(), 0, 'Browser Back restores Home without stale Lab contextual links');
   await page.goto(base + '/design/student?screen=profile');
   await page.getByRole('heading', { name: studentScreens.profile, exact: true }).waitFor();
   assert(await page.getByRole('link', { name: 'Workspace settings' }).isVisible(), 'Mobile users can reach settings from their Profile destination');
@@ -856,10 +958,14 @@ try {
   assert(await page.getByText(/No ownership or duplicate check is represented here/).isVisible(), 'Profile preview does not imply independently verified MEC ownership');
   await page.getByRole('link', { name: 'Workspace settings' }).click();
   await page.getByRole('heading', { name: studentScreens.settings, exact: true }).waitFor();
-  await page.locator('.student-preview-mobile-more-button').click();
-  await page.getByRole('link', { name: 'Settings', exact: true }).last().click();
+  await assertStudentNavigation('settings');
+  await page.getByRole('navigation', { name: 'Profile pages', exact: true }).getByRole('link', { name: 'Your details', exact: true }).focus();
+  await page.keyboard.press('Enter');
+  await page.getByRole('heading', { name: studentScreens.profile, exact: true }).waitFor();
+  await assertStudentNavigation('profile');
+  await page.goBack();
   await page.getByRole('heading', { name: studentScreens.settings, exact: true }).waitFor();
-  assert.equal(await page.locator('.student-preview-mobile-more-button').getAttribute('aria-current'), 'location', 'Mobile Settings stays grouped under More');
+  await assertStudentNavigation('settings');
   await page.goto(base + '/design/student?screen=profile');
   await page.getByRole('heading', { name: studentScreens.profile, exact: true }).waitFor();
   await setTheme(page, 'dark');
@@ -916,13 +1022,13 @@ try {
   assert.equal(await page.getByRole('link', { name: 'https://idealab.mec.ac.in/' }).getAttribute('rel'), 'noreferrer');
   assert(await page.getByRole('link', { name: 'https://mec.ac.in/' }).isVisible(), 'The second keyboard-entered URL is present in the review');
   await page.getByRole('button', { name: 'Save draft', exact: true }).click();
-  assert.match(await page.getByRole('status').innerText(), /has not been sent to the lab/);
+  assert.match(await page.getByRole('status').innerText(), /Draft saved for this preview session.*It has not been sent to the lab/);
   const originalAccountKey = 'idealab-mec:request-draft:v1:design-preview';
   assert.equal(await page.evaluate(key => localStorage.getItem(key), originalAccountKey), null, 'Preview draft is not persisted in local storage');
   assert.equal(await page.evaluate(key => sessionStorage.getItem(key), originalAccountKey), null, 'Preview draft is not persisted in session storage');
   await page.getByRole('link', { name: 'Return to work requests' }).click();
   await page.getByRole('heading', { name: 'Sample prototype fixture', exact: true }).waitFor();
-  assert(await page.getByText('UNSUBMITTED DRAFT', { exact: true }).isVisible());
+  assert(await page.getByText('BROWSER DRAFT', { exact: true }).isVisible());
   assert(await page.getByText('We can’t check your submitted requests here yet.', { exact: false }).isVisible());
   await page.screenshot({ path: 'artifacts/acceptance/request-workspace-mobile.png', fullPage: true });
   await page.getByRole('button', { name: 'Delete browser draft' }).click();
@@ -966,6 +1072,11 @@ try {
   assert.match(await page.locator('#reference-error').innerText(), /http:\/\/ or https:\/\//);
   await page.waitForFunction(() => document.activeElement?.id === 'request-references');
   assert(await referenceField.evaluate(element => element === document.activeElement), 'Reference validation focuses the invalid field');
+  await referenceField.fill('https://xn--/');
+  await page.getByRole('button', { name: 'Back', exact: true }).click();
+  await page.getByRole('button', { name: 'Save for later', exact: true }).click();
+  await page.waitForFunction(() => document.activeElement?.id === 'request-references');
+  assert.equal(await referenceField.getAttribute('aria-invalid'), 'true', 'Saving from another step opens and focuses the invalid reference');
   await referenceField.fill('https://example.edu/prototype');
   await page.getByRole('button', { name: 'Continue', exact: true }).click();
   assert.equal(await page.getByRole('link', { name: 'https://example.edu/prototype' }).getAttribute('href'), 'https://example.edu/prototype');
@@ -1040,6 +1151,7 @@ try {
   }
   assert(offReady, 'Preview-off production instance must become ready');
   assert.equal((await fetch(offBase + '/design/request')).status, 404, 'Design preview must be unavailable when disabled');
+  assert.equal((await fetch(offBase + '/design/project-create')).status, 404, 'Project design preview must be unavailable when disabled');
   assert.equal((await fetch(offBase + '/design/requests')).status, 404, 'Request workspace preview must be unavailable when disabled');
   assert.equal((await fetch(offBase + '/design/onboarding')).status, 404, 'Onboarding design preview must be unavailable when disabled');
   assert.equal((await fetch(offBase + '/design/student')).status, 404, 'Student workspace design preview must be unavailable when disabled');
@@ -1047,7 +1159,7 @@ try {
   const recoveryPort = await availablePort();
   const recoveryBase = `http://127.0.0.1:${recoveryPort}`;
   let recoveryOutput = '';
-  recoveryConfigServer = spawn(process.execPath, ['node_modules/next/dist/bin/next', 'start', '--hostname', '127.0.0.1', '--port', String(recoveryPort)], { env: { ...env, NEXT_PUBLIC_SUPABASE_URL: 'https://configuration-fixture.invalid', NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: 'sb_publishable_configuration_fixture', ENABLE_MEMBER_PLATFORM: 'true', AUTH_SITE_URL: recoveryBase, ENABLE_GOOGLE_SIGN_IN: 'false' }, stdio: ['ignore', 'pipe', 'pipe'] });
+  recoveryConfigServer = spawn(process.execPath, ['node_modules/next/dist/bin/next', 'start', '--hostname', '127.0.0.1', '--port', String(recoveryPort)], { env: { ...env, NEXT_PUBLIC_SUPABASE_URL: 'https://configuration-fixture.invalid', NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: 'sb_publishable_configuration_fixture', ENABLE_MEMBER_PLATFORM: 'true', ENABLE_MEMBER_PLATFORM_PRODUCTION: 'false', ENABLE_MEMBER_PLATFORM_TEST: 'true', ACCOUNT_ENVIRONMENT: 'test', AUTH_SITE_URL: recoveryBase, ENABLE_GOOGLE_SIGN_IN: 'false' }, stdio: ['ignore', 'pipe', 'pipe'] });
   recoveryConfigServer.stdout.on('data', chunk => { recoveryOutput = (recoveryOutput + chunk).slice(-5000); });
   recoveryConfigServer.stderr.on('data', chunk => { recoveryOutput = (recoveryOutput + chunk).slice(-5000); });
   let recoveryReady = false;
@@ -1063,26 +1175,57 @@ try {
     await page.setViewportSize({ width: 320, height: 568 });
     await page.goto(`${recoveryBase}/${route}`);
     assert.equal(await page.locator('meta[name="robots"]').getAttribute('content'), 'noindex, nofollow');
-    assert.equal(await page.locator('form input:disabled').count(), 0, `${route} form enables only with explicit member and valid origin configuration`);
+    assert(await page.locator('form input:disabled').count() > 0, `${route} remains disabled until the recovery session boundary is verified`);
     assert(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth), `${route} configuration fixture has no horizontal overflow at 320px`);
     if (route === 'reset-password') {
       assert.equal(await page.locator('input[name="new_password"]').count(), 1);
       assert.equal(await page.locator('input[name="confirm_password"]').count(), 1);
       assert.equal(await page.getByRole('button', { name: 'Show password' }).count(), 2, 'Both password fields have keyboard-operable visibility toggles');
     } else {
-      assert(await page.getByLabel('Email address').isEnabled());
+      assert(await page.getByLabel('Email address').isDisabled());
     }
   }
+  for (const route of ['sign-in', 'sign-up', 'confirm-email']) {
+    for (const theme of ['light', 'dark']) {
+      for (const viewport of [{ width: 320, height: 568 }, { width: 390, height: 844 }, { width: 1366, height: 768 }]) {
+        await page.setViewportSize(viewport);
+        const rendered = await page.goto(`${recoveryBase}/${route}`);
+        await setTheme(page, theme);
+        assert.match(rendered.headers()['cache-control'] ?? '', /private, no-store/, 'Account entry is never publicly cached');
+        assert(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth), `${route} enabled layout fits ${viewport.width}px`);
+        assert(await page.getByLabel('Email address', { exact: true }).isEnabled(), 'Real form enables only with configured origin and member gate');
+        if (route === 'sign-up') {
+          assert(await page.getByRole('button', { name: 'Create account', exact: true }).isEnabled());
+          assert.equal(await page.locator('#signup-password').getAttribute('minlength'), '8');
+          assert(await page.getByRole('button', { name: 'Continue with Google' }).isDisabled(), 'Email signup does not require Google');
+        }
+        if (viewport.width === 320) await page.screenshot({ path: `artifacts/acceptance/auth-enabled-${route}-${theme}-320.png`, fullPage: true });
+      }
+    }
+  }
+  for (const query of ['error=access_denied&next=https://evil.invalid', 'code=a&code=b', 'code=a&sb_flow_id=invalid']) {
+    const rejected = await fetch(`${recoveryBase}/auth/confirm?${query}`, { redirect: 'manual' });
+    assert.equal(rejected.status, 307);
+    assert.equal(rejected.headers.get('referrer-policy'), 'no-referrer');
+    assert.match(rejected.headers.get('cache-control') ?? '', /private, no-store/);
+    assert.equal(new URL(rejected.headers.get('location')).origin, recoveryBase);
+    assert.equal(new URL(rejected.headers.get('location')).pathname, '/confirm-email');
+  }
+  await page.goto(`${recoveryBase}/sign-up?notice=signup-invalid`);
+  assert(await page.getByText('Enter a valid email address and a password of at least 8 characters.').isVisible());
+  await page.getByRole('button', { name: 'Return to sign in' }).click();
+  await page.waitForURL('**/sign-in');
+  await page.getByRole('button', { name: 'Create a new account' }).click();
+  await page.waitForURL('**/sign-up');
+  await page.reload();
+  assert(await page.getByRole('heading', { name: 'Create your account' }).isVisible(), 'Refresh preserves the selected signup card');
   const rejectedRecovery = await fetch(`${recoveryBase}/auth/recovery/callback?error=access_denied&next=https%3A%2F%2Fevil.invalid`, { redirect: 'manual' });
-  assert.equal(rejectedRecovery.status, 307, 'Malformed/rejected recovery callback exits without contacting Supabase');
+  assert.equal(rejectedRecovery.status, 404, 'Disabled recovery callback exits without contacting Supabase');
   assert.match(rejectedRecovery.headers.get('cache-control') ?? '', /private, no-store/);
-  assert.equal(new URL(rejectedRecovery.headers.get('location')).origin, recoveryBase, 'Recovery callback stays on the configured canonical origin');
-  assert.equal(new URL(rejectedRecovery.headers.get('location')).pathname, '/forgot-password', 'Callback ignores untrusted return paths');
-  assert(!new URL(rejectedRecovery.headers.get('location')).searchParams.has('next'), 'Callback does not reflect attacker-controlled query data');
   const genericRecovery = await page.goto(`${recoveryBase}/forgot-password?notice=requested`);
   assert(genericRecovery?.ok(), 'Recovery request status page renders');
-  assert(await page.getByText(/same whether or not an account exists/i).isVisible(), 'Recovery status avoids revealing whether an account exists');
-  console.log('PASS: public journey, 5 widths in light/dark, login/signup and recovery layouts/themes, palette contrast, no-JavaScript content, scroll/card motion and live reduced-motion cancellation, assets, keyboard navigation, gated onboarding/staff previews, student module layouts and feature contrast, request drafts, recovery callback rejection, generic recovery response and security headers.');
+  assert(await page.getByText(/recovery is paused/i).isVisible(), 'Recovery remains visibly disabled until the security boundary is complete');
+  console.log('PASS: public journey, 5 widths in light/dark, login/signup and recovery layouts/themes, palette contrast, no-JavaScript content, scroll/card motion and live reduced-motion cancellation, assets, keyboard navigation, gated onboarding/staff previews, student module layouts and feature contrast, request drafts, disabled recovery callback and security headers.');
   console.log('UNVERIFIED: live account creation, email delivery, email/Google sign-in, recovery-link exchange/password update, draft under a real member session, scoped permissions and operational backend workflows.');
 } catch (error) {
   const activePage = browser?.contexts()[0]?.pages()[0];

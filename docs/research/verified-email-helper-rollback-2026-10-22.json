@@ -1,0 +1,35 @@
+{
+  "capturedAt": "2026-10-21T21:59:05.578367+00:00",
+  "project": "idealab-mec-validation",
+  "projectRef": "gvvqlfachzbufstzoiwi",
+  "scope": "Rollback-only structural and negative verified-email helper validation, not Auth or production acceptance",
+  "checks": {
+    "planned": 21,
+    "executed": 21,
+    "failed": 0,
+    "finishTrue": true,
+    "transactionRolledBack": true,
+    "postRollbackHelperAbsent": true,
+    "postRollbackCustomRoleAbsent": true,
+    "postRollbackPgtapAbsent": true,
+    "postRollbackApiSchemaUsageAbsent": true,
+    "privateSchemaNotExposedDashboardReadOnly": true
+  },
+  "independentReview": "Static security review by profile_api_security_review; no additional blocker for isolated rollback-only probe",
+  "files": {
+    "supabase/validation/mec_profile_api_candidate.sql": "bdf8e52813a49dc0dbe044db13e482b288a0bbd286e75c4dfa24d0e4f416cf8f",
+    "supabase/tests/database/mec_profile_api_candidate.test.sql": "eb08ab81e3523582e55d01805aaa4e45bcfc4f9aa3d16d35b221e8fa3a136889",
+    "supabase/tests/database/mec_verified_identity_acceptance.test.sql": "1ef3a03882e91d628d5bd5fa8c9a2d1e97ccdaeeed8538da720b8710e9803ed7"
+  },
+  "notVerified": [
+    "Real verified Auth row",
+    "Signed JWT/Data API journey",
+    "Email delivery and recovery",
+    "Google identity convergence",
+    "Profile provisioning and admission API",
+    "Concurrency and throttling",
+    "Both-client account acceptance"
+  ],
+  "installed": false,
+  "productionChanged": false
+}

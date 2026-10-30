@@ -13,6 +13,11 @@
   --accent-apricot: #f5bc98;
   --accent-amber: var(--accent-yellow);
   --accent-ink: #1d252c;
+  --vector-black: #050505;
+  --vector-paper: #f4f2ec;
+  --signal-lime: #d6ff00;
+  --signal-magenta: #ff42c6;
+  --signal-blue: #4c5fff;
   --art-paper: #fffef9;
   --art-neutral: #dbe3dd;
   --primary: var(--brand-cobalt);

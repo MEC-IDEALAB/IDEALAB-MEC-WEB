@@ -1,5 +1,60 @@
 # Web and shared backend architecture
 
+Current implementation evidence: [account delivery status](account-readiness.md).
+The [Events programme/detail read contract](events-contract.md) is implemented
+and installed only in isolated validation, with no retained programme fixtures.
+Its read/denial and paging checks passed; actual member browser rendering is
+unverified while browser access is disabled. Registration/capacity/payment and
+trusted staff publishing remain incomplete. See [Events evidence](quality/events-read-2026-10-23.md).
+The [student request intake contract](work-request-intake-contract.md) has local
+submit/list/detail/cancel source and private-table SQL installed only in isolated
+validation. Retention is resolved as anonymized lab history; scoped SQL checks
+passed. Genuine browser submission acceptance remains blocked by browser access.
+See [current evidence](quality/work-request-intake-2026-10-23.md). Existing browser
+drafts remain available. This does not establish receiving-head, scheduling,
+billing or manufacturing behavior, or authorize shared production activation.
+The Projects core contract is installed only in the isolated validation project.
+It retains Grow's project columns and stage/role vocabulary while guarding writes
+through transactional functions. Creator approval is required for membership;
+codes create requests. See [project contract](projects-contract.md) and
+[current acceptance](quality/projects-core-2026-10-22.md). Shared rollout is not cleared.
+The latest isolated operational slice adds [guarded own visit writes](visit-writes-contract.md)
+with [real browser and database evidence](quality/own-visit-writes-2026-10-22.md).
+Check-in requires current core Open status; exact-owner checkout remains possible
+after closure. No direct client attendance writers or production changes exist.
+Core-controlled availability is now installed only in the isolated project;
+see [opening contract](lab-opening-contract.md) and
+[actual verification](quality/core-lab-opening-2026-10-22.md). Opening duty is a
+private explicit capability separate from account role or individual attendance.
+The newest operational read slice is the [own-visits contract](own-visits-contract.md):
+Grow-compatible table/read API installed only in the isolated project, no writers
+or production policy changes. See [actual checks](quality/own-visits-read-2026-10-22.md).
+Genuine isolated Google login/provisioning, the profile card and the owner's
+declaration-to-workspace journey have passed their scoped checks. Production,
+email/password, second-account and concurrency acceptance remain open.
+
+Latest isolated account-test state (22 October 2026): the reviewed identity,
+profile/provisioning, admission, save and claim candidates are now installed
+**only in idealab-mec-validation** after independent review, an in-transaction
+zero-Auth guard and same-transaction preflights. Twenty-eight post-installation
+SQL assertions pass; direct anonymous profile/table/RPC access is denied and the
+private schema is unexposed. See [installation evidence](research/isolated-account-baseline-2026-10-22.json).
+Earlier "uninstalled" entries describe the preceding rollback-only snapshots.
+This is an isolated test baseline, not a production schema change or activation
+approval. Real verified-account, email/provider, Flutter and concurrency acceptance
+remain outstanding; member/Google flags stay off by default.
+
+
+Current GitHub recheck (22 October 2026): [PR #14](https://github.com/MEC-IDEALAB/IDEALAB-MEC-WEB/pull/14)
+was merged by the owner on 21 October 2026 at 12:51:22 UTC, producing
+`0504b41a1427640bd8fcbdeda48423f5ea24c05a`. Its head
+`7219815bcb3f1216264ec8a85ea46ec4be2bb6df` passed Documentation gate,
+Public foundation acceptance and Required gate. GitHub reports no formal PR
+reviews. The current `codex/modern-brutalist-home` working changes are local;
+those earlier CI results do not validate the current source or live accounts.
+Earlier statements below about keeping PR #14 draft are historical and superseded.
+No new push, merge or deployment was performed in this recheck.
+
 Current UI/auth verification: see [UI audit](ui-audit.md). It supersedes earlier notes about three-option theme menus, repeated boot loading and database timeouts. Supabase read-only connectivity is restored; shared authorization/profile-provisioning defects still block account activation.
 
 Status: public website and first-visit loader are locally implemented and browser-verified; request workspace remains a browser-only draft; V1 operational backend contracts are not deployed. Updated 21 October 2026.
@@ -29,7 +84,7 @@ Use TypeScript, Next.js App Router, React, semantic HTML and CSS tokens. Supabas
 
 Current owner direction uses notebook cross-grid paper and the original yellow `#ffe029`/pink `#ff3994` anchors, coordinated blue `#a8c6ff`, purple `#c4b5f5`, red `#f39488` and green `#a6d9b5`, with cobalt actions and existing apricot/cream/jet-black. See [visual standard](design-system.md). Homepage content now includes Epilog, Snapmaker and Ultimaker facility photos, three broad activity themes and AICTE/CogniCor institutional context. The 11-entry `/lab` directory is published institutional content rather than live inventory; `/explore` uses officially supported March 2022 selection history. See [content provenance](content-sources.md) for verification limits. Individual event records remain signed-in only. Original local SVG artwork and HomeMotion retain progressive enhancement and reduced-motion behavior.
 
-The maker-spirit eyebrow, hero service-availability footnote and first-card boilerplate were removed at the owner’s request. Factual unavailable messages remain on account/service routes. Sign-in retains its semantic form and password show/hide control, disabled while account activation is unavailable. The auth story panels use the current shared palette and theme controls. `/sign-up` remains information/contact only, with no registration writes or OAuth. The loading skeleton remains scoped to sign-in to preserve ordinary not-found HTTP status behavior.
+The maker-spirit eyebrow, hero service-availability footnote and first-card boilerplate were removed at the owner’s request. Factual unavailable messages remain on account/service routes. Sign-in, signup and recovery use Supabase server actions in the isolated validation configuration; `/account-access` provides the protected multi-step profile and MEC-declaration flow. Google sign-in and the owner's isolated onboarding journey passed. Email/password confirmation, login and recovery delivery remain unverified, and production member activation remains off. The auth story panels use the current shared palette and theme controls. The loading skeleton remains scoped to sign-in to preserve ordinary not-found HTTP status behavior. See [current account status](account-readiness.md).
 
 MagicPath project `463330845164449792` was updated with hierarchy/wireframe annotations and earlier accent panels. It is a planning reference, not the high-fidelity source of the implemented interface. No Figma/Penpot/Canva or generated-media artifact is claimed.
 
@@ -47,14 +102,27 @@ The Next.js Proxy generates a fresh 128-bit nonce for each matched page request 
 
 Nonce-based CSP makes matched pages dynamically rendered. The 21 October production build confirms the homepage and user-facing pages are on-demand routes; static asset paths and prefetch requests are excluded from Proxy. This trades static-page/CDN caching for per-response script nonces. No hosted latency or traffic cost measurement has been performed. See the [security review](security-review.md) for test evidence and remaining live-auth limits. Cookie flags were verified in code and boundary tests, but no real Supabase `Set-Cookie` response was generated because member activation remains disabled.
 
-The owner prioritized UI and GitHub setup before backend work. Shared-account activation is off by default (`ENABLE_MEMBER_PLATFORM=false`), independently of public key configuration. Existing email/password source is present but its live acceptance is unverified. Signup, recovery, browser Google OAuth and onboarding need provider/schema acceptance before enablement. Auth success, profile reads and permission behavior against the shared service remain unverified without a designated acceptance session.
+The owner prioritized public UI delivery before production backend activation. Shared-account activation is off by default. Local validation can only target the approved `idealab-mec-validation` project. Production account integration is now rejected in website source even if old environment flags and the Grow project URL are supplied: the inspected shared `public.users` grants/policies still expose other members' sensitive fields and allow authority-column updates. Re-enable only after a reviewed shared migration, current Flutter compatibility, real cross-client acceptance and an explicit source review. Genuine isolated Google login, profile save and MEC declaration passed; email/password confirmation and recovery remain unverified.
 
-The server-side member guard checks Supabase `auth.getUser()`'s
-`email_confirmed_at` before querying the member's profile. This prevents an
-unconfirmed session from entering the member shell, but it does not validate
-the six required onboarding fields or MEC pilot admission. Keep member activation
-disabled until the shared profile/admission contract and private authorization
-rules are implemented and tested in both supported clients.
+The server-side account loader checks the current `auth.getUser()` identity's
+nonblank email, `is_anonymous=false` and confirmation timestamp before calling
+`get_own_profile_v1`. Its exact thirteen-field, owner-bound projection contains
+the twelve allowed account fields, decimal-text revision and a database-computed
+`mec_admitted` boolean. The parser rejects malformed/older responses, mismatched
+owners, unsupported contract versions and unsafe revision values. There is no
+fallback to the former active-only table read.
+
+`requireMember` returns only ready accounts; other states redirect to the private
+`/account-access` route outside the operational layout. Each existing workspace
+page uses that guard before its own account/data access. Version-0/incomplete
+Students cannot enter; complete Students also need backend admission. Trusted
+staff retain a separate active-account path. Inactive, unverified and unavailable
+states stay distinct. The status page wires six-field profile save and MEC
+declaration/claim writes. Reviewed identity, read, save, admission and claim
+functions are installed only in the isolated validation project. The existing
+account's verified Google, profile and declaration journey passed there. Keep
+production activation off pending a reconciled shared migration, Data API and
+both-client acceptance.
 
 The password-recovery slice uses the same gated server-side Supabase client.
 Email requests return generic feedback to avoid account enumeration; callback
@@ -136,11 +204,11 @@ migrations and does not establish PostgreSQL 17.6/en_US.UTF8 parity.
 
 ## Current UI boundary
 
-The public homepage is curated. Individual project/event records require sign-in, per owner decision. Member operational pages clearly state that their service is not connected. The request composer saves only a browser draft under an account-derived key; it never submits, reserves capacity or notifies staff. Drafts persist after sign-out and should not contain sensitive data on shared devices.
+The public homepage is curated. Individual project/event records require sign-in, per owner decision. In `idealab-mec-validation` only, guarded Supabase routines support event reads, project-core transitions, own visit check-in/out, core-controlled lab availability, and student request submission/history/pre-review cancellation. These isolated features do not establish compatibility with Grow production or a complete staff workflow; head notifications, scheduling, inventory, borrowing, event registration/payment and broader administration remain unavailable. The request composer also keeps a separate account-keyed browser draft, which is not a submitted request and may persist after sign-out; members should avoid saving private information on shared devices.
 
-`/design/onboarding` is a separate opt-in preview guarded by `ENABLE_DESIGN_PREVIEW=true`. It renders the six confirmed required fields and local validation only; it keeps values in memory, never calls Supabase, is marked `noindex`, and returns 404 when preview is off. It is not the production onboarding route and does not establish a valid profile. Keep the real `/onboarding` server gate and persistence disabled until the shared schema/provisioning path is approved and tested.
+`/design/onboarding` is a separate opt-in preview guarded by `ENABLE_DESIGN_PREVIEW=true`. It renders the confirmed fields and local validation only; it keeps values in memory, never calls Supabase, is marked `noindex`, and returns 404 when preview is off. The real `/account-access` route reads and writes the admitted user's profile through guarded routines only in the isolated validation configuration. Keep production member activation disabled until the shared schema/provisioning path is approved and tested.
 
-Staff workspace and administrator wireframes are in [experience.md](experience.md). No privileged controls are enabled until backend authority is verified.
+Staff workspace and administrator wireframes are in [experience.md](experience.md). The isolated project has one explicitly granted core lab-opening test capability; this does not establish the production staff-role contract. Broader privileged controls remain disabled until backend authority is verified.
 
 ## Theme and homepage implementation
 
@@ -152,7 +220,7 @@ Design evidence: private [MagicPath project](https://www.magicpath.ai/files/4633
 
 ## Browser request-workspace boundary
 
-`/app/requests` retains `requireMember`; `/design/requests` shares the workspace only when `ENABLE_DESIGN_PREVIEW=true` and keeps its sample draft in page memory. Signed-in drafts default to account-keyed local storage and are explicitly warned as browser-local. Both routes share one v1 parser/writer, restore legacy drafts without `references`, record a device-clock timestamp, and validate up to five HTTP(S) links (2,048 characters each, no embedded credentials). Unsafe or malformed stored records remain until explicit replacement/deletion. Preview memory clears on refresh or leaving the app and never writes to local/session storage; this is sample behavior only. Application commit `a3b0033` passed local production-browser acceptance and hosted Website/Documentation CI; the previous docs-only PR head `6ae37b9` also passed hosted checks. These tests do not establish authenticated success, server persistence or live submission. Current evidence is recorded in [experience](experience.md#local-request-workspace-slice) and the [delivery plan](delivery-plan.md#verification-and-evidence-checklist).
+`/app/requests` retains `requireMember`; `/design/requests` shares the workspace only when `ENABLE_DESIGN_PREVIEW=true` and keeps its sample draft in page memory. Signed-in drafts default to account-keyed local storage and are explicitly warned as browser-local. Both routes share one v1 parser/writer, restore legacy drafts without `references`, record a device-clock timestamp, and validate up to five HTTP(S) links (2,048 characters each, no embedded credentials). Unsafe or malformed stored records remain until explicit replacement/deletion. In the isolated validation project, a distinct guarded backend path supports online request submission, owner-only history and pre-review cancellation. Preview memory clears on refresh or leaving the app and never writes to local/session storage; this is sample behavior only. Real browser submit/reload/cancel, overlapping commands and shared Grow production compatibility remain unverified. Current evidence is recorded in [request intake](quality/work-request-intake-2026-10-23.md), [draft behavior](quality/request-draft-copy-2026-10-23.md) and the [delivery plan](delivery-plan.md#verification-and-evidence-checklist).
 
 ## Branded loading state
 

@@ -17,6 +17,13 @@ export function googleAuthConfig() {
 }
 
 export function passwordRecoveryConfig() {
+  // Recovery remains disabled until a verified recovery-session boundary and
+  // atomic replay protection are implemented and tested end to end.
+  return null as { callback: string } | null;
+}
+
+/** Email confirmation stays available independently of the Google provider. */
+export function signupAuthConfig() {
   const origin = canonicalAuthOrigin();
-  return origin ? { callback: new URL('/auth/recovery/callback', origin).href } : null;
+  return origin ? { callback: new URL('/auth/confirm', origin).href } : null;
 }

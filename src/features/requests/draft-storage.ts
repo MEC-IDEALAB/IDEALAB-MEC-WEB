@@ -1,4 +1,5 @@
 import { sampleCatalog } from './sample-catalog.ts';
+import { isRequestService } from './request-services.ts';
 
 export type DraftData = {
   kind: 'machine' | 'operations';
@@ -7,6 +8,7 @@ export type DraftData = {
   details: string;
   preferredTime: string;
   references: string[];
+  technicalDetails?: string;
 };
 
 type StorageAccess = Pick<Storage, 'getItem' | 'setItem' | 'removeItem'>;
@@ -20,13 +22,27 @@ export const draftStorageKey = (accountId: string) => `idealab-mec:request-draft
 export type DraftStorageScope = 'local' | 'memory';
 let memoryDraft: { key: string; value: string } | null = null;
 
-export function referenceError(references: string[]): string | null {
+function validateReferences(references: string[], allowLegacyEmptyIdna: boolean): string | null {
   if (references.length > maxReferenceCount) return `Add up to ${maxReferenceCount} links.`;
   for (const reference of references) {
     if (reference.length > maxReferenceLength) return 'Each link must be 2,048 characters or fewer.';
     try {
-      const url = new URL(reference);
-      if (!['http:', 'https:'].includes(url.protocol) || !url.hostname || url.username || url.password) {
+      // Older v1 drafts could contain an empty IDNA label. Validate a harmless
+      // substitute only during restore so the original text remains editable.
+      const candidate = allowLegacyEmptyIdna
+        ? reference.replace(/^(https?:\/\/)([^/?#]+)/i, (_match, scheme: string, authority: string) => {
+          // Decode only characters needed to identify this host label, not
+          // authority delimiters such as @ or :. Preserve the original text.
+          const decoded = authority.replace(/%78/gi, 'x').replace(/%6e/gi, 'n').replace(/%2d/gi, '-').replace(/%2e/gi, '.');
+          return scheme + (/(^|\.)xn--(?=\.|:|$)/i.test(decoded)
+            ? decoded.replace(/(^|\.)xn--(?=\.|:|$)/gi, '$1legacy-invalid') : authority);
+        })
+        : reference;
+      const url = new URL(candidate);
+      // Some URL implementations accept an empty IDNA prefix as a hostname.
+      // Reject it explicitly while keeping ordinary and valid IDN hosts usable.
+      const emptyIdnaLabel = url.hostname.split('.').some(label => label.toLowerCase() === 'xn--');
+      if (!['http:', 'https:'].includes(url.protocol) || !url.hostname || emptyIdnaLabel || url.username || url.password) {
         return 'Use a complete http:// or https:// link without a username or password.';
       }
     } catch {
@@ -36,7 +52,11 @@ export function referenceError(references: string[]): string | null {
   return null;
 }
 
-function normalizeDraft(value: unknown): DraftData | null {
+export function referenceError(references: string[]): string | null {
+  return validateReferences(references, false);
+}
+
+function normalizeDraft(value: unknown, allowLegacyEmptyIdna = false): DraftData | null {
   if (!value || typeof value !== 'object') return null;
   const item = value as Partial<DraftData>;
   if (!['machine', 'operations'].includes(item.kind ?? '') || typeof item.serviceId !== 'string' || item.serviceId.length > 100 ||
@@ -44,14 +64,17 @@ function normalizeDraft(value: unknown): DraftData | null {
       typeof item.preferredTime !== 'string' || item.preferredTime.length > 32) return null;
 
   const kind = item.kind as DraftData['kind'];
-  if (item.serviceId !== '' && !sampleCatalog[kind].some(service => service.id === item.serviceId)) return null;
+  if(item.technicalDetails!==undefined && (typeof item.technicalDetails!=='string'||item.technicalDetails.length>2000))return null;
+  // Keep older sample drafts readable; operational submission must separately
+  // require an approved service rather than treating a restored sample as live.
+  if (item.serviceId !== '' && !isRequestService(kind,item.serviceId) && !sampleCatalog[kind].some(service => service.id === item.serviceId)) return null;
   // The references property was added without changing the v1 key. Existing v1 drafts
   // omitted it, so normalize those records to an empty list when restoring.
   const references = item.references ?? [];
   if (!Array.isArray(references) || references.length > maxReferenceCount || references.some(reference => typeof reference !== 'string')) return null;
-  if (references.some(reference => reference.trim() !== reference) || referenceError(references)) return null;
+  if (references.some(reference => reference.trim() !== reference) || validateReferences(references, allowLegacyEmptyIdna)) return null;
 
-  return { kind, serviceId: item.serviceId, title: item.title, details: item.details, preferredTime: item.preferredTime, references };
+  return { kind, serviceId: item.serviceId, title: item.title, details: item.details, preferredTime: item.preferredTime, references, ...(item.technicalDetails===undefined?{}:{technicalDetails:item.technicalDetails}) };
 }
 
 export function readSavedDraft(accountId: string, storage?: StorageAccess, scope: DraftStorageScope = 'local'): ReadResult {
@@ -63,7 +86,7 @@ export function readSavedDraft(accountId: string, storage?: StorageAccess, scope
     try { value = JSON.parse(raw); } catch { return { status: 'invalid' }; }
     if (!value || typeof value !== 'object' || (value as { version?: unknown }).version !== 1) return { status: 'invalid' };
     const stored = value as { draft?: unknown; savedAt?: unknown };
-    const draft = normalizeDraft(stored.draft);
+    const draft = normalizeDraft(stored.draft, true);
     if (!draft) return { status: 'invalid' };
     return {
       status: 'found',

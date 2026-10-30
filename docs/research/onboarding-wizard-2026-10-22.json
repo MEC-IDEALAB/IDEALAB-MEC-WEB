@@ -1,0 +1,33 @@
+{
+  "scope": "Actual authenticated local account-access page against isolated validation project",
+  "steps": ["Your details", "Your studies", "Your MEC number", "Review"],
+  "viewport_checks": {
+    "sizes": [[320,568],[390,844],[1366,768]],
+    "themes": ["light","dark"],
+    "combinations": 24,
+    "all_steps_fit_without_document_or_card_body_scroll": true,
+    "all_navigation_controls_visible": true,
+    "horizontal_overflow": false,
+    "captures": ["artifacts/acceptance/onboarding-card-desktop.png","artifacts/acceptance/onboarding-card-phone.png"],
+    "measurements": ["artifacts/acceptance/onboarding-wizard-light-measurements.json","artifacts/acceptance/onboarding-wizard-dark-measurements.json"]
+  },
+  "interaction_checks": {
+    "empty_next_stays_on_step_and_focuses_name": "passed",
+    "keyboard_next_reaches_review": "passed",
+    "double_click_next_does_not_submit": "passed",
+    "review_contains_six_details": "passed",
+    "six_named_fields_and_one_revision_remain_mounted": "passed",
+    "back_navigation": "passed",
+    "exact_phone_sample_retention": "not established; phone changed during browser checks, no private value recorded",
+    "sample_drafts": "discarded; original user tab preserved without overwriting changed phone"
+  },
+  "regression_found_and_fixed": {
+    "issue": "React reused final Next as Submit during click and inadvertently saved navigation samples",
+    "fix": "Cancel Next default, use distinct button keys, and briefly disable newly revealed Submit against rapid double clicks",
+    "cleanup": "Exactly matched isolated sample row restored under revision/sample/no-claim guards; profile revision advanced monotonically to 2",
+    "verification": "Subsequent full navigation and double-click tests left revision 2, incomplete empty saved profile and zero registration claims"
+  },
+  "source_checks": {"lint":"passed","typescript":"passed","boundary_tests":"59 passed","production_build":"passed","independent_review":"scoped findings corrected and accepted"},
+  "remaining": ["Real user profile submission and MEC declaration", "Email/password signup and recovery", "Cross-user/concurrency and production compatibility acceptance"],
+  "production_changes": false
+}

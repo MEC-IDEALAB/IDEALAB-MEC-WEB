@@ -1,5 +1,31 @@
 # IDEALAB MEC delivery plan
 
+Current checkpoint: [account delivery status](account-readiness.md). Older account
+implementation-status paragraphs below are historical; release criteria and the
+remaining full-V1 scope still apply.
+
+Latest isolated account-test state (22 October 2026): the reviewed identity,
+profile/provisioning, admission, save and claim candidates are now installed
+**only in idealab-mec-validation** after independent review, an in-transaction
+zero-Auth guard and same-transaction preflights. Twenty-eight post-installation
+SQL assertions pass; direct anonymous profile/table/RPC access is denied and the
+private schema is unexposed. See [installation evidence](research/isolated-account-baseline-2026-10-22.json).
+Earlier "uninstalled" entries describe the preceding rollback-only snapshots.
+This is an isolated test baseline, not a production schema change or activation
+approval. Real verified-account, email/provider, Flutter and concurrency acceptance
+remain outstanding; member/Google flags stay off by default.
+
+
+Current GitHub recheck (22 October 2026): [PR #14](https://github.com/MEC-IDEALAB/IDEALAB-MEC-WEB/pull/14)
+was merged by the owner on 21 October 2026 at 12:51:22 UTC, producing
+`0504b41a1427640bd8fcbdeda48423f5ea24c05a`. Its head
+`7219815bcb3f1216264ec8a85ea46ec4be2bb6df` passed Documentation gate,
+Public foundation acceptance and Required gate. GitHub reports no formal PR
+reviews. The current `codex/modern-brutalist-home` working changes are local;
+those earlier CI results do not validate the current source or live accounts.
+Earlier statements below about keeping PR #14 draft are historical and superseded.
+No new push, merge or deployment was performed in this recheck.
+
 Current UI/auth verification: see [UI audit](ui-audit.md). It supersedes earlier notes about three-option theme menus, repeated boot loading and database timeouts. Supabase read-only connectivity is restored; shared authorization/profile-provisioning defects still block account activation.
 
 Latest repository snapshot: 21 October 2026. The private [IDEALAB-MEC-WEB repository](https://github.com/MEC-IDEALAB/IDEALAB-MEC-WEB) and linked [organization project](https://github.com/orgs/MEC-IDEALAB/projects/1) contain 14 issues, PR #14, and four milestones. Vercel remains the selected hosting target. Screenshot-inspired homepage/auth polish and responsive student previews were pushed as application source commit `3ca9b63d156d257b4b494099d66e7e7dd1a9ef09`; delivery-status corrections followed in documentation commit `dec0c7c0d736f2b85f31b4edcbc11eb2620e9985` on the existing draft [PR #14](https://github.com/MEC-IDEALAB/IDEALAB-MEC-WEB/pull/14). Node 24.19.0 lint, typecheck, all 28 boundary tests, dependency audit (zero vulnerabilities), optimized acceptance build, full Chromium acceptance, documentation validation (18 files/112 links), both JSON snapshot checks and `git diff --check` passed locally. Exact-head [Website CI, including public Chromium acceptance and required gate](https://github.com/MEC-IDEALAB/IDEALAB-MEC-WEB/actions/runs/39569259062) and [Documentation CI](https://github.com/MEC-IDEALAB/IDEALAB-MEC-WEB/actions/runs/39569259359) passed on the documentation follow-up; the application source had also passed both workflows at `3ca9b63`. Browser acceptance covers the public journey, responsive light/dark views, auth and recovery layouts including no-scroll 320×568 screens, keyboard and reduced-motion behavior, institutional assets, protected-route denial, non-persistent previews, recovery callback rejection and security headers. These results do not establish real signup, recovery, Google, profile persistence, operational authorization, full V1 or a live deployment. Vercel preview and production deployment remain unverified.
@@ -25,8 +51,9 @@ the first claimant. Comparison ignoring case and repeated/surrounding spaces,
 +country-code phone input, a coordinated Flutter update, and limited uniqueness
 inference with generic errors/save limits are settled. Full registration formats
 and technical attestation/claim enforcement remain open. See [the pilot contract](mec-pilot-admission.md).
-The authorized Free validation project is available; no schema or account tests
-have been applied there yet.
+The authorized Free validation project contains the isolated private claim-storage
+and deferred pending-claim guard described in [backend readiness](backend-readiness.md).
+Their scoped database tests passed; real account and Data API journeys remain unverified.
 
 The public-navigation follow-up committed at `a488b3a711afcbb709849fcb5840dfb730c77ee4` adds current-page indicators, native
 no-JavaScript navigation and keyboard/pointer dismissal with responsive focus
@@ -39,7 +66,7 @@ draft PR #14 records this follow-up's actual head and hosted check results.
 
 Current owner direction uses notebook cross-grid paper and the original yellow `#ffe029`/pink `#ff3994` anchors, coordinated blue `#a8c6ff`, purple `#c4b5f5`, red `#f39488` and green `#a6d9b5`, with cobalt actions and existing apricot/cream/jet-black. See [visual standard](design-system.md). Homepage content now includes Epilog, Snapmaker and Ultimaker facility photos, three broad activity themes and AICTE/CogniCor institutional context. The 11-entry `/lab` directory is published institutional content rather than live inventory; `/explore` uses officially supported March 2022 selection history. See [content provenance](content-sources.md) for verification limits. Individual event records remain signed-in only. Original local SVG artwork and HomeMotion retain progressive enhancement and reduced-motion behavior.
 
-The maker-spirit eyebrow, hero service-availability footnote and first-card boilerplate were removed at the owner’s request. Factual unavailable messages remain on account/service routes. Sign-in retains its semantic form and password show/hide control, disabled while account activation is unavailable. The auth story panels use the current shared palette and theme controls. `/sign-up` remains information/contact only, with no registration writes or OAuth. The loading skeleton remains scoped to sign-in to preserve ordinary not-found HTTP status behavior.
+The maker-spirit eyebrow, hero service-availability footnote and first-card boilerplate were removed at the owner’s request. Factual unavailable messages remain on account/service routes. Sign-in retains its semantic form and password show/hide control, disabled while account activation is unavailable. The auth story panels use the current shared palette and theme controls. `/sign-up` shows a clearly labeled, disabled email/password registration preview and Google control, with no contact CTA or account-creation writes. The loading skeleton remains scoped to sign-in to preserve ordinary not-found HTTP status behavior.
 
 MagicPath project `463330845164449792` was updated with hierarchy/wireframe annotations and earlier accent panels. It is a planning reference, not the high-fidelity source of the implemented interface. No Figma/Penpot/Canva or generated-media artifact is claimed.
 
@@ -199,7 +226,14 @@ Historical provenance in the parent Grow workspace includes `docs/00_Project/CUR
 
 ## Branded loading state
 
-The first visit in a tab shows smaller IDEALAB marks moving continuously across the notebook grid, behind a Neo-brutalist card with an animated circuit, cube, brand lockup and indeterminate progress. Dismissal waits for font readiness and a paint; the 560 ms brand reveal prevents a flash, but a slow load exits as soon as it is ready. A 190 ms fade keeps the content inert through the transition. Reduced-motion users see a static screen that exits without the reveal delay. A 4.8-second watchdog is the fail-open, blocked storage skips the loader, and repeat reloads/client navigation do not repeat it. The ordinary root 404 status remains intact; route and sign-in skeletons stay separate from the first-visit splash.
+The first visit in a tab shows a black motion-graphics canvas with drawn
+prototype geometry, masked wordmark reveals, staggered solid/outline IDEALAB
+rows and an indeterminate three-pixel pulse. Font and priority-image readiness
+are bounded, with an 840 ms minimum reveal and a 260 ms coordinated exit.
+Reduced-motion users skip the reveal delay. A fail-open watchdog releases the
+content, blocked storage skips the overlay, and repeat reloads/client navigation
+do not repeat it. Actual desktop/mobile captures and a short recording were
+inspected; the responsive browser acceptance passed. See [UI audit](ui-audit.md).
 
 ## User poster-reference collage follow-up — 21 October 2026
 
@@ -217,9 +251,10 @@ workflows remain unverified; this change does not clear the release gate.
 
 ## Shared workspace navigation follow-up — 21 October 2026
 
-The member route and no-data student preview now use a common responsive
-navigation shell: collapsible desktop rail, lower-left Settings, upper-right
-Notifications and a four-anchor mobile bar with a keyboard-operable More menu.
+Historical checkpoint, superseded by the 22 October top-navigation change:
+the member route and no-data student preview used a collapsible desktop rail
+and a four-anchor mobile bar. Current navigation is Home / Lab / Profile at
+the top, with contextual links; see [experience](experience.md).
 Protected Visits, Borrowing and Settings routes communicate that their real
 account data and operations are unavailable. The supplied editorial poster and
 event-list references inform the homepage collage and factual activity rows.
@@ -232,3 +267,13 @@ independent source reviewer confirmed the Settings layout, browser-Back menu
 closure, Machine/Operations request copy and mobile screenshot. Authenticated
 member journeys, live Supabase data, authorization and all operational V1
 workflows remain unverified. Keep activation and release gates closed.
+
+## Local acceptance follow-up — 28 October 2026
+
+The current uncommitted website source passed the optimized acceptance build
+and Chromium acceptance suite. Coverage includes public journeys at five
+widths in light and dark themes, auth layouts, keyboard and reduced-motion
+behavior, gated previews, request drafts, the disabled recovery callback and
+security headers. This fixture-based run does not verify real account creation,
+email delivery, sign-in, recovery, authenticated drafts, database permissions
+or operational backend workflows. It does not establish production readiness.

@@ -1,0 +1,44 @@
+{
+  "request": "Replace member sidebar with Home, Lab and Profile top navigation; group operational pages under Lab and account pages under Profile; use Grow UI/content hierarchy",
+  "implementation": {
+    "primary": ["Home", "Lab", "Profile"],
+    "lab": ["Overview", "Requests", "Borrowing", "Events", "Visits", "Projects"],
+    "profile": ["Your details", "Settings", "Sign out"],
+    "utilities": ["Theme", "Notifications"],
+    "existing_direct_urls": "preserved",
+    "home": "Real greeting, local-request next action and visit/project/event shortcuts",
+    "profile_editors": "Native collapsible details for six-field wizard and explicit registration management",
+    "data_boundaries": "Existing server member guards and honest disconnected states preserved; no backend mutation"
+  },
+  "grow_source_review": [
+    "lib/shared/widgets/main_shell.dart",
+    "lib/features/home/presentation/screens/rc5_home_screen.dart",
+    "lib/features/akathalam/presentation/screens/akathalam_screen.dart",
+    "lib/features/profile/presentation/screens/rc5_profile_screen.dart",
+    "lib/core/theme/rc5_design_tokens.dart"
+  ],
+  "browser": {
+    "actual_authenticated_routes": ["/app", "/app/lab", "/app/profile", "/app/settings", "/app/requests", "/app/borrowing", "/app/events", "/app/visits", "/app/projects"],
+    "widths": [320, 390, 768, 1366],
+    "themes": ["dark", "light"],
+    "signed_in_measurements": 72,
+    "horizontal_overflow_failures": 0,
+    "sidebar_elements": 0,
+    "primary_touch_targets": "at least 44px",
+    "keyboard": "Enter activates Profile; skip link focuses main; Settings selection and browser Back verified",
+    "profile": "Details and Settings contextual links, sign-out control present, editors initially collapsed; no real profile mutation",
+    "preview": "All ten screens at 320/768/1366: 30 measurements, no horizontal overflow or forms",
+    "final_polish": "Four-width recheck after raising availability labels to 12px and phone utilities to 48px; no overflow",
+    "screenshots": ["artifacts/acceptance/workspace-topnav-desktop.png", "artifacts/acceptance/workspace-topnav-phone.png"],
+    "raw_measurements": "artifacts/acceptance/workspace-topnav-measurements.json"
+  },
+  "checks": {
+    "eslint": "passed",
+    "boundary_tests": "59 passed",
+    "production_build_and_typescript": "passed",
+    "acceptance_script": "Full public/configuration/wireframe suite passed after correcting HomeMotion's old preview selector; see docs/quality/top-navigation-regression-2026-10-22.md",
+    "independent_review": "Hierarchy, responsive approach, authority boundaries and truthful states accepted; small label/docs/test findings addressed"
+  },
+  "not_claimed": ["live operational records or submission", "parent Flutter changes", "new authentication acceptance", "hosted CI", "push", "merge", "deployment"],
+  "private_fields_in_evidence": false
+}

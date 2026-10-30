@@ -1,0 +1,33 @@
+{
+  "scope": "idealab-mec-validation and local website only",
+  "auth_accounts": 0,
+  "confirmed_accounts": 0,
+  "profiles": 0,
+  "sanitized_auth_log_finding": {
+    "callback_google_invalid_client_errors": 4,
+    "password_invalid_credentials_responses": 1
+  },
+  "security_advisor": {
+    "warning_or_error_findings": 0,
+    "intentional_private_deny_direct_tables_without_policies": 2
+  },
+  "fix": "Google callback failures use a generic OAuth notice instead of password advice",
+  "independent_source_review": "accepted; no regression found in scoped notice change",
+  "checks": {
+    "lint": "passed",
+    "typescript": "passed",
+    "boundary_tests": "59 passed; 0 failed; 0 skipped",
+    "production_build": "passed",
+    "malformed_and_provider_rejected_callbacks": "307 to fixed OAuth notice; private/no-store",
+    "anonymous_workspace_profile_and_account_access": "307 to signin; private/no-store",
+    "chrome_oauth_failure_notice": "verified"
+  },
+  "unverified": [
+    "successful Google token exchange after credential correction",
+    "real email signup and confirmation",
+    "authenticated profile save and MEC claim",
+    "cross-user and concurrent real-account journeys",
+    "production rollout and hosted deployment"
+  ],
+  "credential_correction": "user private entry pending; no secret recorded"
+}

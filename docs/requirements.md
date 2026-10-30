@@ -1,5 +1,19 @@
 # IDEALAB MEC web requirements
 
+Current implementation evidence: [account delivery status](account-readiness.md).
+It supersedes older status claims below about absent/gated local account controls;
+production requirements and release gates remain unchanged.
+
+Current GitHub recheck (22 October 2026): [PR #14](https://github.com/MEC-IDEALAB/IDEALAB-MEC-WEB/pull/14)
+was merged by the owner on 21 October 2026 at 12:51:22 UTC, producing
+`0504b41a1427640bd8fcbdeda48423f5ea24c05a`. Its head
+`7219815bcb3f1216264ec8a85ea46ec4be2bb6df` passed Documentation gate,
+Public foundation acceptance and Required gate. GitHub reports no formal PR
+reviews. The current `codex/modern-brutalist-home` working changes are local;
+those earlier CI results do not validate the current source or live accounts.
+Earlier statements below about keeping PR #14 draft are historical and superseded.
+No new push, merge or deployment was performed in this recheck.
+
 Current UI/auth verification: see [UI audit](ui-audit.md). It supersedes earlier notes about three-option theme menus, repeated boot loading and database timeouts. Supabase read-only connectivity is restored; shared authorization/profile-provisioning defects still block account activation.
 
 Planning baseline: 21 October 2026. This records confirmed direction and release criteria; it does not claim the website, backend workflows or deployment is complete.
@@ -8,12 +22,19 @@ Student account creation and profile completion follow the updated product-owner
 
 ## Confirmed direction and scope
 
+22 October opening decision: lab availability follows actual authorized core
+Open/Close declarations, not fixed visiting hours. Members see the actor and
+opening/closing times, including multiple duty periods in one day. Broader staff
+work is deferred. See [opening contract](lab-opening-contract.md). This supersedes
+fixed-hours assumptions for student check-in, whose writer still requires atomic
+integration with current opening state.
+
 Latest admission decision: the initial student pilot is **MEC-only in both the
 website and Grow app**, using MEC registration numbers with `MDL` and `LMDL`
 prefixes. This supersedes open student admission and the free-text institution
 flow for the pilot. The [MEC admission contract](mec-pilot-admission.md) uses an explicit self-declaration plus one claim per normalized registration number. The pilot does not verify ownership against college records. Email verification, privacy, staff authority and shared account IDs remain distinct requirements.
 
-Build the website first using Next.js and TypeScript: a public curated homepage plus a responsive signed-in application, followed by a mobile app informed by the validated experience. Individual project/event records require sign-in. Use the existing backend and accounts. Website UI cannot be automatically treated as a completed native mobile application. Brand: **IDEALAB MEC**. Preserve and polish the existing bright ink-and-paper neo-brutalist identity. Use Vercel hosting and the private `IDEALAB-MEC-WEB` repository in `MEC-IDEALAB`. The private [organization project](https://github.com/orgs/MEC-IDEALAB/projects/1) is linked to the repository, all 14 issues and PR #14 are in the project, and four milestones were created. See [setup result](github-setup.json) and the [delivery tracker](https://github.com/MEC-IDEALAB/IDEALAB-MEC-WEB/issues/1). Draft PR [#14](https://github.com/MEC-IDEALAB/IDEALAB-MEC-WEB/pull/14) carries the current website work. The error-summary focus race found on `c56665ba890c236f868be9f727200cbc58f8cea3` was corrected in `ca08645bf6e129698d413270707389033abf38dd`; the corrected source passed [Website CI](https://github.com/MEC-IDEALAB/IDEALAB-MEC-WEB/actions/runs/39491072209) and [Documentation CI](https://github.com/MEC-IDEALAB/IDEALAB-MEC-WEB/actions/runs/39491072246). No deployment is established.
+Build the website first using Next.js and TypeScript: a public curated homepage plus a responsive signed-in application, followed by a mobile app informed by the validated experience. Individual project/event records require sign-in. Use the existing backend and accounts. Website UI cannot be automatically treated as a completed native mobile application. Brand: **IDEALAB MEC**. Preserve and polish the existing bright ink-and-paper neo-brutalist identity. Use Vercel hosting and the private `IDEALAB-MEC-WEB` repository in `MEC-IDEALAB`. The private [organization project](https://github.com/orgs/MEC-IDEALAB/projects/1) is linked to the repository, all 14 issues and PR #14 are in the project, and four milestones were created. See [setup result](github-setup.json) and the [delivery tracker](https://github.com/MEC-IDEALAB/IDEALAB-MEC-WEB/issues/1). Merged PR [#14](https://github.com/MEC-IDEALAB/IDEALAB-MEC-WEB/pull/14) contains the earlier website foundation; later refinements remain local. The error-summary focus race found on `c56665ba890c236f868be9f727200cbc58f8cea3` was corrected in `ca08645bf6e129698d413270707389033abf38dd`; the corrected source passed [Website CI](https://github.com/MEC-IDEALAB/IDEALAB-MEC-WEB/actions/runs/39491072209) and [Documentation CI](https://github.com/MEC-IDEALAB/IDEALAB-MEC-WEB/actions/runs/39491072246). No deployment is established.
 
 The requested public homepage, dark mode and neo-brutalist visual refresh are implemented and covered by local responsive browser checks. Existing request-hub work is preserved. A single Light/Dark toggle follows the operating-system preference until the user chooses a mode; that choice persists across reloads and tabs, with an in-memory fallback when storage is blocked. Semantic theme colors retain 2 px borders, hard shadows, readable availability text and literal artwork plates. The remaining work is the documented V1, starting with resolving shared identity/schema/security contracts before enabling member access.
 
@@ -44,6 +65,10 @@ The documented V1 is the product destination. Delivery is incremental: a working
 
 ## Roles and permission boundaries
 
+Payment setup checkpoint, 23 October 2026: the owner confirms IDEALAB has its own
+GPay/UPI account but does not currently have its approved payee/UPI details.
+Keep payment submission disabled; do not substitute a personal account or dummy QR.
+
 These are required product responsibilities, not proof of deployed permission grants. Preserve compatibility account roles `student`, `lab_admin`, `super_admin`; positions are separately assigned trusted responsibilities.
 
 | Actor | Intended controls | Required boundary |
@@ -61,9 +86,9 @@ These are required product responsibilities, not proof of deployed permission gr
 
 Current owner direction uses notebook cross-grid paper and the original yellow `#ffe029`/pink `#ff3994` anchors, coordinated blue `#a8c6ff`, purple `#c4b5f5`, red `#f39488` and green `#a6d9b5`, with cobalt actions and existing apricot/cream/jet-black. See [visual standard](design-system.md). Homepage content now includes Epilog, Snapmaker and Ultimaker facility photos, three broad activity themes and AICTE/CogniCor institutional context. The 11-entry `/lab` directory is published institutional content rather than live inventory; `/explore` uses officially supported March 2022 selection history. See [content provenance](content-sources.md) for verification limits. Individual event records remain signed-in only. Original local SVG artwork and HomeMotion retain progressive enhancement and reduced-motion behavior.
 
-The maker-spirit eyebrow, hero service-availability footnote and first-card boilerplate were removed at the owner’s request. Factual unavailable messages remain on account/service routes. Sign-in retains its semantic form and password show/hide control, disabled while account activation is unavailable. The auth story panels use the current shared palette and theme controls. `/sign-up` remains information/contact only, with no registration writes or OAuth. The loading skeleton remains scoped to sign-in to preserve ordinary not-found HTTP status behavior.
+The maker-spirit eyebrow, hero service-availability footnote and first-card boilerplate were removed at the owner’s request. Factual unavailable messages remain on account/service routes. Sign-in retains its semantic form and password show/hide control, disabled while account activation is unavailable. The auth story panels use the current shared palette and theme controls. `/sign-up` shows a clearly labeled, disabled email/password registration preview and Google control, with no contact CTA or account-creation writes. The loading skeleton remains scoped to sign-in to preserve ordinary not-found HTTP status behavior.
 
-The protected member route tree now uses the same collapsible desktop rail and responsive four-anchor mobile bar as the student workspace wireframe. Settings, Visits and Borrowing have protected pages with clear unavailable states. This establishes their navigation and route entry only; it does not connect records, profile preferences or operational actions. Mobile “More” groups secondary pages, with Settings included, while the notification shortcut stays in the top-right header. The student preview checks this shared component without making member data requests. Live signed-in acceptance remains a separate gate.
+The protected member route tree now uses Home / Lab / Profile top navigation across widths, shared with the no-data student wireframe. Lab groups Requests, Borrowing, Events, Visits and Projects; Profile groups account details and Settings. No member sidebar, bottom navigation or More menu remains. Existing direct module URLs and server guards are preserved. Notifications and theme stay top-right. The isolated profile save/declaration journey works; operational modules remain unavailable until their own backend acceptance. See [navigation evidence](research/workspace-topnav-2026-10-22.json).
 
 Notebook/content validation passed (session 11250, exit 0): lint, production build and real browser coverage of five homepage widths and all three facility photos; the full 11-entry `/lab` directory at 320/768/1440 px in both themes; `/explore` history and public event-theme boundaries; prior contrast, motion, no-JavaScript, draft and guard journeys. Jet-black dark-mode validation subsequently passed in session 7536, including the body and neutral section strip. Backend availability, full V1 and deployment remain unverified.
 
@@ -83,7 +108,7 @@ All remaining full-V1 operational modules are planned or gated, not implemented 
 
 ## Decisions still needed
 
-1. Exact selectable V1 service categories, machine questions and collaborator discovery/privacy. Machine/Operations routing is settled; sample category data is for design/demo only and is not verified service availability.
+1. Collaborator discovery/privacy and scoped-head routing remain open. On 22 October the owner approved Machine categories: laser cutting, 3D printing, CNC, cup printing, T-shirt printing, 3D design, laser design, lathe and woodwork; Operations: components, ICs, electronics tools and hardware. Required intake is service/title/description, with optional preferred time and references. Machine quantity/material/dimensions and Operations item/quantity/purpose may be optional. This authorizes intake categories, not stock, prices, availability or automatic machine access.
 2. Time lifecycle details: rescheduling/cancellation effects, capacity source and conflicts. Preferred-time semantics, explicit requester acceptance of changed time, keeping declined proposals open for another proposal, and no automatic expiry are settled.
 3. Authoritative machine/room-specific head roster, detailed allowed actions, handover mechanics/in-flight transaction effects and audit readers/retention. Only Super Admin assigns/revokes scoped heads and manages active-work handover/reassignment; no automatic reassignment rule is decided. Deputies/escalation remain deferred until pilot readiness.
 4. MEC registration-format/course coverage, enforceable save-limit design, technical validation lengths, approved contacts/hours, policy texts and rich-profile field matrix. Self-declared eligibility is approved for the pilot; no college-record ownership check is promised. Country-code phone input, case/space comparison, Year 1–8, coordinated Flutter rollout, generic conflict errors/save limits and private-by-default profiles are confirmed; the pilot uses canonical MEC institution and one registration claim.

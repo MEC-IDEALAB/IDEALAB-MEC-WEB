@@ -13,6 +13,10 @@ const result = spawnSync(process.execPath, ['node_modules/next/dist/bin/next', '
     NEXT_PUBLIC_SUPABASE_URL: 'https://configuration-fixture.invalid',
     NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: 'sb_publishable_configuration_fixture',
     ENABLE_MEMBER_PLATFORM: 'false',
+    ENABLE_MEMBER_PLATFORM_PRODUCTION: 'false',
+    ENABLE_MEMBER_PLATFORM_TEST: 'false',
+    IDEALAB_ISOLATED_ACCEPTANCE_BUILD: 'true',
+    ACCOUNT_ENVIRONMENT: 'production',
     ENABLE_GOOGLE_SIGN_IN: 'false',
   },
 });

@@ -1,0 +1,25 @@
+{
+  "recordedAt": "2026-10-22T04:21:01.065941+00:00",
+  "projectRef": "gvvqlfachzbufstzoiwi",
+  "scope": "Owner-approved isolated local Auth configuration; shared production unchanged",
+  "siteUrl": "http://127.0.0.1:3015",
+  "redirectUrls": [
+    "http://127.0.0.1:3015/auth/confirm",
+    "http://127.0.0.1:3015/auth/recovery/callback",
+    "http://127.0.0.1:3015/auth/callback"
+  ],
+  "approvedByOwner": true,
+  "savedAndUiVerified": true,
+  "localRuntime": "Next.js production build on 127.0.0.1:3015; isolated publishable configuration in git-ignored .env.local",
+  "googleEnabled": false,
+  "emailConfirmationRequired": true,
+  "smokeChecks": {
+    "accountEntryHttp200PrivateNoStore": true,
+    "anonymousWorkspaceRedirectToSignIn": true,
+    "anonymousAccountStatusRedirectToSignIn": true,
+    "rejectedConfirmationToConfirmationPage": true,
+    "rejectedRecoveryToForgotPassword": true
+  },
+  "realSignup": "Pending private user credential entry and inbox confirmation",
+  "productionChanged": false
+}

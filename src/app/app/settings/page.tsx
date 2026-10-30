@@ -26,11 +26,11 @@ export default async function SettingsPage() {
       <section className="workspace-card" aria-labelledby="settings-account-title">
         <Settings2 size={24} aria-hidden="true" />
         <h3 id="settings-account-title">Account settings</h3>
-        <p>Profile edits and notification preferences will appear after the shared account permissions and save flow are verified.</p>
+        <p>Review your saved details and manage your MEC registration from your profile. Notification preferences are not available yet.</p>
         <Link className="card-link" href="/app/profile">Review your profile <ArrowRight size={17} aria-hidden="true" /></Link>
       </section>
 
-      <p className="small-copy"><LockKeyhole size={15} aria-hidden="true" /> Account changes remain unavailable until the shared Grow security gate is cleared.</p>
+      <p className="small-copy"><LockKeyhole size={15} aria-hidden="true" /> Profile privacy permissions are still being validated. Theme preferences apply to this device.</p>
     </div>
   );
 }

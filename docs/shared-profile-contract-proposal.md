@@ -79,6 +79,14 @@ and the MEC-only pilot. Existing records are not assumed compliant and must not
 be silently rewritten. The safe technical bounds below do not claim to enumerate
 MEC branch formats.
 
+23 October 2026: the owner says the existing Grow users are dummy records and
+may be removed if a reviewed shared-contract migration requires it. This permits
+planning a coordinated update without preserving a legacy client write path for
+those test records. It does not establish that every related row is disposable,
+prove a recoverable backup, or authorize an unscoped purge. No identity or data
+was deleted; the shared migration still needs exact target, dependency, rollback,
+and production authorization review.
+
 | Field | Proposed rule |
 | --- | --- |
 | Name | Trim surrounding whitespace; preserve Unicode spelling; 1–120 Unicode code points; reject control characters |
@@ -178,8 +186,9 @@ existing staff and inactive identities retain their separate trusted states.
 
 ## Proposed API and permission boundary
 
-The following names describe the intended versioned API; none is currently
-implemented or callable. These profile operations need a reviewed self-declaration
+The following names describe the versioned implementation targets. Isolated
+read/provisioning/admission candidates have scoped rollback-only validation, but
+none is installed or production-callable; save/claim writes remain unimplemented. These profile operations need a reviewed self-declaration
 and unique-claim admission read/transition boundary before either client can
 authorize entry. That boundary records an attestation; it does not claim that a
 college roster or document was checked.
@@ -305,10 +314,10 @@ account, lost verification and retryable backend failure. Do not expose raw uniq
 constraint details or another account's identity. There is no roll-availability
 lookup endpoint. The owner accepted limited occupied-registration inference with
 generic errors and save limits, along with self-declared first-claim eligibility.
-The owner approved generic errors and limited repeated attempts, but did not set
-the numeric threshold. Five occupied-number collisions per verified Auth UID in
-a rolling 15-minute window is a conservative technical proposal and must be
-confirmed before production signup is activated. The private attempt-state row
+The owner confirmed five conflicts per 15 minutes on 22 October 2026. Enforce
+five occupied-number collisions per verified Auth UID in a rolling 15-minute
+window. This product decision does not authorize production activation or
+replace the required real-account and concurrency tests. The private attempt-state row
 stores only up to five collision timestamps, never the submitted number, IP
 address or user agent. After
 locking the owner's `users` row, the RPC captures one
@@ -319,8 +328,12 @@ recorded collision, rather than transaction-start `now()` after a lock wait.
 The first five occupied-number collisions are processed and recorded. Before a
 sixth candidate is checked, five still-live timestamps return the same generic
 public result as a collision. Throttled calls are not added to the array; an
-exact idempotent retry and a display-only case/space edit do not consume the
-collision limit. A collision uses targeted `ON CONFLICT (normalized_value) DO
+exact idempotent retry and a successful display-only case/space edit do not
+consume the collision limit. A display-only edit can still fail the retained raw
+roll unique constraint when an unclaimed profile holds that exact spelling. Such
+failed raw-unique checks count toward the same limit and are blocked before
+probing once the window is full; otherwise display edits would bypass the
+agreed occupancy-inference limit. A collision uses targeted `ON CONFLICT (normalized_value) DO
 NOTHING`, so the function can record its timestamp and return normally rather
 than rolling back the counter. The next claim call prunes expired timestamps and
 deletes an empty state row; each user's retained state is bounded to five
@@ -580,3 +593,23 @@ then add real Auth/Data API and coordinated Flutter/web acceptance. Keep
 legacy-schema reconciliation and the production cutover as separate release gates.
 The exact shared-project change still needs explicit authorization after concrete
 SQL and full acceptance evidence are available.
+
+
+## Current read contract candidate — 22 October 2026
+
+The admission extension returns the twelve allowlisted profile fields plus
+`mec_admitted`, with `profile_revision` serialized as canonical decimal text to
+preserve SQL bigint precision. The boolean is computed from the current verified
+Auth identity, active complete version-1 Student profile and matching current
+version-1/nonfuture self-attestation claim. Staff authority is never derived from
+that boolean. It accepts no target account ID and exposes no other claim holder.
+The read RPC stays SECURITY INVOKER with verified-owner RLS. This supersedes the
+earlier twelve-field projection as a final-client integration target, not as a
+production deployment. [Backend readiness](backend-readiness.md) records the 23
+rollback-only assertions, preserved boundaries and genuine-account test gaps.
+
+The web parser's whitespace-collapsed registration length check is entry feedback
+only, preserving the display value. JavaScript and PostgreSQL whitespace classes
+can differ; only the database normalizer/ICU claim comparison and computed
+admission result establish the canonical claim boundary. No JavaScript comparison
+key or availability preflight was introduced.

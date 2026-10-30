@@ -1,0 +1,40 @@
+/** Selected historical records and cover photos from the public IDEA Lab archive. */
+export const pastEvents = [
+  {
+    title: 'TRIAD',
+    date: '10 SEP 2025',
+    image: '/events/triad.jpeg',
+    alt: 'Students collaborating around laptops during the TRIAD workshop.',
+    accent: 'var(--signal-lime)',
+    accentInk: '#171717',
+    pixels: ['1010101', '0100001', '1000001', '0010000', '0100010', '1010101'].join(''),
+  },
+  {
+    title: 'ARDUIGNITE',
+    date: '02 AUG 2025',
+    image: '/events/arduignite.jpeg',
+    alt: 'Participants gathered for the ARDUIGNITE event.',
+    accent: 'var(--signal-magenta)',
+    accentInk: '#171717',
+    pixels: ['1010101', '0101010', '1010101', '0010000', '0100001', '1000010'].join(''),
+  },
+  {
+    title: 'Technical training for school students',
+    date: '04 AUG 2024',
+    image: '/events/robotics-training.jpg',
+    imagePosition: 'center top',
+    alt: 'IDEA Lab students building an open-source robot; alternate archive workshop photo.',
+    accent: 'var(--signal-blue)',
+    accentInk: '#ffffff',
+    pixels: ['1110111', '0100010', '1000001', '0101010', '1010001', '0101010'].join(''),
+  },
+  {
+    title: 'TinyML hands-on workshop',
+    date: '22 AUG 2023',
+    image: '/events/raspberry-pi-workshop.jpg',
+    alt: 'IDEA Lab students working with Raspberry Pi; alternate archive workshop photo.',
+    accent: 'var(--accent-yellow)',
+    accentInk: '#171717',
+    pixels: ['1001001', '0100010', '0010100', '0100010', '1001001', '0100100'].join(''),
+  },
+] as const;

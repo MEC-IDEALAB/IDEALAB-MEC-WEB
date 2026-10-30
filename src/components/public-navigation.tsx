@@ -3,9 +3,16 @@
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useEffect, useRef, type MouseEvent } from 'react';
-import { Menu } from 'lucide-react';
+import { CalendarDays, Compass, FlaskConical, FolderKanban, House, Menu } from 'lucide-react';
 
 const links = [['Explore', '/explore'], ['The lab', '/lab'], ['Projects', '/projects'], ['Events', '/events']];
+const mobileLinks = [
+  { label: 'Home', href: '/', icon: House },
+  { label: 'Explore', href: '/explore', icon: Compass },
+  { label: 'Lab', href: '/lab', icon: FlaskConical },
+  { label: 'Projects', href: '/projects', icon: FolderKanban },
+  { label: 'Events', href: '/events', icon: CalendarDays },
+];
 
 function NavigationLinks({ onSelect }: { onSelect?: (event: MouseEvent<HTMLAnchorElement>) => void }) {
   const pathname = usePathname();
@@ -81,4 +88,23 @@ export function MobileNavigation() {
     <summary aria-label="Navigation menu"><Menu size={23} aria-hidden="true" /></summary>
     <nav aria-label="Mobile navigation"><NavigationLinks onSelect={selectLink} /></nav>
   </details>;
+}
+
+/** Public mobile destinations stay reachable in a fixed, thumb-friendly bar. */
+export function MobileBottomNavigation() {
+  const pathname = usePathname();
+  return (
+    <nav className="public-mobile-nav" aria-label="Mobile primary navigation">
+      {mobileLinks.map(({ label, href, icon: Icon }) => (
+        <Link
+          key={href}
+          href={href}
+          aria-current={pathname === href || pathname.startsWith(`${href}/`) ? 'page' : undefined}
+        >
+          <Icon size={19} strokeWidth={1.8} aria-hidden="true" />
+          <span>{label}</span>
+        </Link>
+      ))}
+    </nav>
+  );
 }

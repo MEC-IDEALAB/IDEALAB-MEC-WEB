@@ -1,5 +1,21 @@
 # Shared backend readiness and onboarding gate
 
+Current checkpoint: [account delivery status](account-readiness.md) supersedes
+historical statements below that signup/save/claim controls are absent. Genuine
+isolated Google login/provisioning passed; shared production activation is not cleared.
+
+Latest isolated account-test state (22 October 2026): the reviewed identity,
+profile/provisioning, admission, save and claim candidates are now installed
+**only in idealab-mec-validation** after independent review, an in-transaction
+zero-Auth guard and same-transaction preflights. Twenty-eight post-installation
+SQL assertions pass; direct anonymous profile/table/RPC access is denied and the
+private schema is unexposed. See [installation evidence](research/isolated-account-baseline-2026-10-22.json).
+Earlier "uninstalled" entries describe the preceding rollback-only snapshots.
+This is an isolated test baseline, not a production schema change or activation
+approval. Real verified-account, email/provider, Flutter and concurrency acceptance
+remain outstanding; member/Google flags stay off by default.
+
+
 Status: production remains review-plan only. A storage-only validation candidate
 has been tested and applied to the owner-approved Free validation project; it is
 not a production/shared Grow migration or profile API. This does not approve a
@@ -198,9 +214,9 @@ eligibility and head assignments, regardless of which UI is used.
 
 ## Cross-client document drift found during the Grow source review
 
-A read-only review of the parent `F:\kannan\projects\Grow` checkout on 21
-October 2026 found that several current web decisions have not been reconciled
-across the Grow documentation set. The parent checkout contains extensive
+A read-only review of the Grow checkout on 21 October 2026 (then at
+`F:\kannan\projects\Grow`, now at `F:\kannan\projects\IDEALAB\Grow`) found that several current web decisions have not been reconciled
+across the Grow documentation set. The Grow checkout contains extensive
 uncommitted changes; those files were inspected but not edited. Resolve and
 commit the cross-client contract before either app enables live account or
 operational writes.
@@ -398,8 +414,17 @@ A follow-up validation-only migration,
 adds a private, initially deferred constraint trigger. It rejects a claim that
 is still pending when its deferred check runs and permits a pending claim that
 has been resolved to current in the same transaction. The migration is not in
-`supabase/migrations/` and is not a production rollout artifact. Its separate
-five-assertion pgTAP suite,
+`supabase/migrations/` and is not a production rollout artifact.
+
+Historical qualification: the original invoker guard and five temporary-probe
+tests below did not cover the authenticated deferred execution context. A real
+declaration later failed with `42501`. The [reviewed privilege correction](research/pending-guard-privilege-fix-2026-10-22.json)
+is now installed only in isolation; the current test file contains thirteen
+boundary assertions and rejects arbitrary trigger attachments. A genuine
+successful claim/commit retry remains pending. The following five-test results
+describe only the earlier postgres-run temporary probe.
+
+The original five-assertion pgTAP suite,
 [`mec_pending_claim_commit_guard.test.sql`](../supabase/tests/database/mec_pending_claim_commit_guard.test.sql),
 passed with `finish(true)` both in a rollback-only preflight and after the
 migration was installed. The behavior checks use a temporary probe table and
@@ -427,3 +452,292 @@ remain incomplete by design while no API roles can access it. Keep the exact
 five-per-15-minute threshold unapproved and member activation disabled. The
 [sanitized test evidence](research/validation-storage-slice-2026-10-21.json)
 records the verified boundary and remaining gates.
+
+
+## Account-access follow-up
+
+A metadata-only recheck still finds `users_read_all` with an unconditional `true` SELECT predicate, alongside own-ID insert and update policies. No account rows were read. The isolated project public Auth settings endpoint responds successfully: email signup is enabled, email confirmation is required and Google is disabled. The project owner supplied a permitted test inbox for live email confirmation/recovery; the address is deliberately omitted from this document. No signup or recovery message has been sent and no Auth identity was created in this follow-up. The dashboard browser is signed out; the connected plugin does not expose callback/provider-setting updates, so callback configuration and Google setup remain pending private dashboard sign-in. A local validation-only verified-email predicate candidate is being prepared separately; it is not a production profile API or activation.
+
+
+The needed validation project subsequently opened successfully in the existing signed-in Chrome session. Its Auth URL configuration currently has Site URL `http://localhost:3000` and no additional redirect URLs. These are read-only observations: no values were changed. The earlier in-app dashboard tab was signed out. New metadata also confirms `auth.users` has RLS enabled (`relrowsecurity=true`, `relforcerowsecurity=false`), so the local identity-reader candidate intentionally refuses the actual current target; an Auth-reader permission-chain revision is required before it can be run. The candidate and its 28-assertion pgTAP source passed static checks and independent ACL review after inherited-schema privilege checks were added. PostgreSQL parsing, pgTAP runtime and live Auth success were not run.
+
+
+## Verified-email helper rollback validation — 22 October 2026
+
+The previously blocked custom-owner design was tested only inside rollback
+transactions against `idealab-mec-validation`. The first probe caught function
+ownership/grant ordering; the second caught missing Auth-schema usage. A
+metadata recheck explains the latter: the managed `auth` schema grants `postgres`
+USAGE without grant option, so it cannot pass that schema access to a new role.
+Both failed probes rolled back, with absence of the new role/helper verified.
+
+The current [candidate](../supabase/validation/mec_profile_api_candidate.sql)
+instead uses a fixed zero-argument boolean helper owned by the existing
+privileged `postgres` role. This is explicitly a privileged definer boundary,
+not a least-privileged custom owner. It binds to `auth.uid()`, reads only the
+current caller's confirmed non-anonymous email state, uses an empty search path,
+and grants only authenticated execution. It creates no Auth role, policy,
+identity, profile writer or admission rule. Independent static security review
+found no additional blocker for the rollback-only probe. Future private
+functions still need their own transactional execution-grant review.
+
+The actual dashboard exposed-schema list was checked read-only: `public` and
+`graphql_public` are selected; `idealab_private` is excluded. API settings were
+not changed. The [structural/negative pgTAP suite](../supabase/tests/database/mec_profile_api_candidate.test.sql)
+then executed **21 planned / 21 run / 0 failed** assertions, with `finish(true)`,
+inside a transaction that was rolled back. This includes actual anon and
+service-role helper-call denials, no-identity rejection, spoofed-metadata
+rejection, catalog/ACL checks and the closed claim-table boundary. Post-rollback
+metadata confirms no helper, custom reader role or pgTAP extension remains, and
+none of the three API roles has private-schema USAGE. No production change was
+made. See [sanitized evidence](research/verified-email-helper-rollback-2026-10-22.json).
+
+The separate [verified-row acceptance source](../supabase/tests/database/mec_verified_identity_acceptance.test.sql)
+is **unexecuted** and requires a real, owner-approved confirmed Auth account.
+Its SQL claim instrumentation would still not prove signed-JWT or Data API
+integration. Real verified/unverified/anonymous/deleted identity transitions,
+email delivery, recovery, Google convergence, profile provisioning, claim
+concurrency/throttling, and Flutter/web account journeys remain incomplete.
+Keep account activation disabled. The current candidate has not been installed.
+
+
+## Isolated profile read/provisioning rollback validation — 22 October 2026
+
+The new [profile read/provisioning candidate](../supabase/validation/mec_profile_read_provisioning_candidate.sql)
+was independently reviewed, then executed with the verified-email helper inside
+one rollback-only transaction in the approved isolated project. A fresh catalog
+preflight confirmed PostgreSQL 17.11, the existing maintenance role's managed
+Auth TRIGGER and ID REFERENCES privileges, no existing non-internal Auth
+triggers, and an empty public application schema.
+
+The candidate reproduces the observed nineteen profile columns/defaults and six
+non-club constraints, adds institution/department/study-year/version/revision,
+and preserves the raw roll-number uniqueness constraint. It deliberately omits
+the club foreign key and all operational dependencies; this is not complete
+shared-schema or migration parity. Forced RLS and column grants permit only
+verified current-owner reads of the twelve-field profile projection. No API
+role has direct writes or access to excluded profile columns. The read RPC is
+SECURITY INVOKER and does not return or establish MEC admission.
+
+The private provisioning trigger creates a Student/active/incomplete row for a
+new non-anonymous email identity or an anonymous-to-email conversion, ignores
+editable authority metadata and never overwrites an existing ID. This describes
+reviewed code, **not proven genuine-account trigger behavior**. No Auth account
+was created, converted, altered or deleted. Existing identities were not
+backfilled.
+
+The initial 32 assertions passed. After adding exact catalog comparisons, the
+current [suite](../supabase/tests/database/mec_profile_read_provisioning_candidate.test.sql)
+executed **35 planned / 35 run / 0 failed** assertions with `finish(true)`.
+Coverage includes exact legacy column metadata and retained constraints, added
+checks, RLS/trigger catalog shape, the column allowlist, and actual SQL denials
+for excluded reads, client insert/update/delete/truncate and anonymous/service
+RPC calls. No owner/cross-owner fixture or signed JWT was fabricated. The
+transaction rolled back. Fresh metadata confirms no profile table, read RPC,
+provisioner, helper or pgTAP extension remains; Auth has zero non-internal
+triggers and the three API roles still lack private-schema USAGE. Nothing was
+installed or changed on the shared project. See [sanitized evidence](research/profile-read-provisioning-rollback-2026-10-22.json).
+
+At the initial projection review, the web guard still used a three-column
+active-only lookup. The subsequent admission-aware gate below replaces that
+lookup; a new active but incomplete profile no longer opens the workspace.
+The complete read/admission contract still needs genuine-account acceptance.
+The updated identity guard independently rejects anonymous/missing-email identities
+before any profile lookup; its 29-boundary-test source, lint, TypeScript,
+optimized build and public/configuration browser regression pass locally.
+Real account provisioning, confirmation, conversion, idempotency, staff/inactive
+preservation, own/cross-owner Data API reads, save/claim operations, concurrent
+claims, Flutter rollout and live account journeys remain incomplete. Keep
+member activation off and both SQL candidates uninstalled.
+
+
+## Admission-aware read and web gate — 22 October 2026
+
+The new [admission read candidate](../supabase/validation/mec_profile_admission_read_candidate.sql)
+extends only the prior same-transaction empty profile projection. Its private
+caller-only boolean requires verified non-anonymous Auth, active Student role,
+complete version-1 six-field profile, and that owner's matching current
+version-1 self-attestation claim. It does not verify registration ownership or
+grant staff/operational powers. The public invoker read now returns thirteen
+fields, including `mec_admitted` and decimal-text revision. Existing twelve-field
+consumers are not compatible with this final-client candidate until updated.
+
+Independent review found a concrete false-completion edge: default PostgreSQL
+`btrim` would accept NBSP-only name/department. The corrected checks trim POSIX
+outer whitespace without collapsing internal text; phone validation also rejects
+control characters. The [current test suite](../supabase/tests/database/mec_profile_admission_read_candidate.test.sql)
+passed **23 planned / 23 run / 0 failed** assertions with `finish(true)` inside a
+rollback transaction. This covers metadata/ACLs, actual SQL role denials,
+missing-identity/spoofed-metadata rejection and expression-level whitespace/phone
+vectors. It does not execute a genuine account/profile/claim positive. The
+transaction rolled back, and metadata confirms no profile/read/admission/email
+helper/provisioning objects, non-internal Auth triggers, pgTAP or API private
+schema usage remain. See [sanitized evidence](research/admission-read-rollback-2026-10-22.json).
+
+The web account loader now consumes the exact owner-bound thirteen-field response.
+Version-0/invalid incomplete Students remain incomplete; a complete Student with
+no backend admission remains admission-required; trusted active staff keep their
+separate path. Inactive, unverified and malformed/unavailable responses cannot
+open the workspace. `requireMember` redirects non-ready accounts outside the
+operational layout, and workspace page callers also enforce it. A private,
+noindex `/account-access` page presents distinct status guidance. The subsequent local profile-save integration is recorded below; declaration/
+claim writes remain unavailable. The subsequent local profile-save integration is recorded below. No raw table-read fallback exists.
+
+Node 24 lint/TypeScript, **38 boundary tests**, optimized production build and full
+public/configuration browser regression passed. Browser coverage includes
+unauthenticated denial/private no-store headers on the new status route; it does
+not impersonate a session to render successful account states. Independent source
+review found no bypass/redirect loop; its own attempted tests used unsupported
+Node 20 and did not execute, so runtime evidence is the main agent's Node 24 run.
+Real profile saves/claims, email signup/confirmation/resend, Google convergence,
+Data API admission and Flutter/web acceptance remain incomplete. All database
+candidates are uninstalled and member activation remains disabled.
+
+
+## Profile save candidate — 22 October 2026
+
+The local profile-save SQL candidate adds an exact six-field validator and an
+owner-only revision-checked writer. It locks the current caller's profile row,
+checks current verified identity and active status, and derives completion and
+contract version from the validated fields. Clients cannot supply roles,
+activation, completion or admission authority. Revisions remain decimal text.
+Changing an existing claimed number requires a separate claim transition.
+The retained raw roll unique constraint still applies before normalized claims;
+a profile save alone does not establish student admission.
+
+The isolated rollback suite passed **44 planned / 44 run / 0 failed** assertions.
+A fresh catalog query confirms the candidate profile/collision tables and
+read/save/helper routines are absent, no non-internal Auth triggers or pgTAP
+remain, and API roles have no private-schema usage. See the
+[sanitized save evidence](research/profile-save-rollback-2026-10-22.json).
+The owner approved the five-collision/15-minute limit on 22 October 2026.
+Real concurrent-account testing remains required before rollout.
+
+The local web form now calls the authenticated Server Action, sends only six
+profile fields plus expected revision, preserves drafts on failure, and offers
+explicit reload after a conflict or uncertain save response. A successful RPC
+response triggers server revalidation; it never grants admission from client
+state. Incomplete owners use the private account-access page, while admitted
+Students edit on their profile page. Staff editing is still deferred.
+Independent review found no owner/authority bypass; misleading reservation copy
+and the uncertain-save reload affordance were corrected. Forty-five boundary
+tests, ESLint and TypeScript pass. Real account rendering, committed persistence,
+concurrent edits, claims and Flutter compatibility remain unverified. No candidate
+was installed, no shared production schema changed, and activation stays off.
+
+A read-only aggregate of the shared profile table found six profiles, all active,
+two trusted staff-role rows, four legacy completion flags, four missing phones,
+and four missing registration values; no names were missing. These are separate
+marginal counts and do not establish which completion flags overlap missing
+fields. No individual profile values or identifiers were exported. Preserve
+existing accounts and staff authority; do not infer or silently backfill values.
+
+The final profile-save recovery-affordance revision also passed ESLint, TypeScript,
+optimized build and the full public/configuration Chromium regression. These
+checks still do not establish live account persistence.
+
+
+## Email account integration — 22 October 2026 (in progress)
+
+The local source now contains password signup, strict credential input, a separate
+PKCE email-confirmation callback independent of Google, and generic resend
+confirmation feedback. Signup sends no role/profile authority metadata. The
+confirmation callback clears its temporary local session before intentional sign-in.
+Account-entry pages and callbacks use private no-store responses. Callback parsing
+rejects duplicate codes, malformed flow IDs and external return destinations;
+Google/recovery use the same parser. The signup/signin card now keeps its URL in
+sync, including browser history and refresh. Signup uses an eight-character minimum;
+existing short passwords may still sign in, while password replacement uses the
+new minimum. No password or email address is stored in URLs or source.
+
+A real production browser run found signup overflow at 1366×768. Shortened
+secondary copy and spacing corrected it; five desktop/phone baseline sizes in both
+themes pass the focused browser check, and short-height scrolling remains available.
+The corrected optimized-build public/configuration browser regression passed,
+including enabled email forms, Google-off signup, private responses, malformed
+confirmation rejection, and signup-card URL/refresh continuity. Fifty-two
+boundary tests, ESLint, TypeScript and optimized build pass. Independent review
+found two low-severity edges (C1 controls and SDK sign-out failure); both were fixed.
+
+The dashboard browser currently reports local browser use disabled in Work
+settings. Auth callback configuration, real email confirmation/resend/recovery,
+Google setup, session cookies and committed profile/admission persistence remain
+unverified. Supabase's built-in email sender supports team-address tests only and
+is not a production public-signup sender; custom SMTP is required. No account was
+created or test email sent by this slice; no production setting/schema was changed.
+The member/Google activation flags remain off.
+
+
+The local registration-claim candidate now records explicit self-declaration,
+locks the same owner profile row as saves, and atomically reserves/replaces the
+normalized claim with profile display/revision updates. Exact idempotent retries
+write nothing; failed raw-unique collisions (including display-only edits) share
+the approved five-per-15-minute counter. A raw 4096-code-point resource bound
+precedes normalization; the normalized number remains capped at 64 characters.
+Only MDL/LMDL prefixes are confirmed; no exhaustive official format is invented.
+Independent review and **28 planned/run, zero failed** rollback-only assertions
+passed. Fresh absence/ACL checks confirm rollback and zero isolated Auth accounts.
+See [claim evidence](research/registration-claim-rollback-2026-10-22.json).
+Genuine claims, swaps, collisions, concurrency, immediate-constraint rollback and
+signed Data API behavior remain unverified; no installation or production change
+is established by these tests.
+
+A read-only request using the isolated project publishable key reached the real
+Auth settings endpoint (HTTP 200): email provider enabled, signup enabled,
+email autoconfirm false and Google provider false. No credentials/session were
+created, no email sent and no Auth settings changed by that request.
+
+A live read-only Data API schema probe against a nonexistent table with
+`Accept-Profile: idealab_private` returned HTTP 406 / PGRST106 (invalid schema),
+confirming that namespace is not currently exposed. The OpenAPI-root request
+was rejected by the gateway and was not used as exposure evidence. No personal
+rows were requested.
+
+
+## Validation foreign-key indexes — 23 October 2026
+
+The Supabase performance advisor identified ten unindexed foreign-key
+constraints in the isolated schema. I reviewed the live table/index catalog and
+the installed migration source, then applied the additive
+[`validation_fk_indexes_v1` migration](../supabase/validation/20261023081307_validation_fk_indexes_v1.sql)
+to `idealab-mec-validation` only. It creates eight B-tree indexes: one for each
+uncovered foreign-key path, with two composite indexes also covering their
+single-column actor references. Postflight checks and a fresh catalog query
+confirmed all eight indexes are valid and ready; the performance advisor no
+longer reports unindexed foreign keys.
+
+The advisor now reports nine unused-index notices because the isolated tables
+have little test traffic. These indexes remain useful for referential checks and
+future owner/history queries; the test database's idle workload is not a reason
+to remove them. The 18 RLS-without-policy notices are the expected private or
+deliberately ungranted tables, and leaked-password protection remains disabled
+on the Free plan. No data, grants, policies, Auth settings, or shared Grow
+production schema changed.
+
+
+## Live isolated Auth setup — 22 October 2026
+
+Browser access was restored after the owner enabled Local browser use and restarted
+the desktop app. The owner explicitly approved the isolated Site URL
+`http://127.0.0.1:3015` and its three exact confirmation/recovery/OAuth callbacks;
+all were saved and visibly verified in the validation dashboard. Shared Grow
+production settings remain unchanged. See [callback evidence](research/isolated-auth-callbacks-2026-10-22.json).
+
+The local site is now running a production build against that isolated project.
+Its new `.env.local` is git-ignored and contains only the isolated public config
+and test activation flags; default example/production activation stays off.
+Actual HTTP smoke checks confirm private/no-store account pages, anonymous denial
+on both private entry routes, and safe rejected-confirmation/recovery redirects.
+Google stays off because its provider is not configured. No production SMTP
+service is configured. The owner has the live signup page for private password
+entry and inbox confirmation; no genuine email, signup or session success has
+been established yet. Credentials and confirmation URLs must stay out of logs,
+source, screenshots and evidence files.
+
+The integrated declaration action now rereads the authenticated owner's exact
+profile after a claim receipt and requires an admitted active Student with the
+same revision and display number before returning success. Independent review
+accepted this correction. Fifty-nine boundary tests, lint/TypeScript and the
+optimized build pass; public/configuration browser acceptance passed before
+this final protected-action hardening. Genuine admitted form rendering and
+persistence remain part of the pending real-account journey.

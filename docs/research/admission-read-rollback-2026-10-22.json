@@ -1,0 +1,37 @@
+{
+  "capturedAt": "2026-10-21T22:32:46.824208+00:00",
+  "project": "idealab-mec-validation",
+  "projectRef": "gvvqlfachzbufstzoiwi",
+  "scope": "Rollback-only thirteen-field admission read structure/denials and field-expression regressions; no genuine account or production acceptance",
+  "planned": 23,
+  "executed": 23,
+  "failed": 0,
+  "finishTrue": true,
+  "transactionRolledBack": true,
+  "postRollback": {
+    "usersAbsent": true,
+    "profileRpcAbsent": true,
+    "emailHelperAbsent": true,
+    "admissionHelperAbsent": true,
+    "provisionerAbsent": true,
+    "noninternalAuthTriggers": 0,
+    "pgtapAbsent": true,
+    "apiPrivateSchemaUsageAbsent": true
+  },
+  "independentReview": "profile_api_security_review: whitespace defect corrected and re-reviewed before probe",
+  "files": {
+    "supabase/validation/mec_profile_api_candidate.sql": "bdf8e52813a49dc0dbe044db13e482b288a0bbd286e75c4dfa24d0e4f416cf8f",
+    "supabase/validation/mec_profile_read_provisioning_candidate.sql": "5bc657ebd800b9325a8920ef3ce0f69b7dc6bea7a226e7e81c84662a6bbb52b7",
+    "supabase/validation/mec_profile_admission_read_candidate.sql": "285c03b7f6707aeb6afa2c9937b94783bf679f4f58380f621e31aa3c32136894",
+    "supabase/tests/database/mec_profile_admission_read_candidate.test.sql": "d693231c7c429ebd4a5d7d758acfa06f433df4f5bde28bd969e2b4ece77432ed"
+  },
+  "notVerified": [
+    "Genuine current Student/staff/inactive account paths",
+    "Actual verified/unverified/anonymous/deleted Auth transitions",
+    "Real claim/admission positives and negative transitions",
+    "Email, Google and Data API flows",
+    "Save/claim writers, concurrency, throttling and Flutter integration"
+  ],
+  "installed": false,
+  "productionChanged": false
+}

@@ -4,9 +4,7 @@ import { ArrowLeft, ArrowUpRight, CircleDashed } from 'lucide-react';
 import { requireMember } from '@/lib/member';
 const modules: Record<string, { title: string; description: string; state: string }> = {
   requests: { title: 'Your work requests', description: 'Machine work and Operations support, with a clear next step.', state: 'Online submission and request history are not connected yet. You can prepare a request on this device.' },
-  projects: { title: 'Projects', description: 'Make room for your next idea.', state: 'Project discovery and creator-approved membership are being connected.' },
   events: { title: 'Events & workshops', description: 'Learn something. Make something. Meet your people.', state: 'Event listings and registration are being connected. Contact the lab for the current programme.' },
-  lab: { title: 'The lab', description: 'A space to explore, build and learn.', state: 'Online check-in, approved equipment information and borrowing are being connected. Please check with the lab team before visiting or using equipment.' },
   notifications: { title: 'Your notifications', description: 'Updates that keep your work moving.', state: 'Notifications are being connected. No live updates are available here yet.' },
 };
 export default async function ModulePage({ params }: { params: Promise<{ module: string }> }) {

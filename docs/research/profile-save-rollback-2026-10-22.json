@@ -1,0 +1,38 @@
+{
+  "recordedAt": "2026-10-21T22:53:08.104852+00:00",
+  "project": "idealab-mec-validation",
+  "projectRef": "gvvqlfachzbufstzoiwi",
+  "scope": "Rollback-only profile save validation, metadata, ACL and role denials; no real account persistence acceptance",
+  "planned": 44,
+  "executed": 44,
+  "failed": 0,
+  "finishTrue": true,
+  "transactionRolledBack": true,
+  "postRollback": {
+    "profileTableAbsent": true,
+    "collisionTableAbsent": true,
+    "candidateRoutinesAbsent": true,
+    "authNoninternalTriggers": 0,
+    "pgtapAbsent": true,
+    "anonPrivateUsage": false,
+    "authenticatedPrivateUsage": false
+  },
+  "files": {
+    "supabase/validation/mec_profile_api_candidate.sql": "bdf8e52813a49dc0dbe044db13e482b288a0bbd286e75c4dfa24d0e4f416cf8f",
+    "supabase/validation/mec_profile_read_provisioning_candidate.sql": "5bc657ebd800b9325a8920ef3ce0f69b7dc6bea7a226e7e81c84662a6bbb52b7",
+    "supabase/validation/mec_profile_admission_read_candidate.sql": "285c03b7f6707aeb6afa2c9937b94783bf679f4f58380f621e31aa3c32136894",
+    "supabase/validation/mec_profile_save_candidate.sql": "7819b750a01cfa0ad14d831ad6574f6cbc96e1fc73d975c9a199766c316a7a1e",
+    "supabase/tests/database/mec_profile_save_candidate.test.sql": "f80b177698c24b265ed9c8735be08d285c50e3235b8757c2b28169064df53d1e"
+  },
+  "independentReview": "profile_api_security_review: no pre-probe SQL blocker; frontend owner/allowlist review passed with recovery-copy corrections",
+  "notVerified": [
+    "Genuine Auth profile provisioning and owner read/save",
+    "Committed saves and lost-response recovery",
+    "Concurrent saves or uniqueness collisions",
+    "Five-collision/15-minute candidate limit timing and owner acceptance",
+    "Claim/declaration writer and cross-client rollout",
+    "Email confirmation/recovery and Google OAuth"
+  ],
+  "installed": false,
+  "productionChanged": false
+}

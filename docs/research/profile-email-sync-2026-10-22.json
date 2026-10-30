@@ -1,0 +1,25 @@
+{
+  "scope": "idealab-mec-validation only; no production changes",
+  "defect": "Original insert/conversion provisioning left copied unique profile email stale after a regular Auth email change",
+  "preflight": {
+    "existing_profile_triggers": 2,
+    "confirmed_email_mismatches": 0,
+    "sync_function_absent": true,
+    "postgres_executor_and_rls_bypass": true,
+    "provisioning_owner_fixed_definer_empty_search_path": true
+  },
+  "source": "supabase/validation/mec_profile_email_sync_candidate.sql",
+  "tests": "supabase/tests/database/mec_profile_email_sync_candidate.test.sql",
+  "review": "Independent source review accepted after correcting a schema-permission test to preserve the baseline",
+  "rollback_trial": "15 catalog/ACL assertions passed with finish(true); function/trigger absence and unchanged profile verified after rollback",
+  "installation": "Same candidate and corrected 15-test suite committed together in isolated project",
+  "boundary": {
+    "fires_for": ["email updates", "email confirmation timestamp updates"],
+    "requires": ["exact reviewed Auth row trigger", "nonanonymous identity", "confirmed nonblank current email"],
+    "writes": "Only email on existing same-ID profile when different",
+    "no_backfill_or_auth_row_mutation": true,
+    "no_revision_authority_or_claim_change": true,
+    "direct_api_execution": "revoked"
+  },
+  "unverified": ["genuine provider email-change transition", "uniqueness-collision behavior", "old-address reuse across two genuine accounts", "production rollout"]
+}

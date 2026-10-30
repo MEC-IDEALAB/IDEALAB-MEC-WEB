@@ -12,6 +12,7 @@ const messages: Record<string, { kind: 'error' | 'status'; text: string }> = {
   requested: { kind: 'status', text: 'If this address can receive account recovery email, a link will arrive shortly. Check your inbox and spam folder; this message is the same whether or not an account exists.' },
   invalid: { kind: 'error', text: 'Enter a valid email address and try again.' },
   expired: { kind: 'error', text: 'That recovery link is missing or expired. Request a fresh link to continue.' },
+  callback: { kind: 'error', text: 'We could not finish opening the recovery link. Request a fresh link and open it in this browser.' },
   configuration: { kind: 'error', text: 'Account recovery is not available right now. Contact the lab team for help.' },
 };
 

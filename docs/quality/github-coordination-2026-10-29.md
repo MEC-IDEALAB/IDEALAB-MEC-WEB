@@ -1,6 +1,35 @@
 # GitHub coordination and current-source checks — 29 October 2026
 
-## GitHub organization and project
+## Current status — 31 October 2026
+
+PR #19 merged into `main` at `f0d8ab0ad3084f6cc4e8727d9e07686f9105faf0`.
+Website CI, its required gate, and Documentation CI passed on the exact PR head
+and merged commit. Local lint, typecheck, 128 boundary tests, dependency audit,
+optimized build, Chromium acceptance, journal checks and documentation checks
+also passed. The merged scope is the website/member foundation plus a PWA
+manifest and icons; it does not complete production auth, shared Grow access,
+operational workflows, hosted PWA installation or APK delivery.
+
+Vercel has no project connected to the website repo; creating one returned 403,
+and the local CLI has no credentials. Render lists only the unrelated LINKER
+service. The public `MEC-IDEALAB/Grow-by-IL` repository exists at
+`3015c4ef6c6963c265fd644689fc8dd4fc2042be`; its default branch contains three
+workflow files and repository Actions permissions are enabled, but GitHub's
+workflow registry and run list return zero. The connected account cannot inspect
+organization-level Actions policy (403). The local Grow worktree has extensive
+uncommitted user changes, including a workflow edit; those edits were preserved
+and not copied or pushed.
+
+Issue #13 and the delivery project record the remaining access and release
+gates. Production auth remains source-disabled. This status supersedes the
+29 October snapshot below.
+
+## Historical GitHub recheck — 29 October 2026
+
+The following project, source, and CI notes are a dated snapshot. Their PR
+status and counts are superseded by the 31 October status above.
+
+### GitHub organization and project
 
 - `MEC-IDEALAB/Grow-by-IL` already exists as a public fork of `NAVANEETHVVINOD/Grow-by-IL`. Their `main` branches both resolved to `3015c4ef6c6963c265fd644689fc8dd4fc2042be` when checked.
 - The private organization project [IDEALAB MEC — V1 delivery](https://github.com/orgs/MEC-IDEALAB/projects/1) contains 24 items: 17 website issues, the merged PR #14, and six Grow issues (#84, #86, #87, #88, #97 and #113).

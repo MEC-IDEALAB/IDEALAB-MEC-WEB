@@ -1,12 +1,14 @@
 # Vercel delivery preparation
 
-Verified against official documentation on 21 October 2026 and the connected hosting accounts on 23 October 2026. Vercel account access works, but a scoped project lookup for `MEC-IDEALAB/IDEALAB-MEC-WEB` returned no project. Render has no IDEALAB web service in its connected workspace; its unrelated service was left untouched. No preview URL, domain or deployment is available, and continuous deployment is not connected. The local Vercel CLI also reports that its saved token is invalid; no token value is recorded here.
+Rechecked on 31 October 2026. Website foundation PR #19 is merged to `main` at `f0d8ab0ad3084f6cc4e8727d9e07686f9105faf0`; exact-head and main-commit Website/Documentation CI passed. Vercel has no project linked to `MEC-IDEALAB/IDEALAB-MEC-WEB`, and project creation returned HTTP 403. The local Vercel CLI has no saved credentials. Render has no IDEALAB web service in its connected workspace; its only listed service is the unrelated LINKER service. No preview URL, domain or deployment is available, and continuous deployment is not connected.
 
 ## Account prerequisite
 
-The source repository is private and organization-owned. Vercel's [Hobby plan does not connect projects to Git repositories owned by GitHub organizations](https://vercel.com/docs/limits#connecting-a-project-to-a-git-repository), and its [use is limited to personal, non-commercial projects](https://vercel.com/docs/plans/hobby). The institution's plan and eligibility have not been verified, so do not deploy this project under Hobby. A manual GitHub Actions workflow using the Vercel CLI is prepared as a preview-only path; it becomes dispatchable after it reaches the default branch, does not require Vercel's Git integration and never deploys to production. The CLI route does not waive Vercel plan terms. Do not start a paid plan or trial as a setup side effect.
+The source repository is private and organization-owned. The only connected Vercel team returned is the personal team `navaneethvvinod's projects`; the connector does not expose its plan. Vercel's [Hobby plan does not connect projects to Git repositories owned by GitHub organizations](https://vercel.com/docs/limits#connecting-a-project-to-a-git-repository), and its [use is limited to personal, non-commercial projects](https://vercel.com/docs/plans/hobby). The institution's plan and eligibility have not been verified, so do not deploy this project under Hobby. Project creation returned HTTP 403. Use an eligible institutional Pro/Enterprise team with the required GitHub organization/repository access; do not make the repository public or start a paid plan/trial as a setup side effect.
 
-After the reviewed workflow is present on the default branch, dispatch [Manual Vercel preview](../.github/workflows/vercel-preview.yml) from `main`; other refs are rejected. First verify that the institution's Vercel account is eligible for this use and set the repository variable `VERCEL_PLAN` to `pro` or `enterprise`. Configure the GitHub Actions secrets `VERCEL_TOKEN`, `VERCEL_ORG_ID` and `VERCEL_PROJECT_ID`. The workflow reruns lint, typecheck, boundary tests, dependency audit, documentation checks, production build and Chromium acceptance. It pulls the Vercel Preview environment, refuses deployment unless both `ENABLE_MEMBER_PLATFORM` and `ENABLE_DESIGN_PREVIEW` are explicitly `false`, then runs the Vercel build and preview deployment. It contains no production-deploy command. The variable, secrets and Vercel project are not configured or verified in the current environment.
+A manual GitHub Actions workflow is already on `main` as a preview-only path; it does not require Vercel's Git integration and never deploys to production. It still requires a valid Vercel project and credentials configured by the account owner, and the CLI route does not waive Vercel plan terms.
+
+After the account owner verifies an eligible institutional plan and configures the repository variable `VERCEL_PLAN` (`pro` or `enterprise`) and GitHub Actions secrets `VERCEL_TOKEN`, `VERCEL_ORG_ID` and `VERCEL_PROJECT_ID`, dispatch [Manual Vercel preview](../.github/workflows/vercel-preview.yml) from `main`; other refs are rejected. The workflow reruns lint, typecheck, boundary tests, dependency audit, documentation checks, production build and Chromium acceptance. It pulls the Vercel Preview environment, refuses deployment unless both `ENABLE_MEMBER_PLATFORM` and `ENABLE_DESIGN_PREVIEW` are explicitly `false`, then runs the Vercel build and preview deployment. It contains no production-deploy command. The variable, secrets and Vercel project are not configured or verified in the current environment.
 
 ## Project settings
 
@@ -19,11 +21,11 @@ After the reviewed workflow is present on the default branch, dispatch [Manual V
 | Install | `npm ci` |
 | Build | `npm run build` |
 | Output | Next.js framework default; no static-export override |
-| Production branch | `main`, once reviewed application source is merged |
+| Preview workflow branch | `main`; project credentials and plan eligibility are still required |
 
 Vercel supports Node 24 and manages minor/patch updates within that major; a local patch pin does not pin Vercel's runtime patch. See [supported Node versions](https://vercel.com/docs/functions/runtimes/node-js/node-js-versions) and [build/root-directory configuration](https://vercel.com/docs/builds/configure-a-build).
 
-The initial `main` commit contains planning/governance only. Application source is in draft PR #14. Do not treat importing the current planning-only default branch as a successful application deployment. After reviewed application delivery, connect the selected repository to the eligible team and verify the exact deployed commit. Vercel distinguishes the production branch from preview branches; see [Git branch deployment behavior](https://vercel.com/docs/git#preview-branches).
+`main` now contains the merged website foundation and PWA manifest/icon shell. It does not establish a production release: production member authentication remains source-disabled, shared Grow permissions and operational workflows remain gated, and no Vercel deployment exists. Once project creation access and plan eligibility are resolved, deploy a preview from the reviewed source and verify the exact commit and environment before considering any production promotion. Vercel distinguishes the production branch from preview branches; see [Git branch deployment behavior](https://vercel.com/docs/git#preview-branches).
 
 ## Environment boundary
 
@@ -39,9 +41,9 @@ When shared account recovery is approved for a specific environment, set `AUTH_S
 
 Future backend activation needs verified shared configuration and the identity/permission/operational gates in [architecture](architecture.md) and [delivery plan](delivery-plan.md). Keep secrets in the provider's environment controls, never in GitHub issues, source, screenshots or command output.
 
-## Connected-hosting recheck — 29 October 2026
+## Connected-hosting recheck — 31 October 2026
 
-The connected Vercel account was rechecked for the exact `MEC-IDEALAB/IDEALAB-MEC-WEB` Git repository and returned no matching project. An existing project named `web` could not be verified as belonging to this repository, so it was not used. The connected Render workspace contains only the unrelated `LINKER` service backed by `NAVANEETHVVINOD/UNOFFICAL`; it was left untouched. No website deployment or new hosting resource was created. The current local source still needs a reviewed GitHub delivery and hosted checks, and Vercel plan eligibility, project credentials, environment variables and preview behavior remain unverified.
+The connected Vercel account was checked for the exact `MEC-IDEALAB/IDEALAB-MEC-WEB` repository and returned no matching project. Creating `idealab-mec-web` in the only listed Vercel team returned HTTP 403; `vercel whoami` reported no local credentials. No token was requested or recorded. Render lists only the unrelated `LINKER` service backed by `NAVANEETHVVINOD/UNOFFICAL`; it was left untouched. PR #19 has merged and current-head GitHub CI passed, but no website deployment or new hosting resource exists. Vercel project-creation access and plan eligibility, environment variables and hosted preview behavior remain unverified.
 
 ## Verification before promotion
 

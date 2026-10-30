@@ -392,3 +392,20 @@ Desktop/mobile captures and `artifacts/acceptance/loader-motion-preview.webm`
 were inspected locally. Reduced motion and keyboard ticker access passed.
 Live account creation, email delivery, Google sign-in and shared-data permissions
 remain unverified; these frontend results do not clear the backend gate.
+
+## Homepage motion acceptance addendum — 31 October 2026
+
+PR #21 added browser assertions for the previously implicit motion details:
+scrolling to the process timeline starts its reveal animation; all three public
+path cards move on focus without changing their colors; the event carousel
+pauses while hovered or focused, resumes after both states end, preserves its
+manual controls and rightward sequence, and does not autoplay when reduced
+motion is requested. The signed-in workspace continues to use its separate
+Home/Lab/Profile top navigation; the public site retains its five-link mobile
+bottom bar.
+
+The Node 24.19.0 optimized build, Chromium acceptance journey, ESLint, TypeScript
+and all 128 boundary tests passed locally. On PR head `73e1fe7`, Website CI
+passed Public foundation acceptance and Required gate; Documentation CI passed.
+These results verify the public UI and do not verify real account creation,
+email delivery, Google sign-in, recovery, shared Grow permissions or operations.

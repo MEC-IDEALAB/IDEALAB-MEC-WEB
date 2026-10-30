@@ -27,7 +27,7 @@ const retro = localFont({ src: './fonts/PressStart2P-Regular.ttf', variable: '--
 export const metadata: Metadata = {
   title: { default: "IDEALAB MEC — A place to make things happen", template: "%s | IDEALAB MEC" },
   description: "Explore the IDEA Lab at Model Engineering College. Bring your ideas, discover the lab, and connect with a community of makers.",
-  icons: { icon: [{ url: "/brand/idea-lab.png", type: "image/png" }] },
+  icons: { icon: [{ url: "/brand/app-icon-192.png", type: "image/png" }], apple: "/brand/app-icon-192.png" },
 };
 
 export default async function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {

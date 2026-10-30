@@ -20,6 +20,7 @@ These records describe product requirements, UX plans, integration boundaries an
 - [Events contract and remaining registration scope](events-contract.md)
 - [Isolated Events read validation](quality/events-read-2026-10-23.md)
 - [Design system](design-system.md)
+- [PWA install shell and Android package status](pwa-delivery.md)
 - [Content and asset provenance](content-sources.md)
 - [UI audit and corrections](ui-audit.md)
 - [Current website task list](task-list-2026-10-21.md)

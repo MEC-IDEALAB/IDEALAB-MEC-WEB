@@ -102,6 +102,24 @@ try {
   assert.match(policy, /object-src 'none'/);
   assert.doesNotMatch(policy.match(/script-src[^;]+/)?.[0] ?? '', /unsafe-inline|unsafe-eval/);
   const html = await home.text();
+  assert.match(html, /rel="manifest"[^>]*href="\/manifest\.webmanifest"/, 'Home must link the install manifest');
+  const manifestResponse = await fetch(base + '/manifest.webmanifest');
+  assert.equal(manifestResponse.status, 200);
+  const manifest = await manifestResponse.json();
+  assert.equal(manifest.name, 'IDEALAB MEC');
+  assert.equal(manifest.start_url, '/');
+  assert.equal(manifest.scope, '/');
+  assert.equal(manifest.display, 'standalone');
+  for (const size of [192, 512]) {
+    const icon = manifest.icons.find(item => item.sizes === `${size}x${size}` && item.type === 'image/png');
+    assert(icon, `Install icon ${size} must be declared`);
+    const iconResponse = await fetch(new URL(icon.src, base));
+    assert.equal(iconResponse.status, 200);
+    assert.match(iconResponse.headers.get('content-type'), /^image\/png/);
+    const png = Buffer.from(await iconResponse.arrayBuffer());
+    assert.equal(png.readUInt32BE(16), size);
+    assert.equal(png.readUInt32BE(20), size);
+  }
   const inlineScripts = [...html.matchAll(/<script\b([^>]*)>([\s\S]*?)<\/script>/gi)].filter(([, attributes]) => !/\bsrc=/.test(attributes));
   assert(inlineScripts.length > 0, 'Rendered page should include framework and application scripts');
   assert(inlineScripts.every(([, attributes]) => attributes.match(/\bnonce=["']([^"']+)["']/)?.[1] === nonce), 'Inline scripts must receive the response nonce');

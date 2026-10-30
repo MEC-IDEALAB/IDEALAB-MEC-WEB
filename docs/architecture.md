@@ -45,7 +45,7 @@ approval. Real verified-account, email/provider, Flutter and concurrency accepta
 remain outstanding; member/Google flags stay off by default.
 
 
-Current GitHub recheck (22 October 2026): [PR #14](https://github.com/MEC-IDEALAB/IDEALAB-MEC-WEB/pull/14)
+Historical GitHub recheck (22 October 2026): [PR #14](https://github.com/MEC-IDEALAB/IDEALAB-MEC-WEB/pull/14)
 was merged by the owner on 21 October 2026 at 12:51:22 UTC, producing
 `0504b41a1427640bd8fcbdeda48423f5ea24c05a`. Its head
 `7219815bcb3f1216264ec8a85ea46ec4be2bb6df` passed Documentation gate,

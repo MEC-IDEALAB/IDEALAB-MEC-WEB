@@ -23,8 +23,8 @@ On the current local worktree, Node 24.19.0 passed `npm run lint`,
 produced an optimized Next.js build, and `npm run test:acceptance` passed the
 Chromium journey. The browser check confirmed the manifest route, standalone
 display, root scope, and valid 192 px and 512 px PNG responses, alongside the
-public and preview acceptance checks. Documentation-link validation passed for
-49 files and 277 local links.
+public and preview acceptance checks. The documentation-link check was rerun on
+31 October after this browser run and passed for 49 files and 282 local links.
 
 This run used the local isolated validation configuration. It does not verify
 installation from a hosted HTTPS origin, offline behavior, a real account or

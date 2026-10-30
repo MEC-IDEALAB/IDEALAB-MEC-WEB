@@ -1,5 +1,14 @@
 # Current account delivery status
 
+## Current status — 31 October 2026
+
+Website foundation PR #19 merged into `main` at
+[`f0d8ab0`](https://github.com/MEC-IDEALAB/IDEALAB-MEC-WEB/commit/f0d8ab0ad3084f6cc4e8727d9e07686f9105faf0). Its exact-head and merged-main Website CI, required gate and Documentation CI passed. The local acceptance suite covers the public experience and gated previews; it does not establish production account access.
+
+The isolated validation project has had an owner-completed Google/profile/declaration journey, but production member and Google access remain disabled. Public email/password confirmation and recovery delivery have not been verified with a production sender. Password recovery remains disabled pending a reviewed session-bound grant. Shared Grow production permissions and cross-client migration/acceptance remain release blockers; no production database change or hosted deployment was made. See the [deployment status](deployment.md) and [shared backend evidence](backend-readiness.md#current-evidence).
+
+The dated evidence table below records scoped checks and database state as of 23 October 2026. Its older GitHub/deployment row is superseded by this current status.
+
 Full requested user/staff release: see the [current requirement-by-requirement
 audit](release-readiness-2026-10-23.md). Scoped implementation/checks below do
 not establish production completion.
@@ -51,11 +60,11 @@ the confirmation PKCE verifier and signs out any existing browser session; it do
 not revoke a provider-side session. Actual cookie handling and email confirmation
 still require an end-to-end test, and email confirmation must remain enabled.
 
-Evidence checkpoint: 23 October 2026. This supersedes older implementation-status
+Historical evidence checkpoint: 23 October 2026. This supersedes older implementation-status
 paragraphs claiming signup, confirmation, profile-save or claim controls are absent.
 It does not supersede product requirements or authorize production activation.
 
-| Scope | Current state | Evidence and remaining gate |
+| Scope | State at this checkpoint | Evidence and remaining gate |
 | --- | --- | --- |
 | Auth completion cleanup and callback privacy | Source and HTTP correction verified locally | Successful confirmation no longer becomes expired solely because SDK sign-out throws; cleanup failures remain explicit. Recovery retry stays on sign-in. Actual callback headers now use no-referrer. 100 boundary tests/build and scoped HTTP checks pass; positive email/password journeys remain unverified. See [cleanup evidence](quality/auth-completion-cleanup-2026-10-23.md). |
 | Backend environment isolation | Source and test gates verified | Validation URLs are pinned to the approved isolated project; test configuration accepts only `.invalid`. Production account integration is blocked in source even if the former production opt-in is set because the shared Grow account policies are unsafe. The Vercel Preview workflow also requires every member/data feature flag to be false. |
@@ -76,7 +85,7 @@ It does not supersede product requirements or authorize production activation.
 | Own lab visits on Home/Lab/Visits | Genuine check-in/out and history passed in isolation | Grow-compatible lab_sessions with one-active-visit index, guarded current-open check-in, exact owned checkout after closure and retry receipts. 75 boundary tests; 22 catalog and 27 rollback transition checks. Two clearly labeled completed test visits, no active visits. Actual overlap/cross-owner and shared-client rollout remain open. See [visit-write evidence](quality/own-visit-writes-2026-10-22.md). |
 | Core-controlled lab availability | Installed and genuine Open/Close passed in isolation | Explicit owner-approved test duty capability; Student role unchanged. Actor/time journal, bounded member projection, conflict/retry handling and 24 responsive observations. Opening checkpoint: 30 catalog plus 16 rollback transition assertions and 69 boundary tests. Shared rollout and real two-core/concurrency journeys remain open. See [opening evidence](quality/core-lab-opening-2026-10-22.md). |
 | Request browser draft under real member session | Save/restore/reload and cleanup passed | Unsafe references rejected; known sample fields restored and review fits four widths. Exact temporary draft was deleted with owner approval after Chrome reconnected. This is not online submission. See [latest check](quality/grow-reference-account-check-2026-10-22.md). |
-| GitHub and deployment | Earlier foundation PR owner-merged; current refinements local | Prior PR checks do not validate this dirty working source. No new push, merge, production activation or hosted deployment is claimed. |
+| GitHub and deployment | Historical 23 October state; superseded by the 31 October status above | PR #19 has since merged, but no production activation or hosted deployment is verified. |
 
 Production and public defaults keep member and Google activation off. The ignored
 local configuration enables them only against the isolated project on port 3015.

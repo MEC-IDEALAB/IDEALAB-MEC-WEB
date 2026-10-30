@@ -4,6 +4,24 @@ Current checkpoint: [account delivery status](account-readiness.md). Older accou
 implementation-status paragraphs below are historical; release criteria and the
 remaining full-V1 scope still apply.
 
+## Latest delivery state — 31 October 2026
+
+Website foundation PR #19 merged into `main` at
+`f0d8ab0ad3084f6cc4e8727d9e07686f9105faf0`. Website CI, its required gate, and
+Documentation CI passed on both the exact PR head and the merged commit. On
+the exact PR head, Node 24.19.0 checks passed: lint, typecheck, 128 boundary
+tests, dependency audit, optimized acceptance build, Chromium acceptance, both
+browser-journal checks, and documentation validation (49 files / 278 links).
+The 31 October docs recheck also passed (49 files / 282 links). See the [current
+GitHub coordination record](quality/github-coordination-2026-10-29.md).
+
+The merged PWA scope is the web manifest and app icons; no hosted installation
+or APK has been verified. Vercel project creation for this repository returned
+403, the local CLI has no credentials, and Render lists only the unrelated
+LINKER service. Production member authentication remains source-disabled while
+shared Grow RLS/Flutter compatibility, real auth journeys and operational
+workflows remain release blockers. This foundation is not a production release.
+
 Latest isolated account-test state (22 October 2026): the reviewed identity,
 profile/provisioning, admission, save and claim candidates are now installed
 **only in idealab-mec-validation** after independent review, an in-transaction
@@ -16,7 +34,7 @@ approval. Real verified-account, email/provider, Flutter and concurrency accepta
 remain outstanding; member/Google flags stay off by default.
 
 
-Current GitHub recheck (22 October 2026): [PR #14](https://github.com/MEC-IDEALAB/IDEALAB-MEC-WEB/pull/14)
+Historical GitHub recheck (22 October 2026): [PR #14](https://github.com/MEC-IDEALAB/IDEALAB-MEC-WEB/pull/14)
 was merged by the owner on 21 October 2026 at 12:51:22 UTC, producing
 `0504b41a1427640bd8fcbdeda48423f5ea24c05a`. Its head
 `7219815bcb3f1216264ec8a85ea46ec4be2bb6df` passed Documentation gate,
@@ -28,19 +46,20 @@ No new push, merge or deployment was performed in this recheck.
 
 Current UI/auth verification: see [UI audit](ui-audit.md). It supersedes earlier notes about three-option theme menus, repeated boot loading and database timeouts. Supabase read-only connectivity is restored; shared authorization/profile-provisioning defects still block account activation.
 
-Latest repository snapshot: 21 October 2026. The private [IDEALAB-MEC-WEB repository](https://github.com/MEC-IDEALAB/IDEALAB-MEC-WEB) and linked [organization project](https://github.com/orgs/MEC-IDEALAB/projects/1) contain 14 issues, PR #14, and four milestones. Vercel remains the selected hosting target. Screenshot-inspired homepage/auth polish and responsive student previews were pushed as application source commit `3ca9b63d156d257b4b494099d66e7e7dd1a9ef09`; delivery-status corrections followed in documentation commit `dec0c7c0d736f2b85f31b4edcbc11eb2620e9985` on the existing draft [PR #14](https://github.com/MEC-IDEALAB/IDEALAB-MEC-WEB/pull/14). Node 24.19.0 lint, typecheck, all 28 boundary tests, dependency audit (zero vulnerabilities), optimized acceptance build, full Chromium acceptance, documentation validation (18 files/112 links), both JSON snapshot checks and `git diff --check` passed locally. Exact-head [Website CI, including public Chromium acceptance and required gate](https://github.com/MEC-IDEALAB/IDEALAB-MEC-WEB/actions/runs/39569259062) and [Documentation CI](https://github.com/MEC-IDEALAB/IDEALAB-MEC-WEB/actions/runs/39569259359) passed on the documentation follow-up; the application source had also passed both workflows at `3ca9b63`. Browser acceptance covers the public journey, responsive light/dark views, auth and recovery layouts including no-scroll 320×568 screens, keyboard and reduced-motion behavior, institutional assets, protected-route denial, non-persistent previews, recovery callback rejection and security headers. These results do not establish real signup, recovery, Google, profile persistence, operational authorization, full V1 or a live deployment. Vercel preview and production deployment remain unverified.
+Historical repository snapshot: 21 October 2026. At that time the private [IDEALAB-MEC-WEB repository](https://github.com/MEC-IDEALAB/IDEALAB-MEC-WEB) and linked [organization project](https://github.com/orgs/MEC-IDEALAB/projects/1) contained 14 issues, PR #14, and four milestones. Screenshot-inspired homepage/auth polish and responsive student previews were pushed as application source commit `3ca9b63d156d257b4b494099d66e7e7dd1a9ef09`; delivery-status corrections followed in documentation commit `dec0c7c0d736f2b85f31b4edcbc11eb2620e9985` on PR #14. These historical checks do not describe the current source or release state; see the 31 October update above.
 
-GitHub branch-rule inspection returned HTTP 403 because the current plan does not provide branch protection for this private repository. No billing or visibility change was made; CI passes are not server-enforced merge protection. Keep PR #14 draft and follow the manual current-head/check/review gate until the owner chooses an eligible plan.
+GitHub branch-rule inspection returned HTTP 403 during the earlier private-repository check. CI passes were not server-enforced merge protection. PR #14 has since merged; continue using the manual current-head/check/review gate unless an eligible plan enables branch protection.
 
-The owner selected “Continue UI and GitHub setup first.” The current frontend foundation phase covers public UI, sample drafts and access-denial states. `ENABLE_MEMBER_PLATFORM=false` independently disables shared-account activation even when public keys are present; live member/staff/backend acceptance gates remain required before activation and full-V1 release.
+Historical product direction: the owner selected “Continue UI and GitHub setup first.” That website foundation has since merged through PR #19. Public UI, local sample drafts and access-denial states are implemented, but `ENABLE_MEMBER_PLATFORM=false` and the source guard still block production account activation. Real member/staff/backend acceptance and remaining operational features are required before full-V1 release.
 
 The verified-email member-gate follow-up is on application commit
 `d2a310edf80d176bd10768e04dd31cde030b389e`. Node 24.19.0 lint/typecheck,
 26 boundary tests, dependency audit, production build, Chromium acceptance and
 documentation check passed locally. Exact-head [Website CI and required gate](https://github.com/MEC-IDEALAB/IDEALAB-MEC-WEB/actions/runs/39510291937)
 and [Documentation CI](https://github.com/MEC-IDEALAB/IDEALAB-MEC-WEB/actions/runs/39510291938)
-passed. There is no independent GitHub PR review; keep the PR draft and the
-member flag off while full account/backend and V1 journeys remain incomplete.
+passed. At that historical 22 October checkpoint, PR #14 was draft and had no
+formal GitHub review. PR #19 has since merged; the member flag remains off while
+full account/backend and V1 journeys remain incomplete.
 
 ## Current priority and coordinated status
 
@@ -61,8 +80,8 @@ restoration. Node 24 lint/typecheck, 28 boundary tests, isolated production buil
 and full Chromium acceptance passed locally, including the reproduced resize
 event-order race. Independent source review found no remaining concrete defect.
 See [the navigation audit](ui-audit.md#public-navigation-follow-up--21-october-2026)
-for scope and evidence. Earlier application/CI snapshots below remain historical;
-draft PR #14 records this follow-up's actual head and hosted check results.
+for scope and evidence. This navigation work is included in merged PR #19; see
+the 31 October release update above for current hosted checks.
 
 Current owner direction uses notebook cross-grid paper and the original yellow `#ffe029`/pink `#ff3994` anchors, coordinated blue `#a8c6ff`, purple `#c4b5f5`, red `#f39488` and green `#a6d9b5`, with cobalt actions and existing apricot/cream/jet-black. See [visual standard](design-system.md). Homepage content now includes Epilog, Snapmaker and Ultimaker facility photos, three broad activity themes and AICTE/CogniCor institutional context. The 11-entry `/lab` directory is published institutional content rather than live inventory; `/explore` uses officially supported March 2022 selection history. See [content provenance](content-sources.md) for verification limits. Individual event records remain signed-in only. Original local SVG artwork and HomeMotion retain progressive enhancement and reduced-motion behavior.
 
@@ -77,16 +96,16 @@ The homepage, two-state Light/Dark toggle and requested neo-brutalist identity a
 | Owner | Dependency | State | Evidence / review | Next action |
 | --- | --- | --- | --- | --- |
 | Main database test tooling; independent security review | Existing native PostgreSQL binaries; no shared credentials or schema decisions | Isolated native runtime smoke check passes locally | Node 24.19.0/PostgreSQL 16.1: verified private Windows directory, fresh loopback identity, wrong-password denial, real temporary transaction/rollback and stopped/removed cluster; out-of-scope ACL request denied without changing root ACL | Use [runtime preparation](database-validation.md) only for native SQL exploration. Approved target-version/collation migration, real Supabase/Auth/Data API and both-client acceptance remain required. |
-| Main navigation implementation/QA; independent reviewer | Existing public routes and approved visual standard | Navigation enhancement locally verified | Escape/focus restoration, ordinary Tab exit, outside pointer, route/current-page selection, 800/801 px focus and no-JavaScript journeys passed in real Chromium; local source review passed | Inspect exact-head hosted CI after the authorized draft-branch push; retain backend/release gates. |
-| Main implementation | Confirmed onboarding contract, visual system and request-draft requirements | Public foundation, screenshot-inspired sign-in/sign-up layouts, member access-denial states, browser request drafts and gated password recovery are implemented; signup, account onboarding and live request submission remain unimplemented | Application source commit `3ca9b63`: local lint, typecheck, 28 boundary tests, dependency audit, optimized acceptance build, Chromium acceptance, docs/JSON validation and `git diff --check` passed. The follow-up documentation commit `dec0c7c` also passed exact-head Website CI/required gate (run `39569259062`) and Documentation CI (run `39569259359`). | Keep PR draft; continue backend/auth and operational journeys after shared schema/security and Flutter compatibility gates are resolved. |
-| Main QA | Website and MEC-preview implementation | Local UI evidence covers the supplied visual references and responsive browser states; live identities and operational database behavior remain unverified | Chromium covers public and auth pages in light/dark, responsive widths, keyboard/reduced motion, no-scroll auth at 320×568, assets, protected-route denial, non-persistent previews, recovery callback rejection and security headers. The independent visual review found no concrete defect. | Maintain current-source validation, obtain formal independent PR review and resolve backend gates before activation. |
+| Main navigation implementation/QA; independent reviewer | Existing public routes and approved visual standard | Navigation enhancement locally verified and included in merged PR #19 | Escape/focus restoration, ordinary Tab exit, outside pointer, route/current-page selection, 800/801 px focus and no-JavaScript journeys passed in real Chromium; local source review passed | Keep current-head CI green; complete live member and release acceptance after the shared backend gates. |
+| Main implementation | Confirmed onboarding contract, visual system and request-draft requirements | Public foundation merged in PR #19; real signup, account onboarding and live request submission remain unimplemented | PR #19 exact-head local/hosted verification is recorded in the 31 October update above. Independent source/security review informed the manual merge gate; the GitHub reviews API has no submitted review record. | Continue backend/auth and operational journeys after shared schema/security and Flutter compatibility gates are resolved. |
+| Main QA | Website and MEC-preview implementation | Local UI evidence covers the supplied visual references and responsive browser states; live identities and operational database behavior remain unverified | Chromium covers public and auth pages in light/dark, responsive widths, keyboard/reduced motion, no-scroll auth at 320×568, assets, protected-route denial, non-persistent previews, recovery callback rejection and security headers. The independent visual review found no concrete defect. | Maintain current-source validation, require independent review for future application PRs, and resolve backend gates before activation. |
 | Request workspace | Existing member-local draft contract plus isolated design preview | Local draft composer and hub integrated; authenticated submission and history remain unimplemented | Current 28-test boundary suite and production-browser acceptance pass; Supabase user/request records are not written. | Implement real submission only after schema, permissions and workflow transitions are reviewed. |
 | Member access gate | Server-verified Supabase identity | Email confirmation is checked before the profile query; onboarding completion remains gated on the reviewed six-field schema | Independent security review passed. Node 24.19.0 lint/typecheck, 28 boundary tests, zero-findings dependency audit, production build, Chromium acceptance and docs validation (15 files/72 links) passed; no live member identity was used. | Keep the feature flag off until the canonical six-field profile contract, provisioning, RLS and Flutter compatibility are implemented and tested. |
 | Password recovery | Same shared account identity | Responsive request/reset forms and fixed-origin PKCE callback implemented behind `ENABLE_MEMBER_PLATFORM`; no email or password-change request sent | Current source passed the isolated Chromium journey and exact-head Website CI; the configured backend uses a reserved `.invalid` URL and forms were never submitted. No live email or password-change request was sent. | Verify callback allowlist, delivery, PKCE exchange, password update and session behavior using an approved safe account environment; keep member flag off until shared schema/security gates pass. |
 | Design | MagicPath canvas + repository wireframes | Updated artifact | Private project 463330845164449792 now contains homepage desktop/mobile, student desktop/mobile, the student V1 page map, MEC onboarding desktop/mobile, and scoped staff workspace desktop/mobile. Sign-in/join wireframe is in `experience.md`; MagicPath quota blocked a separate frame. | Keep route maps and handoff aligned with real previews; no Figma/Penpot/Canva artifact is claimed. |
 | Backend | Connected Supabase project and current Grow contract | Read-only schema/security evidence available; activation blocked | Shared project is healthy on PostgreSQL 17.6 with two migrations and unsafe profile permissions. Fresh authorized Free `idealab-mec-validation` (`gvvqlfachzbufstzoiwi`) is healthy on 17.11, with zero public tables and migrations; metadata baseline is linked in [backend readiness](backend-readiness.md). | Design and review migrations, auth and negative permission journeys in the isolated project. Do not activate or change shared production until cross-client compatibility and a reviewed migration/rollback pass. |
 | Shared profile architecture | Six-field privacy contract, canonical MEC pilot and current metadata | [Proposal](shared-profile-contract-proposal.md) revised for owner answers; technical and implementation review remain | Case/space comparison, +country-code input, coordinated Flutter update, generic duplicate errors/save limits, and self-declared MEC pilot admission are settled. No migration/profile API/persistence is implemented. | Specify attestation and unique-claim transitions, registration formats, validation and enforceable save limits; review/test the coordinated SQL/client slice in the authorized validation project. |
-| Release | Private org repository and Vercel | Gated | PR #14 remains draft without a formal GitHub review. The application source and its documentation follow-up have passed current Website and Documentation checks. The manual preview-only GitHub Actions workflow requires verified institutional Vercel eligibility, project secrets and disabled preview feature flags. No project or hosted deployment is verified. Branch-rule API returns 403 on the current private-repo GitHub plan. | Keep PR draft. Obtain formal review; after merge to `main`, decide on eligible branch protection, verify Vercel plan, configure secrets/preview environment, dispatch the preview workflow and inspect the hosted result. |
+| Release | Private org repository and Vercel | Gated | PR #19 is merged; exact-head and main-commit Website/Documentation checks passed. The preview-only GitHub Actions workflow is on `main`, but Vercel project creation returned 403, no project/secrets are configured, and no hosted deployment is verified. Branch-rule inspection returned 403 on the current private-repo GitHub plan. | Obtain institution-approved Vercel project access and plan eligibility; then configure the preview workflow secrets, dispatch from `main`, and verify the exact hosted commit. Keep member access disabled until auth, shared Grow permissions and operational acceptance pass. |
 
 ## MEC preview and native runtime verification — 21 October 2026
 
@@ -135,7 +154,7 @@ Keep the member feature flag off and PR #14 draft.
 ## GitHub work tracking
 
 - [Private repository](https://github.com/MEC-IDEALAB/IDEALAB-MEC-WEB)
-- [Private organization project](https://github.com/orgs/MEC-IDEALAB/projects/1), linked to the repository with all 14 issues and PR #14
+- [Private organization project](https://github.com/orgs/MEC-IDEALAB/projects/1), linked to this repository; see the tracker below for active work and acceptance gates
 - [V1 delivery tracker and acceptance gates](https://github.com/MEC-IDEALAB/IDEALAB-MEC-WEB/issues/1)
 - [Public website and branding](https://github.com/MEC-IDEALAB/IDEALAB-MEC-WEB/issues/2) and [UX flows/wireframes/design system](https://github.com/MEC-IDEALAB/IDEALAB-MEC-WEB/issues/3)
 - [CI, PR gates, Vercel delivery and pilot readiness](https://github.com/MEC-IDEALAB/IDEALAB-MEC-WEB/issues/13)

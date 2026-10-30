@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import { backendConfig, validationFeatureEnabled } from '../src/lib/config.ts';
 
 // Configuration fixtures only: no backend requests or substituted auth service.
-const names = ['ENABLE_MEMBER_PLATFORM', 'ENABLE_MEMBER_PLATFORM_PRODUCTION', 'ENABLE_MEMBER_PLATFORM_TEST', 'ENABLE_LAB_OPENING_VALIDATION', 'ENABLE_OWN_VISITS_VALIDATION', 'ACCOUNT_ENVIRONMENT', 'NEXT_PUBLIC_SUPABASE_URL', 'NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY'];
+const names = ['ENABLE_MEMBER_PLATFORM', 'ENABLE_MEMBER_PLATFORM_PRODUCTION', 'ENABLE_MEMBER_PLATFORM_TEST', 'ENABLE_LAB_OPENING_VALIDATION', 'ENABLE_OWN_VISITS_VALIDATION', 'ACCOUNT_ENVIRONMENT', 'NEXT_PUBLIC_SUPABASE_URL', 'NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY', 'NODE_ENV', 'VERCEL', 'VERCEL_ENV', 'RENDER'];
 function withConfig(values, check) {
   const previous = Object.fromEntries(names.map(name => [name, process.env[name]]));
   try {
@@ -22,12 +22,25 @@ test('test mode requires a separate gate and a reserved non-routable host', () =
   withConfig(fixture, () => assert.deepEqual(backendConfig(), { url: fixture.NEXT_PUBLIC_SUPABASE_URL, key: fixture.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY }));
 });
 test('the approved validation environment can only reach its fixed Supabase project', () => {
-  const validation = { ...fixture, ACCOUNT_ENVIRONMENT: 'validation', ENABLE_MEMBER_PLATFORM_TEST: 'false', NEXT_PUBLIC_SUPABASE_URL: 'https://gvvqlfachzbufstzoiwi.supabase.co' };
+  const validation = { ...fixture, ACCOUNT_ENVIRONMENT: 'validation', ENABLE_MEMBER_PLATFORM_TEST: 'false', NODE_ENV: 'development', NEXT_PUBLIC_SUPABASE_URL: 'https://gvvqlfachzbufstzoiwi.supabase.co' };
   withConfig(validation, () => assert.deepEqual(backendConfig(), { url: validation.NEXT_PUBLIC_SUPABASE_URL, key: validation.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY }));
   withConfig({ ...validation, NEXT_PUBLIC_SUPABASE_URL: 'https://different-project.supabase.co' }, () => assert.equal(backendConfig(), null));
 });
+test('validation project is unavailable to production builds and hosted deployments', () => {
+  const validation = { ...fixture, ACCOUNT_ENVIRONMENT: 'validation', ENABLE_MEMBER_PLATFORM_TEST: 'false', NODE_ENV: 'development', NEXT_PUBLIC_SUPABASE_URL: 'https://gvvqlfachzbufstzoiwi.supabase.co' };
+  for (const runtime of [
+    { NODE_ENV: 'production' },
+    { NODE_ENV: 'test' },
+    { NODE_ENV: undefined },
+    { NODE_ENV: 'development', VERCEL: '1', VERCEL_ENV: 'production' },
+    { NODE_ENV: 'development', VERCEL: '1', VERCEL_ENV: 'preview' },
+    { NODE_ENV: 'development', RENDER: 'true' },
+  ]) {
+    withConfig({ ...validation, ...runtime }, () => assert.equal(backendConfig(), null));
+  }
+});
 test('lab opening and own visits require separate flags and the pinned validation backend', () => {
-  const validation = { ...fixture, ACCOUNT_ENVIRONMENT: 'validation', ENABLE_MEMBER_PLATFORM_TEST: 'false', NEXT_PUBLIC_SUPABASE_URL: 'https://gvvqlfachzbufstzoiwi.supabase.co' };
+  const validation = { ...fixture, ACCOUNT_ENVIRONMENT: 'validation', ENABLE_MEMBER_PLATFORM_TEST: 'false', NODE_ENV: 'development', NEXT_PUBLIC_SUPABASE_URL: 'https://gvvqlfachzbufstzoiwi.supabase.co' };
   withConfig(validation, () => {
     assert.equal(validationFeatureEnabled('labOpening'), false);
     assert.equal(validationFeatureEnabled('ownVisits'), false);

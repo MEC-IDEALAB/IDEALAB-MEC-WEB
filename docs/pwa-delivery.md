@@ -18,7 +18,7 @@ the shared Grow database, authorization and account-journey checks.
 ## Verification snapshot — 31 October 2026
 
 On the current local worktree, Node 24.19.0 passed `npm run lint`,
-`npm run typecheck`, all 127 `npm run test:boundaries` tests, and
+`npm run typecheck`, all 128 `npm run test:boundaries` tests, and
 `npm audit --audit-level=high` (zero advisories). `npm run build:acceptance`
 produced an optimized Next.js build, and `npm run test:acceptance` passed the
 Chromium journey. The browser check confirmed the manifest route, standalone

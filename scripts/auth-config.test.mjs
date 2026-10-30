@@ -1,8 +1,8 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { googleAuthConfig, passwordRecoveryConfig, signupAuthConfig } from '../src/lib/auth-config.ts';
-const names=['ENABLE_MEMBER_PLATFORM','ENABLE_MEMBER_PLATFORM_PRODUCTION','ENABLE_MEMBER_PLATFORM_TEST','ACCOUNT_ENVIRONMENT','ENABLE_GOOGLE_SIGN_IN','NEXT_PUBLIC_SUPABASE_URL','NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY','AUTH_SITE_URL'];
-const fixture={ENABLE_MEMBER_PLATFORM:'true',ENABLE_MEMBER_PLATFORM_PRODUCTION:'false',ENABLE_MEMBER_PLATFORM_TEST:'false',ACCOUNT_ENVIRONMENT:'validation',ENABLE_GOOGLE_SIGN_IN:'true',NEXT_PUBLIC_SUPABASE_URL:'https://gvvqlfachzbufstzoiwi.supabase.co',NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY:'sb_publishable_fixture',AUTH_SITE_URL:'https://website-fixture.invalid'};
+const names=['ENABLE_MEMBER_PLATFORM','ENABLE_MEMBER_PLATFORM_PRODUCTION','ENABLE_MEMBER_PLATFORM_TEST','ACCOUNT_ENVIRONMENT','ENABLE_GOOGLE_SIGN_IN','NEXT_PUBLIC_SUPABASE_URL','NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY','AUTH_SITE_URL','NODE_ENV'];
+const fixture={ENABLE_MEMBER_PLATFORM:'true',ENABLE_MEMBER_PLATFORM_PRODUCTION:'false',ENABLE_MEMBER_PLATFORM_TEST:'false',ACCOUNT_ENVIRONMENT:'validation',ENABLE_GOOGLE_SIGN_IN:'true',NEXT_PUBLIC_SUPABASE_URL:'https://gvvqlfachzbufstzoiwi.supabase.co',NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY:'sb_publishable_fixture',AUTH_SITE_URL:'https://website-fixture.invalid',NODE_ENV:'development'};
 function check(values, expected){const previous=Object.fromEntries(names.map(n=>[n,process.env[n]]));try{for(const n of names){if(values[n]===undefined)delete process.env[n];else process.env[n]=values[n]}assert.deepEqual(googleAuthConfig(),expected)}finally{for(const n of names){if(previous[n]===undefined)delete process.env[n];else process.env[n]=previous[n]}}}
 test('Google activation requires both explicit gates',()=>{check({...fixture,ENABLE_GOOGLE_SIGN_IN:'false'},null);check({...fixture,ENABLE_MEMBER_PLATFORM:'false'},null)});
 test('callback is a fixed path on the configured canonical origin',()=>check(fixture,{callback:'https://website-fixture.invalid/auth/callback'}));

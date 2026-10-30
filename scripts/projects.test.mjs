@@ -8,10 +8,10 @@ const id='11111111-1111-4111-8111-111111111111', command='22222222-2222-4222-822
 const form=(values={kind:'create',title:' Test ',description:' Description ',visibility:'private'})=>{const f=new FormData();f.set('command_id',command);for(const [key,value] of Object.entries(values))f.set(key,value);return f;};
 const card=()=>({id,title:'Test',description:'Description',status:'ideation',visibility:'public',created_at:time,updated_at:time,revision:'1',relation:'none',member_count:1});
 test('project core is explicitly limited to the pinned validation backend',()=>{
-  const keys=['ACCOUNT_ENVIRONMENT','ENABLE_PROJECT_CORE','ENABLE_MEMBER_PLATFORM','ENABLE_MEMBER_PLATFORM_PRODUCTION','NEXT_PUBLIC_SUPABASE_URL','NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY'];
+  const keys=['ACCOUNT_ENVIRONMENT','ENABLE_PROJECT_CORE','ENABLE_MEMBER_PLATFORM','ENABLE_MEMBER_PLATFORM_PRODUCTION','NEXT_PUBLIC_SUPABASE_URL','NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY','NODE_ENV'];
   const previous=Object.fromEntries(keys.map(k=>[k,process.env[k]]));
   try {
-    Object.assign(process.env,{ACCOUNT_ENVIRONMENT:'validation',ENABLE_PROJECT_CORE:'true',ENABLE_MEMBER_PLATFORM:'true',NEXT_PUBLIC_SUPABASE_URL:'https://gvvqlfachzbufstzoiwi.supabase.co',NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY:'sb_publishable_fixture'});
+    Object.assign(process.env,{ACCOUNT_ENVIRONMENT:'validation',ENABLE_PROJECT_CORE:'true',ENABLE_MEMBER_PLATFORM:'true',NEXT_PUBLIC_SUPABASE_URL:'https://gvvqlfachzbufstzoiwi.supabase.co',NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY:'sb_publishable_fixture',NODE_ENV:'development'});
     assert.equal(projectCoreEnabled(),true);
     process.env.ENABLE_PROJECT_CORE='false';assert.equal(projectCoreEnabled(),false);
     process.env.ENABLE_PROJECT_CORE='true';process.env.NEXT_PUBLIC_SUPABASE_URL='https://huftzhfqnnslvnfzvbex.supabase.co';assert.equal(projectCoreEnabled(),false);

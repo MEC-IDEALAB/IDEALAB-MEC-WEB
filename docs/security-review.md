@@ -12,6 +12,16 @@ manual Vercel Preview gate also requires member/data flags to be false. These
 checks do not contact a real provider or change the live validation build. No
 production Auth, database, or deployment settings were changed by this code fix.
 
+31 October independent PR review found that the fixed validation project could
+still be selected if a hosted production runtime was misconfigured with
+`ACCOUNT_ENVIRONMENT=validation`. `backendConfig()` now rejects validation
+targets in production builds and Vercel/Render runtimes; regression fixtures
+cover production, Vercel preview/production and Render. This is a local source
+guard only. It does not replace disabled member flags, fix the shared Grow RLS
+findings, or establish deployment configuration. The platform markers are
+documented by [Vercel](https://vercel.com/docs/environment-variables/system-environment-variables)
+and [Render](https://render.com/docs/environment-variables).
+
 The isolated validation database also received a reviewed additive index
 migration after the advisor identified unindexed foreign-key paths. Fresh
 catalog and advisor results confirm all eight indexes are valid and the

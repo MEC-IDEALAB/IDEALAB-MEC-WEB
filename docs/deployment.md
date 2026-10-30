@@ -29,6 +29,12 @@ The initial `main` commit contains planning/governance only. Application source 
 
 Set `ENABLE_MEMBER_PLATFORM=false`, `ENABLE_MEMBER_PLATFORM_TEST=false`, `ENABLE_DESIGN_PREVIEW=false`, `ENABLE_LAB_OPENING_VALIDATION=false`, `ENABLE_OWN_VISITS_VALIDATION=false`, `ENABLE_WORK_REQUEST_INTAKE=false` and `ENABLE_PROJECT_CORE=false` in production and ordinary previews until each shared backend gate is separately approved. Lab opening and visit operations currently have no production contract and enforce their own pinned-validation feature gates. Website production account integration is additionally rejected in source; no environment variable can enable it. The shared Grow user-table policies must be reviewed and migrated, Flutter compatibility verified, and cross-client security journeys passed before the source gate is changed. The public foundation needs no Supabase keys. A dedicated design preview may explicitly enable the sample composer; it remains unsubmitted browser data and does not establish member/backend acceptance.
 
+The pinned `idealab-mec-validation` Supabase project is accepted only by a local
+development runtime. Production builds and Vercel/Render runtimes reject it even
+if `ACCOUNT_ENVIRONMENT=validation` and the member flag are mistakenly enabled.
+This source guard does not authorize deploying the validation project or replace
+the shared-database release gate.
+
 When shared account recovery is approved for a specific environment, set `AUTH_SITE_URL` to that environment's exact HTTPS origin and add its exact `/auth/confirm`, `/auth/callback` and `/auth/recovery/callback` URLs to Supabase Auth's redirect allow list. Local validation uses `http://127.0.0.1:3015` and those three callback paths. The recovery callback exchanges Supabase's PKCE code and redirects only to the fixed local reset form; it does not accept a caller-provided return URL. Configure and test email delivery and recovery templates in a safe environment before enabling the member platform. Setting callback URLs here does not authorize enabling production member access.
 
 Future backend activation needs verified shared configuration and the identity/permission/operational gates in [architecture](architecture.md) and [delivery plan](delivery-plan.md). Keep secrets in the provider's environment controls, never in GitHub issues, source, screenshots or command output.

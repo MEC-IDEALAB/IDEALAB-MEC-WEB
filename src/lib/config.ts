@@ -23,13 +23,17 @@ export function backendConfig() {
   const hostname = parsedUrl.hostname.toLowerCase();
   const projectRef = hostname.endsWith(supabaseDomain) ? hostname.slice(0, -supabaseDomain.length) : '';
   const environment = process.env.ACCOUNT_ENVIRONMENT;
+  const localValidationRuntime = process.env.NODE_ENV === 'development'
+    && !process.env.VERCEL
+    && !process.env.VERCEL_ENV
+    && process.env.RENDER !== 'true';
   // The shared Grow schema still permits authenticated reads of all user rows
   // and updates to authority fields. Do not issue website-created Grow sessions
   // until the reviewed shared migration and both-client acceptance are complete.
   // Production requires a deliberate source change after that release gate; no
   // environment variable can currently turn it on.
   const targetAllowed = environment === 'validation'
-    ? projectRef === validationProjectRef
+    ? projectRef === validationProjectRef && localValidationRuntime
     : environment === 'test'
       ? hostname.endsWith('.invalid') && process.env.ENABLE_MEMBER_PLATFORM_TEST === 'true'
       : false;

@@ -373,6 +373,14 @@ try {
       assert(await card.evaluate(element => element.scrollWidth <= element.clientWidth + 1), `Activity card fits within the ${width}px layout`);
     }
     if (width === 1440) {
+      const firstTimelineStep = page.locator('.journey-steps li[data-reveal="timeline-step"]').first();
+      await firstTimelineStep.scrollIntoViewIfNeeded();
+      await page.waitForFunction(() => {
+        const step = document.querySelector('.journey-steps li[data-reveal="timeline-step"]');
+        return Boolean(step?.getAnimations().some(animation => animation.playState === 'running'));
+      }, null, { timeout: 2000 });
+      assert(await firstTimelineStep.evaluate(element => element.getAnimations().some(animation => animation.playState === 'running')), 'Scrolling to the process timeline starts its reveal animation');
+      await page.evaluate(() => window.scrollTo({ top: 0, behavior: 'instant' }));
       for (const card of await page.locator('.path-card').all()) {
         await page.mouse.move(0, 0);
         await page.waitForTimeout(300);
@@ -383,6 +391,17 @@ try {
         assert.equal(after.background, before.background, 'Path-card hover preserves the background color');
         assert.equal(after.color, before.color, 'Path-card hover preserves the text color');
         assert.notEqual(after.transform, before.transform, 'All three path cards move on hover');
+        await page.mouse.move(0, 0);
+        await page.waitForTimeout(300);
+        const beforeFocus = await card.evaluate(element => ({ background: getComputedStyle(element).backgroundColor, color: getComputedStyle(element).color, transform: getComputedStyle(element).transform }));
+        const cardLink = card.locator('.card-link');
+        await cardLink.focus();
+        await page.waitForTimeout(300);
+        const afterFocus = await card.evaluate(element => ({ background: getComputedStyle(element).backgroundColor, color: getComputedStyle(element).color, transform: getComputedStyle(element).transform }));
+        assert.equal(afterFocus.background, beforeFocus.background, 'Path-card focus preserves the background color');
+        assert.equal(afterFocus.color, beforeFocus.color, 'Path-card focus preserves the text color');
+        assert.notEqual(afterFocus.transform, beforeFocus.transform, 'All three path cards move on keyboard focus');
+        await cardLink.evaluate(element => element.blur());
       }
       await page.mouse.move(0, 0);
     }
@@ -453,11 +472,18 @@ try {
   await page.goto(base);
   const eventCarousel = page.locator('.past-event-carousel');
   await eventCarousel.scrollIntoViewIfNeeded();
+  const nextEvent = eventCarousel.getByRole('button', { name: 'Next event' });
+  await eventCarousel.hover();
+  await page.waitForTimeout(7100);
+  assert.equal(await eventCarousel.locator('.event-carousel-status').textContent(), '01 / 04', 'Hover pauses event-carousel autoplay');
+  await nextEvent.click();
+  assert.equal(await eventCarousel.locator('.event-carousel-status').textContent(), '02 / 04', 'Manual controls remain available while autoplay is paused');
   await page.mouse.move(0, 0);
-  await page.waitForFunction(() => document.querySelectorAll('.past-event-slide')[1]?.getAttribute('aria-hidden') === 'false', null, { timeout: 7600 });
-  assert.equal(await eventCarousel.locator('.event-carousel-status').textContent(), '02 / 04', 'The visible event carousel advances automatically');
-  await eventCarousel.getByRole('button', { name: 'Next event' }).click();
-  await page.waitForFunction(() => document.querySelectorAll('.past-event-slide')[2]?.getAttribute('aria-hidden') === 'false');
+  await page.waitForTimeout(7100);
+  assert.equal(await eventCarousel.locator('.event-carousel-status').textContent(), '02 / 04', 'Keyboard focus pauses event-carousel autoplay after the pointer leaves');
+  await nextEvent.evaluate(element => element.blur());
+  await page.waitForFunction(() => document.querySelectorAll('.past-event-slide')[2]?.getAttribute('aria-hidden') === 'false', null, { timeout: 7600 });
+  assert.equal(await eventCarousel.locator('.event-carousel-status').textContent(), '03 / 04', 'Event autoplay resumes after hover and focus end');
   assert(await eventCarousel.locator('.event-carousel-track').evaluate(element => element.style.transform.startsWith('translate3d(200%,')), 'The row-reversed carousel moves the next event toward the right');
   await page.setViewportSize({ width: 320, height: 667 });
   await page.emulateMedia({ reducedMotion: 'reduce' });
@@ -470,6 +496,10 @@ try {
   await page.waitForTimeout(160);
   assert(await staticQuotes.evaluate(element => element.scrollLeft > 0), 'Keyboard users can scroll all quotes with reduced motion');
   await page.evaluate(() => document.activeElement?.blur());
+  await eventCarousel.scrollIntoViewIfNeeded();
+  const reducedMotionEventStatus = await eventCarousel.locator('.event-carousel-status').textContent();
+  await page.waitForTimeout(7100);
+  assert.equal(await eventCarousel.locator('.event-carousel-status').textContent(), reducedMotionEventStatus, 'Reduced-motion preference disables event-carousel autoplay');
   assert.deepEqual(await page.locator('.maker-ticker-content .ticker-run').first().locator('.ticker-item').allTextContents(), ['AICTE × COGNICOR × MEC', 'Established in 2022', 'Engage · Explore · Experience · Express · Excel', 'From idea to prototype', 'Workshops · Training · Multidisciplinary STEM'], 'Reduced-motion visitors can read every top ticker highlight');
   assert(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth), 'Reduced-motion ticker layout has no horizontal overflow');
   await page.screenshot({ path: 'artifacts/acceptance/home-tickers-reduced-motion-320.png' });

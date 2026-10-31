@@ -53,4 +53,13 @@ loader for 1.5 seconds before its 320 ms exit. This leaves about 200 ms between
 the sweep finishing and the overlay disappearing. The acceptance journey checks
 the track opacity, sweep movement, and CSS timing, in addition to the existing
 handoff and reduced-motion checks. The full isolated Chromium acceptance passed
-with this follow-up; production is pending this change's PR and deployment.
+with this follow-up.
+
+PR #31 merged at `6ae71d6`. The Vercel production deployment for that exact
+`main` commit is Ready and serves `https://idealab-mec-web.vercel.app/` with
+HTTP 200. A fresh Playwright Chromium session measured the overlay at 1.86 s:
+the track was visible before its sweep, the rail moved, content stayed inert
+until the overlay exited, and a same-tab reload skipped the loader. With
+reduced motion enabled, all loader animations resolved to `0s` and the overlay
+released 358 ms after its start. The capture and browser checks used no account
+or member data.

@@ -7,6 +7,15 @@ Website foundation PR #19 merged into `main` at
 
 The isolated validation project has had an owner-completed Google/profile/declaration journey, but production member and Google access remain disabled. Public email/password confirmation and recovery delivery have not been verified with a production sender. Password recovery remains disabled pending a reviewed session-bound grant. Shared Grow production permissions and cross-client migration/acceptance remain release blockers; no production database change or hosted deployment was made. See the [deployment status](deployment.md) and [shared backend evidence](backend-readiness.md#current-evidence).
 
+Supabase metadata rechecked on 31 October reports `grow-idealab` as `INACTIVE`
+and `idealab-mec-validation` as `ACTIVE_HEALTHY` on PostgreSQL 17.11. The
+validation project now has 19 recorded migrations, including the isolated
+Issue #18 project-create changes; it is not a fresh zero-migration baseline.
+The inactive Grow project's current migration list could not be read because
+the request timed out. Its last successful schema inventory is dated 23 October.
+The six local Issue #18 candidate files are not byte-identical to their stored
+validation statements. See the [migration ledger audit](quality/validation-migration-ledger-audit-2026-10-31.md).
+
 The dated evidence table below records scoped checks and database state as of 23 October 2026. Its older GitHub/deployment row is superseded by this current status.
 
 Full requested user/staff release: see the [current requirement-by-requirement

@@ -40,8 +40,9 @@ try {
 try {
   var root = document.documentElement;
   var reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-  if (!sessionStorage.getItem('idealab-mec:visited')) {
-    sessionStorage.setItem('idealab-mec:visited', '1');
+  var loaderVisitKey = 'idealab-mec:loader-seen:v2';
+  if (!sessionStorage.getItem(loaderVisitKey)) {
+    sessionStorage.setItem(loaderVisitKey, '1');
     if (!reducedMotion) {
       root.dataset.boot = 'loading';
       root.dataset.bootStarted = String(performance.now());
@@ -111,7 +112,7 @@ html[data-boot="loading"] .loader-core {
   text-align: center;
 }
 html[data-boot="loading"] .loader-core::before { position: absolute; z-index: -1; inset: -35px -50px; background: #000; box-shadow: 0 0 55px 35px #000; content: ''; }
-html[data-boot="loading"] .loader-build { width: 70px; height: 74px; margin-bottom: 22px; stroke-width: 1.5; stroke-linecap: round; stroke-linejoin: round; }
+html[data-boot="loading"] .loader-build { width: 82px; height: 86px; margin-bottom: 22px; stroke-width: 1.5; stroke-linecap: round; stroke-linejoin: round; }
 html[data-boot="loading"] .loader-build-orbit-track { stroke: #a4a39b; stroke-width: 1; stroke-dasharray: 2 4; opacity: .76; }
 html[data-boot="loading"] .loader-build-orbit-node { fill: #ff42c6; }
 html[data-boot="loading"] .loader-build-guide { stroke: #777771; }
@@ -141,7 +142,7 @@ html[data-boot="loading"] .loader-progress > span { position: absolute; inset: 0
   html[data-boot="loading"] .loader-row { font-size: 3rem; }
   html[data-boot="loading"] .loader-core { padding-inline: 8px; }
   html[data-boot="loading"] .loader-lockup { font-size: clamp(2.55rem, 12vw, 4.6rem); }
-  html[data-boot="loading"] .loader-build { width: 58px; height: 62px; margin-bottom: 18px; }
+  html[data-boot="loading"] .loader-build { width: 66px; height: 70px; margin-bottom: 18px; }
 }
 `;
 
@@ -156,14 +157,38 @@ try {
       if (core && core.getBoundingClientRect().width > 0) {
         var animations = getComputedStyle(core).animationName.split(',').map(function (name) { return name.trim(); });
         var words = core.querySelectorAll('.loader-title-chunk > span');
-        var titleIsVisible = words.length === 3 && Array.prototype.every.call(words, function (word) {
+        var titleIsSettled = words.length === 3 && Array.prototype.every.call(words, function (word) {
           var textBox = word.getBoundingClientRect();
           var clipBox = word.parentElement.getBoundingClientRect();
           var visibleHeight = Math.max(0, Math.min(textBox.bottom, clipBox.bottom) - Math.max(textBox.top, clipBox.top));
-          return textBox.width > 0 && textBox.height > 0 && visibleHeight > textBox.height * .6
-            && Number(getComputedStyle(word).opacity) >= .7;
+          var style = getComputedStyle(word);
+          var blur = style.filter.match(/blur\\(([-\\d.]+)px\\)/);
+          return textBox.width > 0 && textBox.height > 0 && visibleHeight > textBox.height * .98
+            && Number(style.opacity) >= .99 && (!blur || Number(blur[1]) < .05);
         });
-        if (animations.includes('loader-core-enter') && Number(getComputedStyle(core).opacity) >= .45 && titleIsVisible) {
+        var rows = document.querySelectorAll('.loader-row');
+        var rowsAreSettled = rows.length >= 7 && Array.prototype.every.call(rows, function (row) {
+          return Number(getComputedStyle(row).opacity) >= .99;
+        });
+        var shell = document.querySelector('.loader-build-shell');
+        var detail = document.querySelector('.loader-build-detail');
+        var geometryIsDrawn = shell && detail
+          && Number.parseFloat(getComputedStyle(shell).strokeDashoffset) < .02
+          && Number.parseFloat(getComputedStyle(detail).strokeDashoffset) < .02;
+        var progress = document.querySelector('.loader-progress');
+        var sweep = progress && progress.querySelector('span');
+        var progressIsMoving = false;
+        if (progress && sweep && Number(getComputedStyle(progress).opacity) >= .99) {
+          var trackBox = progress.getBoundingClientRect();
+          var sweepBox = sweep.getBoundingClientRect();
+          progressIsMoving = sweepBox.width > 0 && sweepBox.right > trackBox.left && sweepBox.left < trackBox.right;
+        }
+        var secondaryCopyIsReady = ['.loader-campus', '.loader-caption', '.loader-title-star'].every(function (selector) {
+          var element = document.querySelector(selector);
+          return element && Number(getComputedStyle(element).opacity) >= .99;
+        });
+        if (animations.includes('loader-core-enter') && Number(getComputedStyle(core).opacity) >= .99
+          && titleIsSettled && rowsAreSettled && geometryIsDrawn && progressIsMoving && secondaryCopyIsReady) {
           root.dataset.bootVisualStarted = String(performance.now());
           return;
         }

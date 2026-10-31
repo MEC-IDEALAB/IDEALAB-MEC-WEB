@@ -247,13 +247,15 @@ Historical provenance in the parent Grow workspace includes `docs/00_Project/CUR
 
 The first visit in a tab shows a black motion-graphics canvas with drawn
 prototype geometry, three-beat wordmark reveals, staggered solid/outline
-IDEALAB rows and a narrow indeterminate rail. Font and priority-image readiness
-are bounded by 400 ms; the full motion scene stays visible for at least 1.55
-seconds from its first rendered animation frame and hands off over 320 ms.
-Reduced-motion users skip the animation immediately.
-Separate hydrated and no-hydration watchdogs release content, blocked storage
-skips the overlay, and repeat reloads/client navigation do not repeat it.
-Current desktop/mobile captures and browser timing checks are in the [loader
+IDEALAB rows and a narrow indeterminate rail. The full-scene timer begins after
+the lockup is crisp and the labels, prototype and moving rail are visible. That
+intro timeline runs for ten seconds from its first frame and includes scene
+assembly, then a 320 ms hand-off. Font and priority-image readiness are bounded
+by 400 ms; a 12-second watchdog from
+initial boot releases content if startup stalls and can shorten the hold on
+very slow starts. Reduced-motion users skip the animation immediately.
+Blocked storage skips the overlay, and reloads/client navigation do not repeat
+it. Current desktop/mobile captures and browser timing checks are in the [loader
 motion record](quality/loader-visual-timing-2026-11-01.md); earlier captures remain
 under `artifacts/acceptance/`.
 

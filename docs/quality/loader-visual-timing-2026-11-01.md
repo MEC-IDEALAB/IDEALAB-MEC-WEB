@@ -1,30 +1,46 @@
 # First-visit loader motion and timing — 2026-11-01
 
-## Scope
+## Observed behavior
 
-This record covers the public website’s first-visit loader, including its CSS entrance, visual-start handoff, reduced-motion behavior, hydration delay, and no-hydration watchdog. It does not verify account creation, email delivery, OAuth, member permissions, or operational backend flows.
+Production was serving `d258dd25e483745dd82bf5edd6be662a5e7cb016` (PR #38). On that deployed build, Playwright observed the loader leave after 1,963 ms from its boot timestamp; the visual-start marker was only 67 ms after boot. The tab had the previous `idealab-mec:visited=1` session marker and no versioned marker. The running local service at port 3015 also used the old marker and removed its loader after 1,635 ms. Both observations reproduce the user's report that the intro appears briefly and vanishes before it reads as a complete animation.
 
-## Finding and change
+The localhost service belongs to a separate in-progress checkout with unrelated uncommitted changes. It was left untouched during this follow-up.
 
-The live production loader was captured with a near-black opening frame at 380 ms; the brand composition was visible later, and the exit countdown began before the full motion had been seen. In the cold-start sequence, the center, marquee wall, and rows all began at zero opacity, and the lockup text initially moved completely below its clipped wrappers.
+The corrected build is running separately at `http://127.0.0.1:3016`. A fresh Chromium tab measured 10,350 ms from boot to loader removal, with the full-composition marker at 1,190 ms. This is the current-source local preview; port 3015 remains the other checkout.
 
-The entrance now starts with a dim but readable composition and settles into full brightness. The three lockup words use a small blurred, lowered entrance so they remain visible during their stagger. The inline visual-start probe waits for the central mark’s opacity and visible text boxes before recording `data-boot-visual-started`. The minimum display is 1,550 ms from that frame; the exit transition is 320 ms. High-priority fonts and images have a 400 ms readiness window. The watchdog remains bounded to 2,600 ms from the original boot marker, including hydration delay. Reduced-motion users skip the intro, and changing to reduced motion while it is running releases it.
+## Updated behavior
 
-The delayed-CSS browser check holds at least one real stylesheet request for at least 400 ms and verifies the visible lockup after CSS arrives. It then checks that the full reveal remains visible before the loader exits.
+The tab marker is versioned as `idealab-mec:loader-seen:v2`, so a tab carrying the previous marker sees this revision's intro once. The ten-second intro timeline starts at the first boot frame and includes scene assembly, then the existing 320 ms fade. In the local browser run, the fully settled composition was visible for about 8.8 seconds of that ten-second sequence. The readiness check remains bounded to 400 ms. The 12-second watchdog from initial boot allows the ordinary sequence to complete, but still releases the page if hydration stalls; an unusually slow start can shorten the intro. Page controls remain inert through the fade. Reduced-motion users skip the intro and can interact immediately.
+
+The desktop and 390×844 mobile layouts retain stable prototype sizes of 82×86 px and 66×70 px. Reloads and client navigation in the same tab do not replay the intro.
 
 ## Verification
 
-Verified on Node v24.22.1, Next.js 16.4.2, and Chromium. The source snapshot is based on `e471b795e3d924ee7ff043308a14a2c29e76b127`; the SHA-256 manifest `5bfb1a3537dac65440b5b89bce80e9d06a02ba347413548909b33179394b4e33` covers `scripts/acceptance.mjs`, `src/app/brand-loading.css`, `src/app/layout.tsx`, `src/components/boot-ready.tsx`, and `src/lib/brand-loading.ts`.
+Verified on Node v24.22.1, Next.js 16.4.2 and Chromium in branch `codex/loader-assembly-timing-20261101`, based on deployed production commit `d258dd25e483745dd82bf5edd6be662a5e7cb016`.
 
-- `npm run test:boundaries` — 148 passed, 0 failed.
+- `npm run lint` — passed.
 - `npm run typecheck` — passed.
-- Targeted ESLint for the edited layout, loader readiness, timing constants, and acceptance script — passed.
-- `npm run build` and `npm run build:acceptance` — optimized production builds passed, including TypeScript and static page generation.
-- `npm run test:acceptance` — passed. The delayed-CSS case held an intercepted stylesheet request for at least 400 ms; the rendered loader remained visible for at least 1,550 ms from its visible title frame. The live reduced-motion cancellation case ran on the sign-in route and waited for the boot listener before switching preferences. The suite also covers delayed JavaScript, the no-hydration watchdog, first-visit-only behavior, responsive public pages, and protected-route checks.
-- `docs/quality/loader-visual-timing-2026-11-01.md` link check and `git diff --check` — recorded after the document was added.
+- `npm run test:boundaries` — 148 passed, 0 failed.
+- `npm run build` and `npm run build:acceptance` — passed.
+- `npm run test:acceptance` — passed. Desktop and 390×844 mobile first visits verify the full ten-second intro timing, the long settled composition, old-marker upgrade, stable mark size and measured fade. The suite also checks delayed CSS and JavaScript, the no-hydration watchdog, reduced-motion skip/cancellation, repeat visits, responsive public pages, member preview loading skeletons, keyboard access, PWA and offline shell behavior. Member/auth/backend integration stays separately unverified.
+- Fresh Chromium visit to local port 3016 — passed; 10,350 ms to overlay removal and 1,190 ms until the full composition marker.
+- `node scripts/check-docs.mjs` — 56 files and 295 local links passed. `git diff --check` passed.
 
-The acceptance screenshot `artifacts/acceptance/wordmark-loading.png` shows the dark IDEALAB wordmark composition, prototype orbit, background type field, and lime/magenta accents during the reveal.
+Browser captures at `artifacts/acceptance/wordmark-loading.png` and `artifacts/acceptance/wordmark-loading-mobile.png` show the completed scene. These checks use no live member identity and do not verify authentication or operational backend flows.
 
-## Remaining verification
+The source manifest fingerprints the loader and its acceptance tests. Paths are sorted and each line is `<path> <file SHA-256>` with a trailing newline; the manifest hash is SHA-256 over those lines.
 
-This worktree’s change has not yet been deployed. The post-deployment timing and visual state on the production alias remain to be checked after the reviewed change is merged and Vercel completes its production deployment. The wider member/auth/backend exclusions above remain unverified by this loader-focused suite.
+```text
+scripts/acceptance.mjs 01bf9d632327f1502f2b60f9ff680a6875f781d24e26c9c9a6fe9ee0550ee0f5
+src/app/brand-loading.css ad0ca3a5ee74acf3e9e1414f790bfb957ddd715d700fb0367afbdb3ab6f08ca8
+src/app/layout.tsx 179239cc1c3dae6fcb43016402e5e06b18d368beff9adc83d0d371a7760fc4b0
+src/components/boot-ready.tsx 212f9e30a892fe240370e8d036490ce0113f389990a4d5a38a9a138684523489
+src/components/brand-loading.tsx 818cd07a5393b9e66d5e58dda2ca16bcd923d48d72f7cf6728bf7e15cbcd055c
+src/lib/brand-loading.ts e263647d17d6f2bd8a42645ae4cd212e4bee03d576a62d961ac4126a3a0adc19
+```
+
+Manifest SHA-256: `7abe726ec02a020bb54aa90a7b49bbe8aa6193aa5f7c5bcab8817f10a2b4b123`.
+
+## Release status
+
+The ten-second update is local and has not been deployed. Production remains on the PR #38 commit above until the follow-up pull request passes review and required CI, merges, and Vercel completes its deployment. After release, verify a fresh desktop and mobile visit and a tab carrying the old visit marker on the production alias.

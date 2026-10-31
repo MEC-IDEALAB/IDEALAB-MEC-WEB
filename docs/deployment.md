@@ -1,10 +1,10 @@
 # Vercel delivery
 
-Rechecked 31 October 2026. The public repository `MEC-IDEALAB/IDEALAB-MEC-WEB` is connected to the Vercel project `idealab-mec-web` on the personal Hobby team `navaneethvvinods-projects`. A production deployment exists and Vercel reports it as Ready, but requests to `https://idealab-mec-web.vercel.app/` currently return Vercel `404 NOT_FOUND`.
+Rechecked 31 October 2026 after PR #28. The public repository `MEC-IDEALAB/IDEALAB-MEC-WEB` is connected to the Vercel project `idealab-mec-web` on the personal Hobby team `navaneethvvinods-projects`. Production deployment `dpl_DqgbuySPL4DMuvWbn6iEFwS6dYZH` is Ready, and the primary alias `https://idealab-mec-web.vercel.app/` serves the website.
 
-## Current 404 investigation
+## 404 root cause and fix
 
-Vercel's build log for production commit `7f75d06` shows that `next build` succeeded and generated the `/` route. The project settings were configured with Framework Preset `Other`, so Vercel's static output default selected `public/`; that directory has no `index.html`. This matches the live 404 response. The application now carries a versioned [Vercel config](../vercel.json) that selects the `nextjs` framework and leaves output handling to Vercel's Next.js integration. PR #28's preview for commit `e881299` is Ready, and authenticated Vercel CLI requests returned application HTML for `/`, `/lab`, `/projects`, `/events`, `/explore`, and `/sign-in`. The production alias still returns 404 until the correction is merged and deployed.
+Before the fix, production commit `7f75d06` built the `/` route, but the Vercel project was configured with Framework Preset `Other`. Vercel selected the static `public/` output directory, which has no `index.html`, causing the 404. PR #28 added a versioned [Vercel config](../vercel.json) with `framework: nextjs`, merged as `c6f6772`. The new deployment serves Next.js route functions. Direct production requests now return HTTP 200 for `/`, `/lab`, `/projects`, `/events`, `/explore`, and `/sign-in`.
 
 The build log also confirms Vercel selected Node `24.x` because the package declares `"node": ">=24 <25"`, despite the project setting showing `26.x`. The selected runtime matches the CI and local release baseline.
 
@@ -20,7 +20,7 @@ The preview workflow pins Vercel CLI `65.4.0`, matching the CLI recorded in the 
 
 The application includes the pinned `@vercel/analytics` and `@vercel/speed-insights` packages in the current branch. The telemetry component runs only in Production and only on `/`, `/lab`, `/projects`, `/events`, and `/explore`; it drops private, unknown, dynamic, malformed and cross-origin events, removes query strings and fragments, and sanitizes route labels. The site also uses `Referrer-Policy: origin`, preventing full same-origin paths or queries from being sent as analytics referrers. Authentication, onboarding, member paths, local development and Preview deployments are excluded. The test suite covers these filters.
 
-The Vercel project still needs Web Analytics and Speed Insights enabled in its dashboard. After the integration is merged and deployed, visit a public page and check the Network panel and Vercel dashboard. Vercel documents that data appears only after the feature is enabled, the component is deployed, and visitors generate page views or performance measurements: [Web Analytics setup](https://vercel.com/docs/analytics/quickstart), [Analytics privacy](https://vercel.com/docs/analytics/privacy-policy), [Speed Insights setup](https://vercel.com/docs/speed-insights/quickstart), and [Speed Insights privacy](https://vercel.com/docs/speed-insights/privacy-policy).
+Web Analytics and Speed Insights dashboard activation and data collection have not been verified. Enable the features, visit a public page, and check the Network panel and Vercel dashboard before reporting metrics. Vercel documents that data appears only after the feature is enabled, the component is deployed, and visitors generate page views or performance measurements: [Web Analytics setup](https://vercel.com/docs/analytics/quickstart), [Analytics privacy](https://vercel.com/docs/analytics/privacy-policy), [Speed Insights setup](https://vercel.com/docs/speed-insights/quickstart), and [Speed Insights privacy](https://vercel.com/docs/speed-insights/privacy-policy).
 
 ## Project settings and production boundary
 
@@ -40,4 +40,4 @@ Local Supabase validation uses `http://127.0.0.1:3015` and exact `/auth/confirm`
 
 ## Verification record
 
-Before merging the framework correction, confirm GitHub CI and Vercel's PR preview checks pass for the exact PR head. The PR preview currently serves `/`, `/lab`, `/projects`, `/events`, `/explore`, and `/sign-in`; the preview is protected by Vercel Authentication for ordinary unauthenticated requests. After the merge, verify the production alias is served by the new deployment. Analytics remains unverified until the dashboard toggles are enabled and a public page view is observed. No successful public production route response has been established yet.
+PR #28's exact head `299df43` passed Website CI, Documentation CI, the required gate and Vercel Preview. The protected PR preview served `/`, `/lab`, `/projects`, `/events`, `/explore`, and `/sign-in`. Production deployment `dpl_DqgbuySPL4DMuvWbn6iEFwS6dYZH` is Ready. Direct production GET requests to those six routes returned HTTP 200 HTML with no Vercel error. Playwright Chromium opened the production homepage and rendered the title and main headline. Analytics dashboard collection and unknown-path behavior remain unverified.

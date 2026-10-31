@@ -65,7 +65,7 @@ jobs:
           VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
           VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
           VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
-        run: npx --yes vercel@64.7.0 pull --yes --environment=preview --token="$VERCEL_TOKEN"
+        run: npx --yes vercel@65.4.0 pull --yes --environment=preview
       - name: Require preview-only feature flags
         run: node scripts/vercel-preview-env.mjs
       - name: Build Vercel Preview
@@ -73,11 +73,11 @@ jobs:
           VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
           VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
           VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
-        run: npx --yes vercel@64.7.0 build --token="$VERCEL_TOKEN"
+        run: npx --yes vercel@65.4.0 build
       - name: Deploy Preview only
         shell: bash
         env:
           VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
           VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
           VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
-        run: npx --yes vercel@64.7.0 deploy --prebuilt --yes --token="$VERCEL_TOKEN"
+        run: npx --yes vercel@65.4.0 deploy --prebuilt --yes

@@ -877,12 +877,22 @@ try {
   ], 'Every skeleton announces only its truthful loading state');
   assert.equal(await skeletonPage.locator('.member-loading__visual[aria-hidden="true"]').count(), 9, 'Decorative skeleton blocks are hidden from assistive technology');
   assert.equal(await skeletonPage.locator('.member-loading__line').first().evaluate(element => getComputedStyle(element).animationName), 'member-loading-shimmer', 'Skeleton shimmer is enabled when motion is allowed');
+  const projectSkeletonGrids = skeletonPage.locator('.member-loading--projects .member-loading__project-grid');
+  assert.equal(await projectSkeletonGrids.count(), 2, 'Home and Lab project panel skeletons use the loaded project-card layout');
+  for (const grid of await projectSkeletonGrids.all()) {
+    assert.equal(await grid.locator('.member-loading__project-card').count(), 3, 'Project panel reserves space for the three recent project cards');
+  }
   for (const theme of ['light', 'dark']) {
     await setTheme(skeletonPage, theme);
-    for (const width of [320, 390, 768, 1440]) {
+    for (const width of [320, 390, 700, 701, 768, 1440]) {
       await skeletonPage.setViewportSize({ width, height: width < 500 ? 800 : 950 });
       assert(await skeletonPage.evaluate(() => document.documentElement.scrollWidth <= innerWidth), `${theme} member skeleton preview fits ${width}px`);
       assert(await memberSkeletons.first().isVisible(), `${theme} route skeleton remains visible at ${width}px`);
+      const expectedProjectColumns = width <= 700 ? 1 : 2;
+      for (const grid of await projectSkeletonGrids.all()) {
+        const columnCount = await grid.evaluate(element => getComputedStyle(element).gridTemplateColumns.split(' ').length);
+        assert.equal(columnCount, expectedProjectColumns, `${theme} project skeleton uses ${expectedProjectColumns} card column(s) at ${width}px`);
+      }
     }
     await skeletonPage.setViewportSize({ width: theme === 'light' ? 390 : 1440, height: 900 });
     await skeletonPage.screenshot({ path: `artifacts/acceptance/member-skeletons-${theme}-${theme === 'light' ? 'mobile' : 'desktop'}.png`, fullPage: true, animations: 'disabled' });

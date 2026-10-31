@@ -19,6 +19,24 @@ function PlaceholderCard({ lines = 2 }: { lines?: number }) {
   </div>;
 }
 
+function ProjectPlaceholderCard() {
+  return <div className="member-loading__project-card">
+    <div className="member-loading__project-heading">
+      <span className="member-loading__mark" />
+      <span className="member-loading__line member-loading__project-stage" />
+      <span className="member-loading__line member-loading__project-arrow" />
+    </div>
+    <Line size="title" />
+    <div className="member-loading__project-copy">
+      <Line size="regular" />
+      <Line size="long" />
+      <Line size="regular" />
+      <Line size="long" />
+    </div>
+    <div className="member-loading__project-footer"><Line size="short" /><Line size="short" /></div>
+  </div>;
+}
+
 function PageShape() {
   return <div className="member-loading__page-shape">
     <div className="member-loading__page-heading"><Line size="eyebrow" /><Line size="title" /><Line size="long" /></div>
@@ -29,7 +47,16 @@ function PageShape() {
 }
 
 function PanelShape({ kind }: { kind: Exclude<MemberLoadingKind, 'page'> }) {
-  if (kind === 'events' || kind === 'projects') {
+  if (kind === 'projects') {
+    return <div className="member-loading__collection">
+      <div className="member-loading__collection-heading"><Line size="title" /><Line size="short" /></div>
+      <div className="member-loading__project-grid">
+        {Array.from({ length: 3 }, (_, index) => <ProjectPlaceholderCard key={index} />)}
+      </div>
+    </div>;
+  }
+
+  if (kind === 'events') {
     return <div className="member-loading__collection">
       <div className="member-loading__collection-heading"><Line size="title" /><Line size="short" /></div>
       <PlaceholderCard lines={2} />

@@ -78,7 +78,11 @@ The service worker includes the SVG in its icon precache and same-origin image
 cache path. The original `any` PNG icons remain available for browsers that
 prefer raster sources.
 
-This is source-level packaging evidence. Hosted delivery of the new SVG and a
-device install/update check must be recorded after deployment. Android package
-identity, website association, release signing, and physical-device acceptance
-remain open; no APK has been built.
+This is source-level packaging evidence. Hosted delivery was rechecked after
+PR #33 merged at `ccfbb7466553ec64c0239a3ab167fa4c863f69a0`: the production
+manifest returns HTTP 200 and advertises the SVG with `purpose: maskable`; the
+SVG returns HTTP 200 as `image/svg+xml`, and `/sw.js` returns HTTP 200 with the
+maskable icon in its precache list. These checks confirm hosted asset delivery,
+not device installation. Android package identity, website association,
+release signing, and physical-device acceptance remain open; no APK has been
+built.

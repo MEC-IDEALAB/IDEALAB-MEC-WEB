@@ -1,10 +1,10 @@
 # GitHub coordination and current-source checks — 29 October 2026
 
-## Current status — 1 November 2026
+## Status snapshot — 1 November 2026 (after PR #33 production verification)
 
 - `MEC-IDEALAB/IDEALAB-MEC-WEB` is public; organization Project #1 remains
-  private. The project has 38 items: all 20 website issues, all 12
-  `MEC-IDEALAB/Grow-by-IL` issues, five linked pull requests and the completed
+  private. The project has 40 items: all 21 website issues, all 12
+  `MEC-IDEALAB/Grow-by-IL` issues, six linked pull requests and the completed
   Grow tracking-coordination draft. A URL comparison verified that no current
   issue from either repository is missing from the project.
 - Grow issue-tracking migration is complete. The public organization fork has
@@ -14,23 +14,30 @@
   (RC5 reconciliation), [#11](https://github.com/MEC-IDEALAB/Grow-by-IL/issues/11)
   (schema-contract gate) and [#12](https://github.com/MEC-IDEALAB/Grow-by-IL/issues/12)
   (required main checks).
-- Website `main` is `3bb0893c88060cbab1b0bfdc7d39156564fa0efb`. Website CI and
-  Documentation CI passed on that merge commit; Website CI, Documentation CI
-  and Manual Vercel preview are active. Neither the website nor the organization
-  Grow repository currently has an open pull request. GitHub reports that the
-  website `main` branch has no branch-protection rule; CI checks exist, but the
-  server does not require them for every merge.
+- Website `main` is `ccfbb7466553ec64c0239a3ab167fa4c863f69a0`. PR #33 merged
+  from reviewed head `26f02bb3da0345e8e67caa0ebbf956059ae26257`; exact-head
+  Website CI, Documentation CI, the required gate and Vercel Preview passed.
+  Post-merge Website CI (run 41235569139) and Documentation CI (run
+  41235569119) passed. Website CI, Documentation CI and Manual Vercel preview
+  are active. The PR is closed; the organization Grow repository has no open PR.
+  GitHub reports that the website `main` branch has no branch-protection rule;
+  CI checks exist, but the server does not require them for every merge.
 - The production alias `https://idealab-mec-web.vercel.app/` returns HTTP 200
-  and Vercel reports Ready, under the connected personal Hobby team. This is
-  not IDEALAB-owned hosting. Production member auth remains source-disabled.
+  and Vercel reports the deployment for `ccfbb746` Ready, under the connected
+  personal Hobby team. This is not IDEALAB-owned hosting. Playwright measured
+  the one-time loader at 1.567 seconds desktop / 1.549 seconds mobile; reduced
+  motion released the page in 338 ms, and same-tab reload skipped the overlay.
+  Production member auth remains source-disabled.
 - Supabase currently reports `idealab-mec-validation` active and `grow-idealab`
   inactive. No shared Grow schema was queried or changed. The local Grow RC5
   worktree has extensive uncommitted changes and was left untouched; current
   compatibility prototypes there are not merged release evidence.
-- Home/Lab loading-state, maskable-icon and loader-motion refinements were
-  verified locally on 1 November 2026; they are not included in this report's
-  production evidence. The device-install/APK, production email/recovery,
-  shared Grow authorization, and real member/staff journeys remain unverified.
+- Home/Lab skeletons, the maskable icon and loader-motion refinements are
+  deployed. Project #1 includes PR #33 and loader issue #34, which closed when
+  the PR merged. Website issues #25 and #23 remain open: signed-in Home/Lab
+  review, real-device PWA installation, and Android APK/signing are still
+  unverified. Production email/recovery, shared Grow authorization, and real
+  member/staff workflows also remain unverified.
 
 The earlier 31 October status below is retained as a dated snapshot.
 

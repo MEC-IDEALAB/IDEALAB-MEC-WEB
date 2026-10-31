@@ -95,6 +95,7 @@ try {
   const home = await fetch(base);
   assert.equal(home.headers.get('x-content-type-options'), 'nosniff');
   assert.equal(home.headers.get('x-frame-options'), 'DENY');
+  assert.equal(home.headers.get('referrer-policy'), 'origin');
   const policy = home.headers.get('content-security-policy');
   assert.match(policy, /frame-ancestors 'none'/);
   const nonce = policy.match(/(?:^|;)\s*script-src[^;]*'nonce-([^']+)'/)?.[1];
@@ -126,6 +127,10 @@ try {
   const repeatedHome = await fetch(base);
   const repeatedNonce = repeatedHome.headers.get('content-security-policy')?.match(/(?:^|;)\s*script-src[^;]*'nonce-([^']+)'/)?.[1];
   assert(repeatedNonce && repeatedNonce !== nonce, 'Each page response must use a fresh nonce');
+  const signInResponse = await fetch(base + '/sign-in');
+  assert.equal(signInResponse.headers.get('referrer-policy'), 'origin', 'Sign-in URLs must not be sent as same-origin referrers');
+  const authCallbackResponse = await fetch(base + '/auth/callback', { redirect: 'manual' });
+  assert.equal(authCallbackResponse.headers.get('referrer-policy'), 'no-referrer', 'Auth callback URLs must never be sent as referrers');
   for (const path of ['/account-access', '/app', '/app/profile', '/app/settings', '/app/visits', '/app/borrowing', '/app/requests', '/app/requests/new', '/app/workspace']) {
     const response = await fetch(base + path, { redirect: 'manual' });
     assert.equal(response.status, 307, `${path} must not be accessible without auth`);

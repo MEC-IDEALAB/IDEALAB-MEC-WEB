@@ -4,7 +4,7 @@ Rechecked 31 October 2026. The public repository `MEC-IDEALAB/IDEALAB-MEC-WEB` i
 
 ## Current 404 investigation
 
-Vercel's build log for production commit `7f75d06` shows that `next build` succeeded and generated the `/` route. The project settings were configured with Framework Preset `Other`, so Vercel's static output default selected `public/`; that directory has no `index.html`. This matches the live 404 response. The application now carries a versioned [Vercel config](../vercel.json) that selects the `nextjs` framework and leaves output handling to Vercel's Next.js integration. The correction is not verified on a Vercel deployment yet; check the PR preview before merging and confirm the production domain after the merge.
+Vercel's build log for production commit `7f75d06` shows that `next build` succeeded and generated the `/` route. The project settings were configured with Framework Preset `Other`, so Vercel's static output default selected `public/`; that directory has no `index.html`. This matches the live 404 response. The application now carries a versioned [Vercel config](../vercel.json) that selects the `nextjs` framework and leaves output handling to Vercel's Next.js integration. PR #28's preview for commit `e881299` is Ready, and authenticated Vercel CLI requests returned application HTML for `/`, `/lab`, `/projects`, `/events`, `/explore`, and `/sign-in`. The production alias still returns 404 until the correction is merged and deployed.
 
 The build log also confirms Vercel selected Node `24.x` because the package declares `"node": ">=24 <25"`, despite the project setting showing `26.x`. The selected runtime matches the CI and local release baseline.
 
@@ -40,4 +40,4 @@ Local Supabase validation uses `http://127.0.0.1:3015` and exact `/auth/confirm`
 
 ## Verification record
 
-Before merging the framework correction, inspect GitHub CI and Vercel's PR preview for the exact PR head. Confirm the deployment serves `/`, `/lab`, `/projects`, `/events`, and `/explore` successfully and that an unknown path returns the app's designed 404. After the merge, verify the production alias is served by the new deployment. Analytics remains unverified until the dashboard toggles are enabled and a public page view is observed. No successful public production route response has been established yet.
+Before merging the framework correction, confirm GitHub CI and Vercel's PR preview checks pass for the exact PR head. The PR preview currently serves `/`, `/lab`, `/projects`, `/events`, `/explore`, and `/sign-in`; the preview is protected by Vercel Authentication for ordinary unauthenticated requests. After the merge, verify the production alias is served by the new deployment. Analytics remains unverified until the dashboard toggles are enabled and a public page view is observed. No successful public production route response has been established yet.

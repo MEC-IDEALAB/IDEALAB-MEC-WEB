@@ -192,7 +192,7 @@ html[data-boot="leaving"] .boot-loader {
   margin-top: 25px;
   overflow: hidden;
   background: rgb(245 244 238 / 24%);
-  animation: loader-card-in 240ms 820ms ease both;
+  animation: loader-card-in 240ms 700ms ease both;
 }
 
 .loader-progress > span {
@@ -200,7 +200,7 @@ html[data-boot="leaving"] .boot-loader {
   inset: 0 auto 0 -35%;
   width: 35%;
   background: #ffe029;
-  animation: loader-progress-sweep 1050ms 780ms cubic-bezier(.55, .05, .35, .95) infinite;
+  animation: loader-progress-sweep 680ms 940ms cubic-bezier(.55, .05, .35, .95) infinite;
 }
 
 @keyframes loader-marquee {

@@ -258,7 +258,7 @@ try {
   releaseScripts();
   const exitState = await loaderExitState;
   assert.equal(exitState.inert, true, 'Page content stays inert at the instant the loader begins its exit');
-  assert(exitState.bootAge >= 1300, 'The full staged composition and progress sweep finish before a fast load exits');
+  assert(exitState.bootAge >= 1450, 'The full staged composition and progress sweep finish before a fast load exits');
   assert(Date.now() - loaderStartedAt >= 1000, 'A fast first visit receives enough time to read the loading scene');
   assert.match(await loaderPage.locator('.boot-loader').evaluate(element => getComputedStyle(element).transitionDuration), /^0\.32s(?:,|$)/, 'Boot screen has a measured fade-out');
   await loaderPage.locator('.boot-loader').waitFor({ state: 'hidden' });

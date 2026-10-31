@@ -1,7 +1,7 @@
 'use client';
 import { useEffect } from 'react';
 
-const MINIMUM_REVEAL_MS = 1350;
+const MINIMUM_REVEAL_MS = 1500;
 const READY_CHECK_LIMIT_MS = 1100;
 const WATCHDOG_MS = 3600;
 const EXIT_MS = 320;

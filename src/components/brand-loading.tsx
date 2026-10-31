@@ -30,7 +30,7 @@ export function BrandLoading({ boot = false }: { boot?: boolean }) {
           <svg className="loader-title-star" viewBox="0 0 64 64" fill="none"><path d="M32 1v62M1 32h62M10 10l44 44M10 54l44-44" /></svg>
         </div>
         <p className="loader-caption">A little curiosity goes a long way.</p>
-        <div className="loader-progress"><span /><span /><span /></div>
+        <div className="loader-progress" aria-hidden="true"><span /></div>
       </div>
       <span className="sr-only">Preparing the IDEA Lab website.</span>
     </div>

@@ -246,13 +246,15 @@ Historical provenance in the parent Grow workspace includes `docs/00_Project/CUR
 ## Branded loading state
 
 The first visit in a tab shows a black motion-graphics canvas with drawn
-prototype geometry, masked wordmark reveals, staggered solid/outline IDEALAB
-rows and an indeterminate three-pixel pulse. Font and priority-image readiness
-are bounded, with an 840 ms minimum reveal and a 260 ms coordinated exit.
-Reduced-motion users skip the reveal delay. A fail-open watchdog releases the
-content, blocked storage skips the overlay, and repeat reloads/client navigation
-do not repeat it. Actual desktop/mobile captures and a short recording were
-inspected; the responsive browser acceptance passed. See [UI audit](ui-audit.md).
+prototype geometry, three-beat wordmark reveals, staggered solid/outline
+IDEALAB rows and a narrow indeterminate rail. Font and priority-image readiness
+are bounded by 1.1 seconds; fast loads hold the completed reveal for at least
+1.18 seconds and hand off over 320 ms. Reduced-motion users exit immediately.
+Separate hydrated and no-hydration watchdogs release content, blocked storage
+skips the overlay, and repeat reloads/client navigation do not repeat it.
+Current desktop/mobile captures and browser timing checks are in the [loader
+motion record](quality/loader-motion-2026-10-31.md); earlier captures remain
+under `artifacts/acceptance/`.
 
 ## User poster-reference collage follow-up — 21 October 2026
 

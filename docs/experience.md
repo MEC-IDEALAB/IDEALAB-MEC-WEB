@@ -389,7 +389,7 @@ Current implemented foundation: curated public homepage, a two-state Light/Dark 
 
 ## Branded loading state
 
-The first page boot uses repeated lowercase wordmarks, a drawn prototype mark and a staged typography reveal. It appears once per browser-tab visit, gives a fast load an 840 ms reveal, and waits briefly for fonts/high-priority images before a 260 ms exit. The page is made inert before its controls can receive focus; a 4.8-second fail-open watchdog removes the overlay and releases page interaction when hydration never arrives. Reduced-motion users exit immediately, and JavaScript-disabled browsers do not receive an overlay. The root route has no loading boundary, preserving ordinary 404 HTTP responses. Browser acceptance covers the early keyboard lock, both exit paths and restored keyboard access; this animation does not imply live backend readiness.
+The first page boot uses repeated lowercase wordmarks, a drawn prototype mark and a three-beat typography reveal. It appears once per browser-tab visit. Font/high-priority image readiness is bounded by 1.1 seconds, while fast loads show the complete scene for at least 1.18 seconds before a 320 ms exit. Page controls remain inert through the hand-off. Reduced-motion users exit immediately; the hydrated watchdog and inline no-hydration fallback release page interaction if startup stalls. JavaScript-disabled browsers do not receive an overlay. The root route has no loading boundary, preserving ordinary 404 HTTP responses. Current browser acceptance and timing evidence are in [the loader record](quality/loader-motion-2026-10-31.md); this animation does not imply live backend readiness.
 
 
 ## Account-state route — 22 October 2026

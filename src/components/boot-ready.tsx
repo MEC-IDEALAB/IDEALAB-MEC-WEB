@@ -1,6 +1,11 @@
 'use client';
 import { useEffect } from 'react';
 
+const MINIMUM_REVEAL_MS = 1180;
+const READY_CHECK_LIMIT_MS = 1100;
+const WATCHDOG_MS = 3600;
+const EXIT_MS = 320;
+
 export function BootReady() {
   useEffect(() => {
     const root = document.documentElement;
@@ -33,7 +38,7 @@ export function BootReady() {
       } else if (reducedMotion.matches) {
         finish();
       } else if (exitTimer === undefined) {
-        exitTimer = window.setTimeout(finish, 280);
+        exitTimer = window.setTimeout(finish, EXIT_MS);
       }
     };
 
@@ -41,7 +46,7 @@ export function BootReady() {
       if (event.matches) leave();
     };
     reducedMotion.addEventListener('change', onMotionChange);
-    const failSafeTimer = window.setTimeout(leave, 4400);
+    const failSafeTimer = window.setTimeout(leave, WATCHDOG_MS);
 
     const showReadyState = async () => {
       if (reducedMotion.matches) {
@@ -54,7 +59,7 @@ export function BootReady() {
       const imagesReady = Promise.all(priorityImages.map(image => image.decode().catch(() => undefined)));
       await Promise.race([
         Promise.all([fontsReady, imagesReady]),
-        new Promise<void>(resolve => window.setTimeout(resolve, 1600)),
+        new Promise<void>(resolve => window.setTimeout(resolve, READY_CHECK_LIMIT_MS)),
       ]);
       await new Promise<void>(resolve => window.requestAnimationFrame(() => window.requestAnimationFrame(() => resolve())));
       if (finished || root.dataset.boot !== 'loading') {
@@ -63,7 +68,7 @@ export function BootReady() {
       }
 
       const started = Number(root.dataset.bootStarted) || performance.now();
-      const remaining = Math.max(0, 840 - (performance.now() - started));
+      const remaining = Math.max(0, MINIMUM_REVEAL_MS - (performance.now() - started));
       readyTimer = window.setTimeout(leave, remaining);
     };
 

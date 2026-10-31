@@ -62,3 +62,27 @@ until the overlay exited, and a same-tab reload skipped the loader. With
 reduced motion enabled, all loader animations resolved to `0s` and the overlay
 released 358 ms after its start. The capture and browser checks used no account
 or member data.
+
+## Motion and timing refinement — 1 November 2026
+
+The central prototype now has a rotating blueprint marker to make the maker
+graphic visibly move alongside the background wordmark ribbons. The progress
+rail still communicates indeterminate loading, but its 840 ms loop gives each
+sweep a short pause instead of repeatedly snapping back at the previous 680 ms
+pace. Its track appears from 500 ms, then the sweep begins at 740 ms and settles
+near the far edge inside the track so it stays visible during hand-off. The completed
+composition now holds for 1.22 seconds before the same 320 ms fade, shortening a
+fast first visit by about 280 ms. The hydration watchdog and no-hydration
+fallback now share a 3.6-second timeout.
+
+This source change is not yet included in the production deployment. Browser
+acceptance passed on the current source: the orbit marker moves, the lime sweep
+is visible inside its track before hand-off, and the completed scene exits after
+the shortened hold. The same run passed reduced-motion, slow-readiness,
+no-hydration release, keyboard/inert hand-off and the full public-site journey.
+The current local production build measured the overlay at 1.593 seconds from
+boot start to removal. The local production build, acceptance build, lint,
+typecheck, 148 boundary tests, documentation links and `git diff --check` all
+passed. Existing live account and backend flows remain outside this public-site
+acceptance. The source change still needs its reviewed merge and a new hosted
+deployment before it is live.

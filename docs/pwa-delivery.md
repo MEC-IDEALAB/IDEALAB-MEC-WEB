@@ -1,12 +1,17 @@
 # Installable website delivery
 
-The website supplies an IDEALAB MEC web app manifest and 192 px and 512 px
-icons. Browsers that support installation can offer the website as a standalone
-app when it is served from an eligible secure origin. The manifest starts at
-the public home page and uses the site's existing authentication controls.
+The website supplies an IDEALAB MEC web app manifest with the existing 192 px
+and 512 px icons plus a separate maskable SVG icon. The maskable icon embeds the
+original 512 px artwork at 70% size over the same full-bleed lime background,
+keeping the black mark inside the platform's central safe area without changing
+the existing icons. Browsers that support installation can offer the website as
+a standalone app when it is served from an eligible secure origin. The manifest
+starts at the public home page and uses the site's existing authentication
+controls.
 
 Production builds register a root-scoped service worker. It caches only the
-static offline message, its stylesheet and the app icons, and serves those
+static offline message, its stylesheet and the app icons, including the new
+maskable variant, and serves those
 assets from cache when needed. A page navigation that cannot reach the network
 shows the offline message. It does not cache HTML pages, authentication routes,
 APIs or member data. Lab and account work still needs a connection. Push
@@ -60,3 +65,20 @@ and device acceptance remain unverified.
 
 See the [current Vercel route verification](deployment.md#current-production-route-and-pwa-recheck-31-october-2026)
 for the production deployment revision and route results.
+
+## Maskable icon source update — 1 November 2026
+
+The manifest now advertises `/brand/app-icon-maskable.svg` with `purpose:
+maskable`. It is a self-contained SVG with the original PNG embedded as data,
+so it does not depend on a second network fetch when the platform decodes the
+icon. The full lime canvas fills the platform mask. A browser pixel-bound check
+measured the scaled mark's farthest bounding-box corner at 194.1 px from the
+512 px icon center, inside the 204.8 px radius of the central 80% safe circle.
+The service worker includes the SVG in its icon precache and same-origin image
+cache path. The original `any` PNG icons remain available for browsers that
+prefer raster sources.
+
+This is source-level packaging evidence. Hosted delivery of the new SVG and a
+device install/update check must be recorded after deployment. Android package
+identity, website association, release signing, and physical-device acceptance
+remain open; no APK has been built.

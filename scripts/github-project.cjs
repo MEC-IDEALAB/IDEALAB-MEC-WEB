@@ -52,7 +52,10 @@ async function main() {
   }
   const finalProject = await load();
   const [repo, milestones, issues] = await Promise.all([api(`repos/${repository}`), api(`repos/${repository}/milestones?state=all&per_page=100`), api(`repos/${repository}/issues?state=all&per_page=100`)]);
-  if (!repo.private || finalProject.public || finalProject.items.totalCount < 13) throw new Error('GitHub setup verification failed.');
+  // The website repository is intentionally public; the organization delivery
+  // project remains private. Repository visibility must not make a valid public
+  // code host fail the project configuration check.
+  if (finalProject.public || finalProject.items.totalCount < 13) throw new Error('GitHub setup verification failed.');
   const result = { repository: repo.html_url, private: repo.private, project: finalProject.url, projectPrivate: !finalProject.public, projectItems: finalProject.items.totalCount, fields: finalProject.fields.nodes.map(field => field.name), milestones: milestones.map(item => ({ title: item.title, url: item.html_url })), issueCount: issues.filter(issue => !issue.pull_request).length };
   fs.writeFileSync(path.join(__dirname, '..', 'docs', 'github-project.json'), JSON.stringify(result, null, 2) + '\n');
   console.log(JSON.stringify(result, null, 2));

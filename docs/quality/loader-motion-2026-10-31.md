@@ -11,10 +11,10 @@ Fonts and high-priority images get a bounded 1.1-second readiness check. Fast
 loads keep the full scene visible for at least 1.5 seconds. The progress track
 finishes fading in before a 680 ms sweep starts; it completes just before the
 overlay finishes its 320 ms exit. Page content remains inert through that
-handoff. Reduced-motion users skip the sequence and exit immediately. A
-3.6-second hydrated watchdog and 4.4-second inline fallback release the page if
-startup stalls. The session marker keeps the scene to one appearance per
-browser-tab visit.
+handoff. Reduced-motion users skip the animations and release the overlay
+after hydration. A 3.6-second hydrated watchdog and 4.4-second inline fallback
+release the page if startup stalls. The session marker keeps the scene to one
+appearance per browser-tab visit.
 
 ## Verification
 
@@ -39,9 +39,8 @@ inspected in the isolated QA copy; local screenshots remain in the untracked
 `artifacts/acceptance/` output and are not a source dependency.
 
 These browser checks use no live account, do not submit to Supabase, and do not
-verify production analytics dashboard collection. The initial loader change
-is deployed by PR #30. The timing follow-up below awaits its own PR and
-production deployment.
+verify production analytics dashboard collection. The initial loader shipped
+in PR #30; its timing correction and production result are recorded below.
 
 ## Production timing follow-up — 1 November 2026
 
@@ -53,4 +52,13 @@ loader for 1.5 seconds before its 320 ms exit. This leaves about 200 ms between
 the sweep finishing and the overlay disappearing. The acceptance journey checks
 the track opacity, sweep movement, and CSS timing, in addition to the existing
 handoff and reduced-motion checks. The full isolated Chromium acceptance passed
-with this follow-up; production is pending this change's PR and deployment.
+with this follow-up.
+
+PR #31 merged at `6ae71d6`. The Vercel production deployment for that exact
+`main` commit is Ready and serves `https://idealab-mec-web.vercel.app/` with
+HTTP 200. A fresh Playwright Chromium session measured the overlay at 1.86 s:
+the track was visible before its sweep, the rail moved, content stayed inert
+until the overlay exited, and a same-tab reload skipped the loader. With
+reduced motion enabled, all loader animations resolved to `0s` and the overlay
+released 358 ms after its start. The capture and browser checks used no account
+or member data.

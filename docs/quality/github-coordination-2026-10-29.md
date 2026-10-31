@@ -1,6 +1,6 @@
 # GitHub coordination and current-source checks — 29 October 2026
 
-## Current status — 1 November 2026
+## Status snapshot — 1 November 2026 (after PR #33 production verification)
 
 - `MEC-IDEALAB/IDEALAB-MEC-WEB` is public; organization Project #1 remains
   private. The project has 40 items: all 21 website issues, all 12

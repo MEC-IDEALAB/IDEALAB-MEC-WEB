@@ -7,6 +7,7 @@ import { OwnVisitsPanel } from '@/components/own-visits-panel';
 import { LabOpeningPanel } from '@/components/lab-opening-panel';
 import { RecentProjects } from '@/features/projects/recent-projects';
 import { UpcomingProgramme } from '@/features/events/upcoming-programme';
+import { MemberLoadingSkeleton } from '@/components/member-loading-skeleton';
 import { Suspense } from 'react';
 export const metadata = { title: 'Your space' };
 export default async function MemberHome({ searchParams }: { searchParams: Promise<{ notice?: string }> }) {
@@ -18,10 +19,10 @@ export default async function MemberHome({ searchParams }: { searchParams: Promi
     <p>A little curiosity. A clear next step. What will you work on today?</p>
     <Link href="/app/profile" className="member-identity-link"><span className="member-identity-icon"><UserRound size={23} aria-hidden="true" /></span><span><strong>{profile.name || 'Your account'}</strong><small>Your IDEALAB profile</small></span><ArrowUpRight size={19} aria-hidden="true" /></Link>
     <MemberQuickActions />
-    <LabOpeningPanel />
-    <OwnVisitsPanel />
-    <Suspense fallback={<p role="status">Loading the event programme…</p>}><UpcomingProgramme /></Suspense>
-    <RecentProjects />
+    <Suspense fallback={<MemberLoadingSkeleton kind="opening" />}><LabOpeningPanel /></Suspense>
+    <Suspense fallback={<MemberLoadingSkeleton kind="visits" />}><OwnVisitsPanel /></Suspense>
+    <Suspense fallback={<MemberLoadingSkeleton kind="events" />}><UpcomingProgramme /></Suspense>
+    <Suspense fallback={<MemberLoadingSkeleton kind="projects" />}><RecentProjects /></Suspense>
     {notice === 'signout' && <div className="notice" role="alert">We couldn’t sign you out. You are still signed in. Please try Sign out again.</div>}
     <section className="workspace-hero" aria-labelledby="home-next-step">
       <div><span className="eyebrow">FROM IDEA TO SOMETHING REAL</span><h2 id="home-next-step">Small start.<br />Big possibilities.</h2>

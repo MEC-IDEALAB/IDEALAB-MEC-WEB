@@ -1,5 +1,11 @@
 # Shared Flutter compatibility checkpoint
 
+For the later read-only inspection of the current, uncommitted Grow worktree,
+see [the 1 November checkout audit](flutter-compatibility-2026-11-01.md). It
+supersedes the statement below that no versioned own-profile code is present in
+the local source; it does not establish a merged or deployed compatibility
+contract.
+
 23 October read-only refresh at parent HEAD `a88ce7e`: the main contract gap
 below remains. No versioned profile/read/save/claim or MEC-admission references
 were found under lib/test/integration_test. Uncommitted router changes now send

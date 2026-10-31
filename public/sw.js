@@ -1,6 +1,10 @@
 const CACHE_PREFIX = 'idealab-mec-shell-';
 const CACHE_NAME = `${CACHE_PREFIX}v1`;
-const OFFLINE_ICONS = ['/brand/app-icon-192.png', '/brand/app-icon-512.png'];
+const OFFLINE_ICONS = [
+  '/brand/app-icon-192.png',
+  '/brand/app-icon-512.png',
+  '/brand/app-icon-maskable.svg',
+];
 const SHELL_FILES = [
   '/offline.html',
   '/offline.css',

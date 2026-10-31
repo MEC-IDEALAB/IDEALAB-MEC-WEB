@@ -18,6 +18,10 @@ export function BrandLoading({ boot = false }: { boot?: boolean }) {
       </div>
       <div className="loader-core" aria-hidden="true">
         <svg className="loader-build" viewBox="0 0 80 84" fill="none">
+          <g className="loader-build-orbit">
+            <circle className="loader-build-orbit-track" cx="40" cy="42" r="32" />
+            <circle className="loader-build-orbit-node" cx="40" cy="10" r="2.2" />
+          </g>
           <path className="loader-build-guide" d="M4 22V8h14M62 8h14v14M76 62v14H62M18 76H4V62" />
           <path className="loader-build-shell" pathLength="1" d="m40 12 25 14v30L40 71 15 56V26l25-14ZM15 26l25 15 25-15M40 41v30" />
           <path className="loader-build-detail" pathLength="1" d="m28 19 25 15v13" />

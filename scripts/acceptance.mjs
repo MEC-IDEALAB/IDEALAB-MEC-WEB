@@ -153,7 +153,7 @@ try {
     const keys = await Promise.all(names.map(async name => (await caches.open(name)).keys()));
     return keys.flat().map(request => new URL(request.url).pathname).sort();
   });
-  assert.deepEqual(shellPaths, ['/brand/app-icon-192.png', '/brand/app-icon-512.png', '/offline.css', '/offline.html'], 'Only the static offline screen, its stylesheet and app icons may be cached');
+  assert.deepEqual(shellPaths, ['/brand/app-icon-192.png', '/brand/app-icon-512.png', '/brand/app-icon-maskable.svg', '/offline.css', '/offline.html'], 'Only the static offline screen, its stylesheet and app icons may be cached');
   await pwaContext.setOffline(true);
   await pwaPage.goto(base + '/app/profile', { waitUntil: 'domcontentloaded' });
   await pwaPage.getByRole('heading', { name: 'Back online soon.' }).waitFor();
@@ -219,10 +219,13 @@ try {
   let releaseScripts;
   const scriptsReady = new Promise(resolve => { releaseScripts = resolve; });
   await loaderPage.route('**/_next/static/**/*.js', async route => { await scriptsReady; await route.continue(); });
-  const loaderStartedAt = Date.now();
   await loaderPage.goto(base, { waitUntil: 'commit' });
   await loaderPage.locator('.boot-loader').waitFor({ state: 'visible' });
   await loaderPage.waitForFunction(() => document.getElementById('site-content')?.inert === true);
+  const orbit = loaderPage.locator('.loader-build-orbit');
+  const firstOrbitTransform = await orbit.evaluate(element => getComputedStyle(element).transform);
+  await loaderPage.waitForTimeout(120);
+  assert.notEqual(await orbit.evaluate(element => getComputedStyle(element).transform), firstOrbitTransform, 'The blueprint marker orbits the prototype while loading');
   await loaderPage.keyboard.press('Tab');
   assert.equal(await loaderPage.evaluate(() => Boolean(document.activeElement?.closest('#site-content'))), false, 'Covered page controls cannot receive keyboard focus before hydration');
   assert.equal(await loaderPage.locator('.boot-loader').evaluate(element => getComputedStyle(element).pointerEvents), 'auto', 'Boot screen blocks pointer input while it covers the page');
@@ -234,14 +237,23 @@ try {
   await loaderPage.waitForTimeout(650);
   assert.deepEqual(await loaderPage.locator('.loader-title-chunk > span').evaluateAll(elements => elements.map(element => getComputedStyle(element).animationDelay)), ['0.18s', '0.27s', '0.36s'], 'The IDEALAB lockup reveals in a clear three-beat sequence');
   assert.equal(await loaderPage.locator('.loader-progress > span').evaluate(element => getComputedStyle(element).animationName), 'loader-progress-sweep', 'The loader uses an indeterminate moving rail rather than implying measured completion');
-  assert.equal(await loaderPage.locator('.loader-progress').evaluate(element => getComputedStyle(element).animationDelay), '0.7s', 'The progress rail fades in before its sweep begins');
-  assert.equal(await loaderPage.locator('.loader-progress > span').evaluate(element => getComputedStyle(element).animationDelay), '0.94s', 'The rail sweep starts after the track has finished appearing');
-  assert.equal(await loaderPage.locator('.loader-progress > span').evaluate(element => getComputedStyle(element).animationDuration), '0.68s', 'The visible sweep finishes before the overlay completes its exit');
+  assert.equal(await loaderPage.locator('.loader-progress').evaluate(element => getComputedStyle(element).animationDelay), '0.5s', 'The progress rail appears before its sweep begins');
+  assert.equal(await loaderPage.locator('.loader-progress > span').evaluate(element => getComputedStyle(element).animationDelay), '0.74s', 'The rail sweep starts after its track is visible');
+  assert.equal(await loaderPage.locator('.loader-progress > span').evaluate(element => getComputedStyle(element).animationDuration), '0.84s', 'The indeterminate rail uses a calmer sweep cycle');
   assert(await loaderPage.locator('.loader-progress').evaluate(element => Number(getComputedStyle(element).opacity) > .85), 'The rail is already visible before its sweep begins');
   const firstRailPosition = await loaderPage.locator('.loader-progress > span').evaluate(element => element.getBoundingClientRect().x);
   await loaderPage.waitForTimeout(140);
   const nextRailPosition = await loaderPage.locator('.loader-progress > span').evaluate(element => element.getBoundingClientRect().x);
   assert.notEqual(nextRailPosition, firstRailPosition, 'The revealed rail visibly sweeps before the loader exits');
+  const railMetrics = await loaderPage.locator('.loader-progress').evaluate(element => {
+    const track = element.getBoundingClientRect();
+    const sweepElement = element.querySelector('span');
+    if (!sweepElement) return { track: { x: track.x, width: track.width, height: track.height }, sweep: null, transform: 'missing' };
+    const sweep = sweepElement.getBoundingClientRect();
+    const style = getComputedStyle(sweepElement);
+    return { track: { x: track.x, width: track.width, height: track.height }, sweep: { x: sweep.x, width: sweep.width, height: sweep.height }, transform: style.transform };
+  });
+  assert(railMetrics.track.width > 0 && railMetrics.sweep && railMetrics.sweep.width > 0 && railMetrics.sweep.x < railMetrics.track.x + railMetrics.track.width && railMetrics.sweep.x + railMetrics.sweep.width > railMetrics.track.x, `The moving lime sweep is visible within its track before the loader exits: ${JSON.stringify(railMetrics)}`);
   await loaderPage.screenshot({ path: 'artifacts/acceptance/wordmark-loading.png' });
   const loaderExitState = loaderPage.evaluate(() => new Promise(resolve => {
     const root = document.documentElement;
@@ -258,8 +270,8 @@ try {
   releaseScripts();
   const exitState = await loaderExitState;
   assert.equal(exitState.inert, true, 'Page content stays inert at the instant the loader begins its exit');
-  assert(exitState.bootAge >= 1450, 'The full staged composition and progress sweep finish before a fast load exits');
-  assert(Date.now() - loaderStartedAt >= 1000, 'A fast first visit receives enough time to read the loading scene');
+  assert(exitState.bootAge >= 1200, 'The staged composition remains visible long enough before a fast load exits');
+  assert(exitState.bootAge < 2200, `A fast first visit does not linger after its readiness checks (${Math.round(exitState.bootAge)} ms)`);
   assert.match(await loaderPage.locator('.boot-loader').evaluate(element => getComputedStyle(element).transitionDuration), /^0\.32s(?:,|$)/, 'Boot screen has a measured fade-out');
   await loaderPage.locator('.boot-loader').waitFor({ state: 'hidden' });
   assert.equal(await loaderPage.locator('#site-content').evaluate(element => element.inert), false, 'Page content becomes interactive after the loader exits');
@@ -844,6 +856,39 @@ try {
   page.on('request', request => {
     if (/supabase\.co|\/rest\/v1(?:\/|\?|$)|\/api\//i.test(request.url())) studentDataRequests.push(request.url());
   });
+  const skeletonContext = await browser.newContext({ viewport: { width: 320, height: 800 } });
+  const skeletonPage = await skeletonContext.newPage();
+  const skeletonDataRequests = [];
+  skeletonPage.on('request', request => {
+    if (/supabase\.co|\/rest\/v1(?:\/|\?|$)|\/api\//i.test(request.url())) skeletonDataRequests.push(request.url());
+  });
+  await skeletonPage.goto(base + '/design/student?loading=true');
+  await skeletonPage.getByRole('heading', { name: 'While your space opens.', exact: true }).waitFor();
+  await skeletonPage.waitForFunction(() => !document.documentElement.dataset.boot, null, { timeout: 5000 });
+  assert.equal(await skeletonPage.locator('meta[name="robots"]').getAttribute('content'), 'noindex, nofollow', 'Member loading preview stays out of search results');
+  const memberSkeletons = skeletonPage.locator('.member-loading[role="status"][aria-busy="true"]');
+  assert.equal(await memberSkeletons.count(), 9, 'Preview renders the route fallback and each Home/Lab data-panel skeleton');
+  assert.deepEqual(await memberSkeletons.allTextContents(), [
+    'Loading your workspace.',
+    'Loading the lab opening status.', 'Loading your lab visits.', 'Loading the event programme.', 'Loading your projects.',
+    'Loading the lab opening status.', 'Loading your lab visits.', 'Loading the event programme.', 'Loading your projects.',
+  ], 'Every skeleton announces only its truthful loading state');
+  assert.equal(await skeletonPage.locator('.member-loading__visual[aria-hidden="true"]').count(), 9, 'Decorative skeleton blocks are hidden from assistive technology');
+  assert.equal(await skeletonPage.locator('.member-loading__line').first().evaluate(element => getComputedStyle(element).animationName), 'member-loading-shimmer', 'Skeleton shimmer is enabled when motion is allowed');
+  for (const theme of ['light', 'dark']) {
+    await setTheme(skeletonPage, theme);
+    for (const width of [320, 390, 768, 1440]) {
+      await skeletonPage.setViewportSize({ width, height: width < 500 ? 800 : 950 });
+      assert(await skeletonPage.evaluate(() => document.documentElement.scrollWidth <= innerWidth), `${theme} member skeleton preview fits ${width}px`);
+      assert(await memberSkeletons.first().isVisible(), `${theme} route skeleton remains visible at ${width}px`);
+    }
+    await skeletonPage.setViewportSize({ width: theme === 'light' ? 390 : 1440, height: 900 });
+    await skeletonPage.screenshot({ path: `artifacts/acceptance/member-skeletons-${theme}-${theme === 'light' ? 'mobile' : 'desktop'}.png`, fullPage: true, animations: 'disabled' });
+  }
+  await skeletonPage.emulateMedia({ reducedMotion: 'reduce' });
+  assert(await skeletonPage.locator('.member-loading__line').evaluateAll(elements => elements.every(element => getComputedStyle(element).animationName === 'none')), 'Skeleton shimmer is disabled for reduced-motion users');
+  assert.deepEqual(skeletonDataRequests, [], 'Loading-state preview makes no live API or Supabase requests');
+  await skeletonContext.close();
   await page.setViewportSize({ width: 1440, height: 600 });
   await page.goto(base + '/design/student?screen=home');
   await page.getByRole('heading', { name: studentScreens.home, exact: true }).waitFor();
@@ -1295,7 +1340,7 @@ try {
   const genericRecovery = await page.goto(`${recoveryBase}/forgot-password?notice=requested`);
   assert(genericRecovery?.ok(), 'Recovery request status page renders');
   assert(await page.getByText(/recovery is paused/i).isVisible(), 'Recovery remains visibly disabled until the security boundary is complete');
-  console.log('PASS: public journey, 5 widths in light/dark, login/signup and recovery layouts/themes, palette contrast, no-JavaScript content, scroll/card motion and live reduced-motion cancellation, assets, keyboard navigation, gated onboarding/staff previews, student module layouts and feature contrast, request drafts, disabled recovery callback, security headers, PWA service-worker registration and offline fallback with member routes uncached.');
+  console.log('PASS: public journey, 5 widths in light/dark, login/signup and recovery layouts/themes, palette contrast, no-JavaScript content, scroll/card motion and live reduced-motion cancellation, assets, keyboard navigation, gated onboarding/staff previews, responsive member Home/Lab skeletons in both themes and reduced motion, student module layouts and feature contrast, request drafts, disabled recovery callback, security headers, PWA service-worker registration and offline fallback with member routes uncached.');
   console.log('UNVERIFIED: live account creation, email delivery, email/Google sign-in, recovery-link exchange/password update, draft under a real member session, scoped permissions and operational backend workflows.');
 } catch (error) {
   const activePage = browser?.contexts()[0]?.pages()[0];

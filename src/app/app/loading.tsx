@@ -1,1 +1,5 @@
-export default function Loading() { return <div className="workspace-page" role="status"><h1>Opening your space…</h1><p>Please wait while we load your account.</p></div>; }
+import { MemberLoadingSkeleton } from '@/components/member-loading-skeleton';
+
+export default function Loading() {
+  return <div className="workspace-page"><MemberLoadingSkeleton kind="page" /></div>;
+}

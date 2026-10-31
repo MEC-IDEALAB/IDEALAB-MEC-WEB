@@ -1,6 +1,40 @@
 # GitHub coordination and current-source checks — 29 October 2026
 
-## Current status — 31 October 2026
+## Current status — 1 November 2026
+
+- `MEC-IDEALAB/IDEALAB-MEC-WEB` is public; organization Project #1 remains
+  private. The project has 38 items: all 20 website issues, all 12
+  `MEC-IDEALAB/Grow-by-IL` issues, five linked pull requests and the completed
+  Grow tracking-coordination draft. A URL comparison verified that no current
+  issue from either repository is missing from the project.
+- Grow issue-tracking migration is complete. The public organization fork has
+  Issues enabled; its six migrated source issues are now #1–#6. The `Grow CI`
+  workflow is active and passed on `main` at `5a7b75e` (run 41215843598).
+  Follow-up work remains in [Grow #8](https://github.com/MEC-IDEALAB/Grow-by-IL/issues/8)
+  (RC5 reconciliation), [#11](https://github.com/MEC-IDEALAB/Grow-by-IL/issues/11)
+  (schema-contract gate) and [#12](https://github.com/MEC-IDEALAB/Grow-by-IL/issues/12)
+  (required main checks).
+- Website `main` is `3bb0893c88060cbab1b0bfdc7d39156564fa0efb`. Website CI and
+  Documentation CI passed on that merge commit; Website CI, Documentation CI
+  and Manual Vercel preview are active. Neither the website nor the organization
+  Grow repository currently has an open pull request. GitHub reports that the
+  website `main` branch has no branch-protection rule; CI checks exist, but the
+  server does not require them for every merge.
+- The production alias `https://idealab-mec-web.vercel.app/` returns HTTP 200
+  and Vercel reports Ready, under the connected personal Hobby team. This is
+  not IDEALAB-owned hosting. Production member auth remains source-disabled.
+- Supabase currently reports `idealab-mec-validation` active and `grow-idealab`
+  inactive. No shared Grow schema was queried or changed. The local Grow RC5
+  worktree has extensive uncommitted changes and was left untouched; current
+  compatibility prototypes there are not merged release evidence.
+- Home/Lab loading-state, maskable-icon and loader-motion refinements were
+  verified locally on 1 November 2026; they are not included in this report's
+  production evidence. The device-install/APK, production email/recovery,
+  shared Grow authorization, and real member/staff journeys remain unverified.
+
+The earlier 31 October status below is retained as a dated snapshot.
+
+## Historical status — 31 October 2026
 
 PR #19 merged into `main` at `f0d8ab0ad3084f6cc4e8727d9e07686f9105faf0`.
 Website CI, its required gate, and Documentation CI passed on the exact PR head

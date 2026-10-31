@@ -115,6 +115,21 @@ html[data-boot="leaving"] .boot-loader {
   stroke-linejoin: round;
 }
 
+.loader-build-orbit {
+  transform-box: view-box;
+  transform-origin: center;
+  animation: loader-build-orbit-spin 5.2s linear infinite;
+}
+
+.loader-build-orbit-track {
+  stroke: #a4a39b;
+  stroke-width: 1;
+  stroke-dasharray: 2 4;
+  opacity: .76;
+}
+
+.loader-build-orbit-node { fill: #ff42c6; }
+
 .loader-build-guide {
   stroke: #777771;
   animation: loader-guide-arrive 360ms 180ms ease-out both;
@@ -192,7 +207,7 @@ html[data-boot="leaving"] .boot-loader {
   margin-top: 25px;
   overflow: hidden;
   background: rgb(245 244 238 / 24%);
-  animation: loader-card-in 240ms 700ms ease both;
+  animation: loader-card-in 220ms 500ms ease both;
 }
 
 .loader-progress > span {
@@ -200,7 +215,7 @@ html[data-boot="leaving"] .boot-loader {
   inset: 0 auto 0 -35%;
   width: 35%;
   background: #ffe029;
-  animation: loader-progress-sweep 680ms 940ms cubic-bezier(.55, .05, .35, .95) infinite;
+  animation: loader-progress-sweep 840ms 740ms cubic-bezier(.55, .05, .35, .95) infinite;
 }
 
 @keyframes loader-marquee {
@@ -248,9 +263,13 @@ html[data-boot="leaving"] .boot-loader {
   to { opacity: 1; scale: 1; rotate: 0deg; }
 }
 
+@keyframes loader-build-orbit-spin {
+  to { transform: rotate(1turn); }
+}
+
 @keyframes loader-progress-sweep {
   from { transform: translateX(0); }
-  to { transform: translateX(390%); }
+  78%, to { transform: translateX(280%); }
 }
 
 html[data-boot="leaving"] .loader-core {
@@ -270,7 +289,7 @@ html[data-boot="leaving"] .loader-wall {
   .loader-row { font-size: 3rem; }
   .loader-core { padding-inline: 8px; }
   .loader-lockup { font-size: clamp(2.55rem, 12vw, 4.6rem); }
-  .loader-build { width: 52px; height: 56px; margin-bottom: 18px; }
+  .loader-build { width: 58px; height: 62px; margin-bottom: 18px; }
 }
 
 @media (prefers-reduced-motion: reduce) {

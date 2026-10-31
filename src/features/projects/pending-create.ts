@@ -1,7 +1,7 @@
-import { isProjectId, projectRecord, projectText } from './project-contract.ts';
+import { isProjectId, isProjectRevision, projectRecord, projectText } from './project-contract.ts';
 
 export type CreatePayload = {kind:'create';title:string;description:string;visibility:'private'|'public'};
-export type PendingCreate = {accountId:string;commandId:string;payload:CreatePayload};
+export type PendingCreate = {accountId:string;commandId:string;generation:string;payload:CreatePayload};
 type ReadResult = {status:'ready';pending:PendingCreate}|{status:'empty'|'unavailable'};
 type Scope='validation'|'preview';
 const dbName=(scope:Scope)=>`idealab-mec-${scope}-project-create-v1`, storeName='pending';
@@ -16,12 +16,12 @@ export function projectMarkers(accountId:string,scope:Scope='validation'):string
   try {const result=markers(accountId,scope);return result.length<=10&&result.every(isProjectId)?result:[];}catch{return [];}
 }
 function parse(value:unknown,accountId:string):PendingCreate|null {
-  if(!projectRecord(value,['accountId','commandId','payload'])||value.accountId!==accountId||!isProjectId(value.commandId)
+  if(!projectRecord(value,['accountId','commandId','generation','payload'])||value.accountId!==accountId||!isProjectId(value.commandId)||!isProjectRevision(value.generation)
     ||!projectRecord(value.payload,['kind','title','description','visibility']))return null;
   const p=value.payload;
   if(p.kind!=='create'||!projectText(p.title,160)||p.title!==p.title.trim()||!projectText(p.description,4000,true)||p.description!==p.description.trim()
     ||(p.visibility!=='private'&&p.visibility!=='public'))return null;
-  return {accountId,commandId:value.commandId,payload:{kind:'create',title:p.title,description:p.description,visibility:p.visibility}};
+  return {accountId,commandId:value.commandId,generation:value.generation,payload:{kind:'create',title:p.title,description:p.description,visibility:p.visibility}};
 }
 async function open(scope:Scope):Promise<IDBDatabase> {
   return new Promise((resolve,reject)=>{
@@ -43,8 +43,8 @@ export async function readPendingCreate(accountId:string,scope:Scope='validation
   });}catch{return {status:'unavailable'};}finally{db?.close();}
 }
 /** One transaction per account prevents competing tabs from replacing a command. */
-export async function preparePendingCreate(accountId:string,commandId:string,payload:CreatePayload,scope:Scope='validation'):Promise<ReadResult> {
-  const incoming=parse({accountId,commandId,payload},accountId);
+export async function preparePendingCreate(accountId:string,commandId:string,generation:string,payload:CreatePayload,scope:Scope='validation'):Promise<ReadResult> {
+  const incoming=parse({accountId,commandId,generation,payload},accountId);
   if(!incoming||!isProjectId(accountId))return {status:'unavailable'};
   let db:IDBDatabase|undefined;
   try {db=await open(scope);return await new Promise((resolve,reject)=>{

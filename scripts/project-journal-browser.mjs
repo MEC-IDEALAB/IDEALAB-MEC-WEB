@@ -18,10 +18,10 @@ try {
   for(const page of [a,b]){await page.goto(`http://127.0.0.1:${server.address().port}`);await page.addScriptTag({content:script});}
   const actor='11111111-1111-4111-8111-111111111111',other='22222222-2222-4222-8222-222222222222',old='33333333-3333-4333-8333-333333333333',fresh='44444444-4444-4444-8444-444444444444';
   const payload={kind:'create',title:'Synthetic idea',description:'Synthetic details',visibility:'private'};
-  const prepare=(page,accountId,commandId,data=payload)=>page.evaluate(({accountId,commandId,data})=>window.journal.preparePendingCreate(accountId,commandId,data),{accountId,commandId,data});
+  const prepare=(page,accountId,commandId,data=payload,generation='1')=>page.evaluate(({accountId,commandId,data,generation})=>window.journal.preparePendingCreate(accountId,commandId,generation,data),{accountId,commandId,data,generation});
   const read=(page,accountId)=>page.evaluate(id=>window.journal.readPendingCreate(id),accountId);
   assert.equal((await read(a,actor)).status,'empty');
-  const first=await prepare(a,actor,old);assert.equal(first.status,'ready');
+  const first=await prepare(a,actor,old);assert.equal(first.status,'ready');assert.equal(first.pending.generation,'1');
   const competing=await prepare(b,actor,fresh,{...payload,title:'Different idea'});
   assert.equal(competing.pending.commandId,old);assert.deepEqual(competing.pending.payload,payload);
   assert.equal((await read(b,other)).status,'empty');
@@ -50,7 +50,7 @@ try {
   assert.equal((await read(a,actor)).pending.commandId,old);
   assert.equal(await a.evaluate(({actor,old})=>window.journal.clearConfirmedCreate(actor,old),{actor,old}),true);
   assert.equal(await b.evaluate(async id=>{Object.defineProperty(window,'indexedDB',{value:{open(){throw new Error('denied');}},configurable:true});return (await window.journal.readPendingCreate(id)).status;},actor),'unavailable');
-  const preview=await a.evaluate(({actor,old,payload})=>window.journal.preparePendingCreate(actor,old,payload,'preview'),{actor,old,payload});
+  const preview=await a.evaluate(({actor,old,payload})=>window.journal.preparePendingCreate(actor,old,'1',payload,'preview'),{actor,old,payload});
   assert.equal(preview.status,'ready');assert.equal((await read(a,actor)).status,'empty');
   assert.equal(await a.evaluate(({actor,old})=>window.journal.clearConfirmedCreate(actor,old,'preview'),{actor,old}),true);
   await context.close();

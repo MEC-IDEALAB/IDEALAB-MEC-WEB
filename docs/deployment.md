@@ -1,6 +1,6 @@
 # Vercel delivery
 
-Rechecked 31 October 2026 after PR #28. The public repository `MEC-IDEALAB/IDEALAB-MEC-WEB` is connected to the Vercel project `idealab-mec-web` on the personal Hobby team `navaneethvvinods-projects`. Production deployment `dpl_DqgbuySPL4DMuvWbn6iEFwS6dYZH` is Ready, and the primary alias `https://idealab-mec-web.vercel.app/` serves the website.
+Current production check — 31 October 2026: `main` is at `7e4891ff1f7e40e4af51623d20ac0cb7c334fbfb` after PR #29. The public repository `MEC-IDEALAB/IDEALAB-MEC-WEB` is connected to the Vercel project `idealab-mec-web` on the personal Hobby team `navaneethvvinods-projects`. The latest production deployment `dpl_287xsdd3daiiywUPwXiHfRa5krtA` is Ready, and its primary alias `https://idealab-mec-web.vercel.app/` serves the website. This is a personal-team project; no IDEALAB-owned Vercel team is available to the connected account.
 
 ## 404 root cause and fix
 
@@ -40,4 +40,14 @@ Local Supabase validation uses `http://127.0.0.1:3015` and exact `/auth/confirm`
 
 ## Verification record
 
-PR #28's exact head `299df43` passed Website CI, Documentation CI, the required gate and Vercel Preview. The protected PR preview served `/`, `/lab`, `/projects`, `/events`, `/explore`, and `/sign-in`. Production deployment `dpl_DqgbuySPL4DMuvWbn6iEFwS6dYZH` is Ready. Direct production GET requests to those six routes returned HTTP 200 HTML with no Vercel error. Playwright Chromium opened the production homepage and rendered the title and main headline. Analytics dashboard collection and unknown-path behavior remain unverified.
+PR #28's exact head `299df43` passed Website CI, Documentation CI, the required gate and Vercel Preview. The protected PR preview served `/`, `/lab`, `/projects`, `/events`, `/explore`, and `/sign-in`. Its production deployment ID was `dpl_DqgbuySPL4DMuvWbn6iEFwS6dYZH`; the current deployment is recorded below. Analytics dashboard collection remains unverified.
+
+## Current production route and PWA recheck (31 October 2026)
+
+The exact-head GitHub runs for current `main` passed: [Website CI](https://github.com/MEC-IDEALAB/IDEALAB-MEC-WEB/actions/runs/41225623591) and [Documentation CI](https://github.com/MEC-IDEALAB/IDEALAB-MEC-WEB/actions/runs/41225623592). Vercel inspection shows deployment `dpl_287xsdd3daiiywUPwXiHfRa5krtA` is Ready/Production, includes the public `idealab-mec-web.vercel.app` alias and builds Next.js route handlers. The Vercel project settings still display Framework Preset `Other`; the committed `vercel.json` override is effective in the current deployment.
+
+Direct HTTPS GETs to `/`, `/lab`, `/projects`, `/events`, `/explore`, `/sign-in`, and `/sign-up` returned HTTP 200 with application titles and no `x-vercel-error` header. A Chromium browser loaded the production homepage, title, navigation and content. An arbitrary unknown route returned HTTP 404 without a Vercel error header; custom 404 presentation was not reviewed. A unique deployment URL opened the Vercel login page, consistent with deployment protection; use the public production alias above.
+
+The user-reported Vercel request ID `bom1::bpw9h-1793466099286-d8407eb7c6fc` contains timestamp `2026-10-31T17:01:39.286Z`, shortly after production deployment `dpl_99Go92ukd7VEtYMZhbRCsa43eAXt` was created. Vercel inspection of that earlier deployment listed no build outputs. The current deployment contains Next.js page handlers, and the public alias now returns the application. The actual URL that produced the user's report was not supplied, so the timing and build evidence strongly match the earlier missing-output failure but do not identify its host conclusively.
+
+Hosted PWA checks also passed for the current public HTTPS alias: it is a secure context, `/manifest.webmanifest` returns 200 with standalone display and root start URL, the declared 192 px and 512 px PNG icons return 200, and the root-scoped service worker is activated and controls the page. This verifies hosted delivery, not an OS install prompt, home-screen launch or Android APK. See the [PWA delivery record](pwa-delivery.md).

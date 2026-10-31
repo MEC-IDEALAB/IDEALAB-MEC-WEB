@@ -153,7 +153,60 @@ passed. The
 separate marker-write-failure UI branch and actual signed-in behavior remain
 unverified. These preview checks do not establish backend acceptance.
 
-## Proposed bounded creation intents — not implemented
+## Account-bound create resolution — isolated validation, 31 October 2026
+
+The installed isolated backend now exposes a one-slot, owner-bound create intent.
+Read-only inspection of its public function definitions confirmed these RPC
+shapes:
+
+- `public.get_own_project_create_intent_v1()` returns `clear` with a decimal
+  generation, `unresolved` with a command ID, the exact four-key
+  `{kind:'create',title,description,visibility}` payload (or `null` when it
+  cannot be safely recovered), nullable saved project ID and generation, or
+  `unavailable`.
+- `public.mutate_project_for_account_v1(p_command jsonb,
+  p_command_id uuid, p_create_generation bigint,
+  p_expected_user_id uuid)` performs create registration atomically. There is
+  no separate begin-intent RPC. Its saved result includes a project ID.
+- `public.get_own_project_create_receipt_v1(p_command_id uuid)` returns the
+  caller-owned saved receipt or SQL `NULL`.
+- `public.ack_own_project_create_v1(p_command_id uuid)` returns an acknowledged
+  result or a conflict.
+
+Website create now requires a current verified member, the rendered account ID,
+and the server generation. A server-recovered payload is authoritative. While
+one create is unresolved, a different command or changed payload cannot be
+sent; the same command, payload and generation are retried. The website checks
+the owned saved receipt before acknowledging, and only routes to the project
+after a matching acknowledgment or a read-back that proves the exact receipt
+was already acknowledged. Malformed, stale, mismatched, failed or unavailable
+states fail closed and do not claim that an uncertain create was not saved.
+Other project operations continue to use the existing supported mutation RPC;
+the old generic action rejects create commands.
+
+The browser journal remains only as a same-device retry aid when a response or
+browser session is lost. It stores the server generation with the exact command
+and payload. Server intent and receipt state remain authoritative. If recovery
+details are malformed, the UI blocks another create and offers a server-state
+check where a command ID is available. The server-recovered payload is rendered
+read-only; the only retry action uses its original command, payload and
+generation. If an older browser marker has no matching receipt after the server
+generation advances, the UI deliberately stays blocked, directs the member to
+check My projects, and requests IDEALAB support if the outcome is still unclear.
+It does not silently discard that marker based only on a missing receipt.
+
+This implementation targets **only** `idealab-mec-validation`. It did not
+change database schema or settings, query or write database rows, create test
+accounts, or enable production project writes. The local validation SQL
+candidates still differ from the recorded applied statements; see the
+[migration ledger audit](quality/validation-migration-ledger-audit-2026-10-31.md).
+The implementation has focused parser/action-boundary and browser-journal
+checks, not a real signed-in database journey, cross-client check or true
+concurrency test. Shared Grow rollout remains gated.
+
+## Earlier bounded creation-intent proposal — historical, superseded
+
+The following proposal predates the installed validation-only contract above.
 
 The existing v1 mutation accepts an arbitrary command ID. A resolver can lock
 the actor row and insert a permanent tombstone for that ID, but deleting a v1
@@ -186,9 +239,9 @@ Starting and acknowledging an intent compare the expected generation under the
 same account lock; a terminal acknowledgment advances it. Even if old terminal
 details are later collected, delayed requests with the old generation cannot open
 new work. A single slot would limit members to one unresolved creation at a time,
-which is not yet an approved product rule. If adopted, cleanup must use the same
-lock order, and a missing old receipt must lead to an unknown/check-projects state
-rather than a claim that nothing was created.
+which had not yet been approved when this earlier proposal was drafted. If adopted,
+cleanup must use the same lock order, and a missing old receipt must lead to an
+unknown/check-projects state rather than a claim that nothing was created.
 
 This guarantee cannot coexist with unrestricted v1 create writes. A coordinated
 rollout must inventory website and Grow consumers, disable or reject v1 **create**
@@ -203,4 +256,7 @@ simultaneous resolution, payload mismatch, quota exhaustion, lost responses,
 account switching/deactivation, cross-owner denial and old-client behavior.
 Tests must establish the transaction isolation and actual Auth/Data API behavior;
 the current isolated browser journal and sequential SQL assertions do not prove
-these concurrency properties. No v2 intent API or schema exists yet.
+these concurrency properties. This earlier section described a proposed
+implementation before the validation-only create-intent functions were
+installed; it is not the current website contract and does not authorize shared
+rollout.

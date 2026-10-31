@@ -232,11 +232,13 @@ try {
   const nextPosition = await loop.evaluate(element => element.getBoundingClientRect().x);
   assert.notEqual(nextPosition, firstPosition, 'Brand ribbons move while the first visit is loading');
   await loaderPage.waitForTimeout(650);
+  assert.deepEqual(await loaderPage.locator('.loader-title-chunk > span').evaluateAll(elements => elements.map(element => getComputedStyle(element).animationDelay)), ['0.18s', '0.27s', '0.36s'], 'The IDEALAB lockup reveals in a clear three-beat sequence');
+  assert.equal(await loaderPage.locator('.loader-progress > span').evaluate(element => getComputedStyle(element).animationName), 'loader-progress-sweep', 'The loader uses an indeterminate moving rail rather than implying measured completion');
   await loaderPage.screenshot({ path: 'artifacts/acceptance/wordmark-loading.png' });
   const loaderExitState = loaderPage.evaluate(() => new Promise(resolve => {
     const root = document.documentElement;
     const content = document.getElementById('site-content');
-    const capture = () => ({ inert: content?.inert === true, opacity: getComputedStyle(document.querySelector('.boot-loader')).opacity });
+    const capture = () => ({ inert: content?.inert === true, opacity: getComputedStyle(document.querySelector('.boot-loader')).opacity, bootAge: performance.now() - Number(root.dataset.bootStarted) });
     if (root.dataset.boot === 'leaving') { resolve(capture()); return; }
     const observer = new MutationObserver(() => {
       if (root.dataset.boot !== 'leaving') return;
@@ -248,8 +250,9 @@ try {
   releaseScripts();
   const exitState = await loaderExitState;
   assert.equal(exitState.inert, true, 'Page content stays inert at the instant the loader begins its exit');
-  assert(Date.now() - loaderStartedAt >= 500, 'The short brand reveal completes before a fast load exits');
-  assert.match(await loaderPage.locator('.boot-loader').evaluate(element => getComputedStyle(element).transitionDuration), /^0\.26s(?:,|$)/, 'Boot screen has a measured fade-out');
+  assert(exitState.bootAge >= 1100, 'The full staged wordmark reveal completes before a fast load exits');
+  assert(Date.now() - loaderStartedAt >= 1000, 'A fast first visit receives enough time to read the loading scene');
+  assert.match(await loaderPage.locator('.boot-loader').evaluate(element => getComputedStyle(element).transitionDuration), /^0\.32s(?:,|$)/, 'Boot screen has a measured fade-out');
   await loaderPage.locator('.boot-loader').waitFor({ state: 'hidden' });
   assert.equal(await loaderPage.locator('#site-content').evaluate(element => element.inert), false, 'Page content becomes interactive after the loader exits');
   await loaderPage.keyboard.press('Tab');

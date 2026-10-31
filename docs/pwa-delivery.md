@@ -32,11 +32,31 @@ five viewport widths, themes, accessibility, navigation, and security headers.
 
 The full website review independently checked the PWA cache and CSP boundaries;
 its inline-style finding was fixed before this candidate was tested. The local
-browser journey does not verify installation from a hosted HTTPS origin, a real
-account or member-data access. The connected Vercel account has only its personal
-Hobby team and no IDEALAB organization namespace. Android package identity,
-website association, release signing and physical-device acceptance remain
-open; no APK has been built.
+browser journey does not establish real account or member-data access. A later
+hosted check confirms the public production HTTPS origin serves the manifest,
+both declared icons and an active root-scoped service worker; it does not prove
+an install prompt, home-screen launch, offline acceptance on a device or member
+access. The Vercel project remains on the connected personal Hobby team, with no
+IDEALAB organization namespace available. Android package identity, website
+association, release signing and physical-device acceptance remain open; no APK
+has been built.
 
 See the [PWA offline-shell verification record](quality/pwa-offline-shell-2026-10-31.md)
 for the source fingerprint, local checks and independent security review.
+
+## Hosted HTTPS checks — 31 October 2026
+
+On `https://idealab-mec-web.vercel.app/`, Chromium confirmed a secure context,
+`/manifest.webmanifest` returned HTTP 200 with `display: standalone` and
+`start_url: /`, the root-scoped service worker was activated and controlled the
+page, and the manifest's `/brand/app-icon-192.png` and
+`/brand/app-icon-512.png` assets each returned HTTP 200 as PNG files. The
+service worker script `/sw.js` also returned HTTP 200.
+
+This verifies hosted delivery of the PWA foundation. The browser installation
+prompt, an actual installed home-screen launch, mobile operating-system
+installation, Android wrapper/build, package ID, domain association, signing
+and device acceptance remain unverified.
+
+See the [current Vercel route verification](deployment.md#current-production-route-and-pwa-recheck-31-october-2026)
+for the production deployment revision and route results.

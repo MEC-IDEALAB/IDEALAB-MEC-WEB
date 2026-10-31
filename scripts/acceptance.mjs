@@ -216,12 +216,49 @@ try {
   const loaderPage = await loaderContext.newPage();
   const loaderConsoleErrors = [];
   loaderPage.on('console', message => { if (message.type() === 'error') loaderConsoleErrors.push(message.text()); });
+  let releaseStyles;
+  const stylesReady = new Promise(resolve => { releaseStyles = resolve; });
+  let stylesheetRequests = 0;
+  let stylesheetHoldMs = 0;
+  let stylesReleaseTimer;
+  await loaderPage.route('**/_next/static/**/*.css', async route => {
+    stylesheetRequests += 1;
+    if (!stylesReleaseTimer) stylesReleaseTimer = setTimeout(releaseStyles, 450);
+    const heldSince = Date.now();
+    await stylesReady;
+    stylesheetHoldMs = Math.max(stylesheetHoldMs, Date.now() - heldSince);
+    await route.continue();
+  });
   let releaseScripts;
   const scriptsReady = new Promise(resolve => { releaseScripts = resolve; });
   await loaderPage.route('**/_next/static/**/*.js', async route => { await scriptsReady; await route.continue(); });
   await loaderPage.goto(base, { waitUntil: 'commit' });
   await loaderPage.locator('.boot-loader').waitFor({ state: 'visible' });
   await loaderPage.waitForFunction(() => document.getElementById('site-content')?.inert === true);
+  await loaderPage.waitForFunction(() => Number(document.documentElement.dataset.bootVisualStarted) > 0);
+  await loaderPage.waitForFunction(() => {
+    const core = document.querySelector('.loader-core');
+    const title = core?.querySelector('.loader-lockup');
+    const visibleWords = [...(core?.querySelectorAll('.loader-title-chunk > span') ?? [])].every(word => {
+      const text = word.getBoundingClientRect();
+      const clip = word.parentElement.getBoundingClientRect();
+      const visibleHeight = Math.max(0, Math.min(text.bottom, clip.bottom) - Math.max(text.top, clip.top));
+      return text.width > 0 && text.height > 0 && visibleHeight > text.height * .6
+        && Number(getComputedStyle(word).opacity) >= .7;
+    });
+    return core && title && Number(getComputedStyle(core).opacity) >= .45
+      && core.getBoundingClientRect().width > 0
+      && core.getBoundingClientRect().height > 0
+      && title.getBoundingClientRect().width > 0 && visibleWords;
+  }, null, { timeout: 800 });
+  const criticalFrame = await loaderPage.locator('.loader-core').evaluate(element => {
+    const rect = element.getBoundingClientRect();
+    return { opacity: Number(getComputedStyle(element).opacity), width: rect.width, height: rect.height, title: element.querySelector('.loader-lockup')?.getBoundingClientRect().width ?? 0 };
+  });
+  assert(criticalFrame.opacity >= .45 && criticalFrame.width > 0 && criticalFrame.height > 0 && criticalFrame.title > 0, `The loader's first animation frame has a visible branded composition after delayed CSS arrives: ${JSON.stringify(criticalFrame)}`);
+  releaseStyles();
+  assert(stylesheetRequests > 0 && stylesheetHoldMs >= 400, `The delayed-CSS check holds a real stylesheet request for at least 400ms: ${JSON.stringify({ stylesheetRequests, stylesheetHoldMs })}`);
+  clearTimeout(stylesReleaseTimer);
   const orbit = loaderPage.locator('.loader-build-orbit');
   const firstOrbitTransform = await orbit.evaluate(element => getComputedStyle(element).transform);
   await loaderPage.waitForFunction(transform => getComputedStyle(document.querySelector('.loader-build-orbit')).transform !== transform, firstOrbitTransform, { timeout: 400 });
@@ -258,7 +295,7 @@ try {
   const loaderExitState = loaderPage.evaluate(() => new Promise(resolve => {
     const root = document.documentElement;
     const content = document.getElementById('site-content');
-    const capture = () => ({ inert: content?.inert === true, opacity: getComputedStyle(document.querySelector('.boot-loader')).opacity, bootAge: performance.now() - Number(root.dataset.bootStarted) });
+    const capture = () => ({ inert: content?.inert === true, opacity: getComputedStyle(document.querySelector('.boot-loader')).opacity, bootAge: performance.now() - Number(root.dataset.bootStarted), visualAge: performance.now() - Number(root.dataset.bootVisualStarted) });
     if (root.dataset.boot === 'leaving') { resolve(capture()); return; }
     const observer = new MutationObserver(() => {
       if (root.dataset.boot !== 'leaving') return;
@@ -270,8 +307,8 @@ try {
   releaseScripts();
   const exitState = await loaderExitState;
   assert.equal(exitState.inert, true, 'Page content stays inert at the instant the loader begins its exit');
-  assert(exitState.bootAge >= 1200, 'The staged composition remains visible long enough before a fast load exits');
-  assert(exitState.bootAge < 2200, `A fast first visit does not linger after its readiness checks (${Math.round(exitState.bootAge)} ms)`);
+  assert(exitState.visualAge >= 1550, `The complete motion sequence stays visible for at least 1,550 ms after it becomes visible (${Math.round(exitState.visualAge)} ms)`);
+  assert(exitState.bootAge < 2600, `A fast first visit does not linger after its readiness checks (${Math.round(exitState.bootAge)} ms)`);
   assert.match(await loaderPage.locator('.boot-loader').evaluate(element => getComputedStyle(element).transitionDuration), /^0\.32s(?:,|$)/, 'Boot screen has a measured fade-out');
   await loaderPage.locator('.boot-loader').waitFor({ state: 'hidden' });
   assert.equal(await loaderPage.locator('#site-content').evaluate(element => element.inert), false, 'Page content becomes interactive after the loader exits');
@@ -309,6 +346,34 @@ try {
   assert.equal(await reducedLoaderPage.locator('html').getAttribute('data-boot'), null, 'Reduced-motion loader also stays first-visit only');
   await reducedLoaderContext.close();
 
+  const motionChangeContext = await browser.newContext({ reducedMotion: 'no-preference' });
+  const motionChangePage = await motionChangeContext.newPage();
+  await motionChangePage.addInitScript(() => {
+    const originalAdd = MediaQueryList.prototype.addEventListener;
+    MediaQueryList.prototype.addEventListener = function (type, listener, options) {
+      const listenerSource = Function.prototype.toString.call(listener);
+      if (this.media === '(prefers-reduced-motion: reduce)' && type === 'change'
+        && (listener.name === 'onMotionChange' || listenerSource.includes('.matches'))) {
+        globalThis.__idealabReducedMotionListenerAttached = true;
+      }
+      return originalAdd.call(this, type, listener, options);
+    };
+  });
+  let releaseMotionScripts;
+  const motionScriptsReady = new Promise(resolve => { releaseMotionScripts = resolve; });
+  await motionChangePage.route('**/_next/static/**/*.js', async route => { await motionScriptsReady; await route.continue(); });
+  await motionChangePage.goto(`${base}/sign-in`, { waitUntil: 'commit' });
+  await motionChangePage.locator('.boot-loader').waitFor({ state: 'visible' });
+  await motionChangePage.waitForFunction(() => Number(document.documentElement.dataset.bootVisualStarted) > 0);
+  releaseMotionScripts();
+  await motionChangePage.waitForFunction(() => globalThis.__idealabReducedMotionListenerAttached === true, null, { timeout: 1800 });
+  assert.equal(await motionChangePage.locator('html').getAttribute('data-boot'), 'loading', 'Preference changes are tested while the loader is still active');
+  await motionChangePage.emulateMedia({ reducedMotion: 'reduce' });
+  await motionChangePage.waitForFunction(() => !document.documentElement.hasAttribute('data-boot'), null, { timeout: 1200 });
+  assert.equal(await motionChangePage.locator('#site-content').evaluate(element => element.inert), false, 'Switching to reduced motion during the intro immediately releases page interaction');
+  assert.equal(await motionChangePage.locator('.boot-loader').evaluate(element => getComputedStyle(element).display), 'none', 'Switching to reduced motion during the intro removes the overlay');
+  await motionChangeContext.close();
+
   const slowLoaderContext = await browser.newContext();
   const slowLoaderPage = await slowLoaderContext.newPage();
   let releaseSlowScripts;
@@ -316,11 +381,12 @@ try {
   await slowLoaderPage.route('**/_next/static/**/*.js', async route => { await slowScriptsReady; await route.continue(); });
   await slowLoaderPage.goto(base, { waitUntil: 'commit' });
   await slowLoaderPage.locator('.boot-loader').waitFor({ state: 'visible' });
+  await slowLoaderPage.waitForFunction(() => Number(document.documentElement.dataset.bootVisualStarted) > 0);
   await slowLoaderPage.waitForTimeout(760);
   const slowReleaseAt = Date.now();
   releaseSlowScripts();
   await slowLoaderPage.waitForFunction(() => document.documentElement.dataset.boot === 'leaving');
-  assert(Date.now() - slowReleaseAt < 900, 'A slow first load exits when ready without an added minimum delay');
+  assert(Date.now() - slowReleaseAt < 1600, 'A delayed hydration completes within the remaining branded motion sequence');
   await slowLoaderPage.locator('.boot-loader').waitFor({ state: 'hidden' });
   await slowLoaderContext.close();
 
@@ -335,7 +401,7 @@ try {
   const watchdogStart = await watchdogPage.evaluate(() => Number(document.documentElement.dataset.bootStarted));
   await watchdogPage.waitForFunction(() => !document.documentElement.hasAttribute('data-boot'), { timeout: 3500 });
   const noHydrationElapsed = await watchdogPage.evaluate(start => performance.now() - start, watchdogStart);
-  assert(noHydrationElapsed < 2700, `The inline fallback releases the boot overlay promptly without hydration (${Math.round(noHydrationElapsed)} ms)`);
+  assert(noHydrationElapsed < 3200, `The inline fallback releases the boot overlay promptly without hydration (${Math.round(noHydrationElapsed)} ms)`);
   assert.equal(await watchdogPage.locator('#site-content').evaluate(element => element.inert), false, 'The no-hydration watchdog always releases page inertness');
   await watchdogPage.keyboard.press('Tab');
   assert(await watchdogPage.getByRole('link', { name: 'Skip to content' }).evaluate(element => element === document.activeElement), 'Keyboard navigation resumes after the no-hydration watchdog');

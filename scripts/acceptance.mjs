@@ -135,6 +135,30 @@ try {
   }
   assert.equal((await fetch(base + '/unknown-page')).status, 404);
   browser = await chromium.launch({ headless: true });
+  const serviceWorkerResponse = await fetch(base + '/sw.js');
+  assert.equal(serviceWorkerResponse.status, 200);
+  assert.match(await serviceWorkerResponse.text(), /request\.mode !== 'navigate'/, 'The offline worker must not intercept API or asset requests');
+  const pwaContext = await browser.newContext();
+  const pwaPage = await pwaContext.newPage();
+  await pwaPage.goto(base, { waitUntil: 'domcontentloaded' });
+  await pwaPage.waitForFunction(async () => Boolean((await navigator.serviceWorker?.getRegistration('/'))?.active), null, { timeout: 10000 });
+  await pwaPage.waitForFunction(() => Boolean(navigator.serviceWorker?.controller));
+  const shellPaths = await pwaPage.evaluate(async () => {
+    const names = await caches.keys();
+    const keys = await Promise.all(names.map(async name => (await caches.open(name)).keys()));
+    return keys.flat().map(request => new URL(request.url).pathname).sort();
+  });
+  assert.deepEqual(shellPaths, ['/brand/app-icon-192.png', '/brand/app-icon-512.png', '/offline.css', '/offline.html'], 'Only the static offline screen, its stylesheet and app icons may be cached');
+  await pwaContext.setOffline(true);
+  await pwaPage.goto(base + '/app/profile', { waitUntil: 'domcontentloaded' });
+  await pwaPage.getByRole('heading', { name: 'Back online soon.' }).waitFor();
+  assert.match(await pwaPage.locator('main').innerText(), /never stored for offline use/i);
+  assert.equal(await pwaPage.locator('body').evaluate(element => getComputedStyle(element).display), 'grid', 'The offline stylesheet must load from the cache under the site CSP');
+  await pwaPage.waitForFunction(() => { const image = document.querySelector('main img'); return Boolean(image?.complete && image.naturalWidth > 0); });
+  const cachedMemberRoutes = await pwaPage.evaluate(async () => (await Promise.all((await caches.keys()).map(async name => (await caches.open(name)).keys()))).flat().map(request => new URL(request.url).pathname).filter(path => path.startsWith('/app/') || path.startsWith('/auth/')));
+  assert.deepEqual(cachedMemberRoutes, [], 'Member and auth routes must never enter the offline cache');
+  await pwaContext.setOffline(false);
+  await pwaContext.close();
   const projectPreviewContext = await browser.newContext();
   const projectPreview = await projectPreviewContext.newPage();
   await projectPreview.goto(base + '/design/project-create');
@@ -1255,7 +1279,7 @@ try {
   const genericRecovery = await page.goto(`${recoveryBase}/forgot-password?notice=requested`);
   assert(genericRecovery?.ok(), 'Recovery request status page renders');
   assert(await page.getByText(/recovery is paused/i).isVisible(), 'Recovery remains visibly disabled until the security boundary is complete');
-  console.log('PASS: public journey, 5 widths in light/dark, login/signup and recovery layouts/themes, palette contrast, no-JavaScript content, scroll/card motion and live reduced-motion cancellation, assets, keyboard navigation, gated onboarding/staff previews, student module layouts and feature contrast, request drafts, disabled recovery callback and security headers.');
+  console.log('PASS: public journey, 5 widths in light/dark, login/signup and recovery layouts/themes, palette contrast, no-JavaScript content, scroll/card motion and live reduced-motion cancellation, assets, keyboard navigation, gated onboarding/staff previews, student module layouts and feature contrast, request drafts, disabled recovery callback, security headers, PWA service-worker registration and offline fallback with member routes uncached.');
   console.log('UNVERIFIED: live account creation, email delivery, email/Google sign-in, recovery-link exchange/password update, draft under a real member session, scoped permissions and operational backend workflows.');
 } catch (error) {
   const activePage = browser?.contexts()[0]?.pages()[0];

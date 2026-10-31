@@ -248,12 +248,13 @@ Historical provenance in the parent Grow workspace includes `docs/00_Project/CUR
 The first visit in a tab shows a black motion-graphics canvas with drawn
 prototype geometry, three-beat wordmark reveals, staggered solid/outline
 IDEALAB rows and a narrow indeterminate rail. Font and priority-image readiness
-are bounded by 1.1 seconds; fast loads hold the completed reveal for at least
-1.18 seconds and hand off over 320 ms. Reduced-motion users exit immediately.
+are bounded by 400 ms; the full motion scene stays visible for at least 1.55
+seconds from its first rendered animation frame and hands off over 320 ms.
+Reduced-motion users skip the animation immediately.
 Separate hydrated and no-hydration watchdogs release content, blocked storage
 skips the overlay, and repeat reloads/client navigation do not repeat it.
 Current desktop/mobile captures and browser timing checks are in the [loader
-motion record](quality/loader-motion-2026-10-31.md); earlier captures remain
+motion record](quality/loader-visual-timing-2026-11-01.md); earlier captures remain
 under `artifacts/acceptance/`.
 
 ## User poster-reference collage follow-up — 21 October 2026

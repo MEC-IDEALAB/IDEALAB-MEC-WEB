@@ -96,3 +96,25 @@ reduced-motion, slow-readiness, no-hydration release, keyboard/inert handoff,
 and full public-site journey. Lint, typecheck, 148 boundary tests, docs checks,
 and production build passed. Live account and backend workflows remain outside
 this public-site acceptance.
+
+## Cold-start timing refinement — 1 November 2026
+
+A fresh Chromium context showed that the loader could remain visible for about
+2.73 seconds while client hydration and asset readiness started late. A warm
+same-tab run still completed in about 1.57 seconds. The longer cold path came
+from waiting up to 1.1 seconds after hydration, with a 3.6-second no-hydration
+watchdog as the upper bound.
+
+The readiness wait is now 400 ms and the minimum choreography remains 1.22
+seconds. The early no-hydration fallback starts its 2-second watchdog from the
+boot marker, then uses the same 320 ms exit; the hydrated watchdog also uses a
+2-second limit. Reduced-motion users skip the overlay before hydration, and the
+page remains interactive. The session marker still limits the animated scene
+to once per browser-tab visit.
+
+Node 24.22.1 verification on this revision passed lint, typecheck, all 148
+boundary tests, the acceptance production build, the full Chromium acceptance
+journey, and a standard production build. Browser acceptance checks the normal
+1.2–2.2 second handoff, no-hydration release under 2.7 seconds, reduced-motion
+skip, animation movement, keyboard access, and page responsiveness. It does not
+exercise live account creation or member backend workflows.

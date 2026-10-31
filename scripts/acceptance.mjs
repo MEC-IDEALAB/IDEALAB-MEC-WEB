@@ -234,6 +234,14 @@ try {
   await loaderPage.waitForTimeout(650);
   assert.deepEqual(await loaderPage.locator('.loader-title-chunk > span').evaluateAll(elements => elements.map(element => getComputedStyle(element).animationDelay)), ['0.18s', '0.27s', '0.36s'], 'The IDEALAB lockup reveals in a clear three-beat sequence');
   assert.equal(await loaderPage.locator('.loader-progress > span').evaluate(element => getComputedStyle(element).animationName), 'loader-progress-sweep', 'The loader uses an indeterminate moving rail rather than implying measured completion');
+  assert.equal(await loaderPage.locator('.loader-progress').evaluate(element => getComputedStyle(element).animationDelay), '0.7s', 'The progress rail fades in before its sweep begins');
+  assert.equal(await loaderPage.locator('.loader-progress > span').evaluate(element => getComputedStyle(element).animationDelay), '0.94s', 'The rail sweep starts after the track has finished appearing');
+  assert.equal(await loaderPage.locator('.loader-progress > span').evaluate(element => getComputedStyle(element).animationDuration), '0.68s', 'The visible sweep finishes before the overlay completes its exit');
+  assert(await loaderPage.locator('.loader-progress').evaluate(element => Number(getComputedStyle(element).opacity) > .85), 'The rail is already visible before its sweep begins');
+  const firstRailPosition = await loaderPage.locator('.loader-progress > span').evaluate(element => element.getBoundingClientRect().x);
+  await loaderPage.waitForTimeout(140);
+  const nextRailPosition = await loaderPage.locator('.loader-progress > span').evaluate(element => element.getBoundingClientRect().x);
+  assert.notEqual(nextRailPosition, firstRailPosition, 'The revealed rail visibly sweeps before the loader exits');
   await loaderPage.screenshot({ path: 'artifacts/acceptance/wordmark-loading.png' });
   const loaderExitState = loaderPage.evaluate(() => new Promise(resolve => {
     const root = document.documentElement;
@@ -250,7 +258,7 @@ try {
   releaseScripts();
   const exitState = await loaderExitState;
   assert.equal(exitState.inert, true, 'Page content stays inert at the instant the loader begins its exit');
-  assert(exitState.bootAge >= 1100, 'The full staged wordmark reveal completes before a fast load exits');
+  assert(exitState.bootAge >= 1450, 'The full staged composition and progress sweep finish before a fast load exits');
   assert(Date.now() - loaderStartedAt >= 1000, 'A fast first visit receives enough time to read the loading scene');
   assert.match(await loaderPage.locator('.boot-loader').evaluate(element => getComputedStyle(element).transitionDuration), /^0\.32s(?:,|$)/, 'Boot screen has a measured fade-out');
   await loaderPage.locator('.boot-loader').waitFor({ state: 'hidden' });

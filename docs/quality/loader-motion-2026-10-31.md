@@ -75,14 +75,24 @@ composition now holds for 1.22 seconds before the same 320 ms fade, shortening a
 fast first visit by about 280 ms. The hydration watchdog and no-hydration
 fallback now share a 3.6-second timeout.
 
-This source change is not yet included in the production deployment. Browser
-acceptance passed on the current source: the orbit marker moves, the lime sweep
-is visible inside its track before hand-off, and the completed scene exits after
-the shortened hold. The same run passed reduced-motion, slow-readiness,
-no-hydration release, keyboard/inert hand-off and the full public-site journey.
-The current local production build measured the overlay at 1.593 seconds from
-boot start to removal. The local production build, acceptance build, lint,
-typecheck, 148 boundary tests, documentation links and `git diff --check` all
-passed. Existing live account and backend flows remain outside this public-site
-acceptance. The source change still needs its reviewed merge and a new hosted
-deployment before it is live.
+PR [#33](https://github.com/MEC-IDEALAB/IDEALAB-MEC-WEB/pull/33) merged into
+`main` at `ccfbb7466553ec64c0239a3ab167fa4c863f69a0`. Its exact-head Website CI,
+Documentation CI, required gate and Vercel preview passed; post-merge Website
+CI and Documentation CI also passed. The production Vercel deployment for that
+commit is Ready, and the public alias returns HTTP 200.
+
+A fresh Playwright Chromium check on the deployed alias measured 1.567 seconds
+from boot start to loader removal on desktop and 1.549 seconds at a 390 px
+mobile width. The live page reports the orbit and 840 ms progress sweep
+animations, and a same-tab reload skips the first-visit overlay. With reduced
+motion enabled, the orbit and sweep resolve to no animation, the page becomes
+interactive, and the overlay exits in 338 ms. The hosted manifest returns HTTP
+200 and advertises the maskable icon; the SVG and service worker also return
+HTTP 200, and the worker includes the maskable icon in its cache list.
+
+The local production build measured 1.593 seconds. Local Chromium acceptance
+also passed the orbit movement, visible sweep, 1.2–2.2 second fast-load handoff,
+reduced-motion, slow-readiness, no-hydration release, keyboard/inert handoff,
+and full public-site journey. Lint, typecheck, 148 boundary tests, docs checks,
+and production build passed. Live account and backend workflows remain outside
+this public-site acceptance.

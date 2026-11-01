@@ -24,6 +24,7 @@ These records describe product requirements, UX plans, integration boundaries an
 - [PWA install shell and Android package status](pwa-delivery.md)
 - [Content and asset provenance](content-sources.md)
 - [UI audit and corrections](ui-audit.md)
+- [Cinematic ASCII intro and artwork provenance](quality/cinematic-ascii-2026-11-01.md)
 - [Current website task list](task-list-2026-10-21.md)
 - [Security review and hardening evidence](security-review.md)
 - [Shared backend readiness and onboarding gate](backend-readiness.md)

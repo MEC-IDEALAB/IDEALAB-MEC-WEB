@@ -4,21 +4,7 @@ import { IntroSkip } from './intro-skip';
 export function BrandLoading({ boot = false }: { boot?: boolean }) {
   return (
     <div className={boot ? 'brand-loader boot-loader' : 'brand-loader'} role="status" aria-label="Loading IDEA Lab MEC">
-      <div className="loader-wall" aria-hidden="true">
-        {Array.from({ length: 7 }, (_, row) => (
-          <div className="loader-row" data-row={row % 2} key={row}>
-            <div className="loader-loop">
-              {[0, 1].map(copy => (
-                <span className="loader-run" key={copy}>
-                  {Array.from({ length: 7 }, (_, column) => (
-                    <span className="loader-wordmark" key={column}>idealab<span>.mec</span></span>
-                  ))}
-                </span>
-              ))}
-            </div>
-          </div>
-        ))}
-      </div>
+      <div className="loader-film-heading" aria-hidden="true"><span>IDEALAB / MEC</span><span>AN EXPERIMENT IN MAKING</span></div>
       <AsciiHands idPrefix={boot ? 'boot-hands' : 'route-hands'} />
       {boot && <IntroSkip />}
       <div className="loader-core" aria-hidden="true">
@@ -39,6 +25,12 @@ export function BrandLoading({ boot = false }: { boot?: boolean }) {
           <svg className="loader-title-star" viewBox="0 0 64 64" fill="none"><path d="M32 1v62M1 32h62M10 10l44 44M10 54l44-44" /></svg>
         </div>
         <p className="loader-caption">A little curiosity goes a long way.</p>
+      </div>
+      <div className="loader-film-captions" aria-hidden="true">
+        <p className="loader-chapter loader-chapter--one"><span>00 / TUNE IN</span><strong>A signal becomes an idea.</strong></p>
+        <p className="loader-chapter loader-chapter--two"><span>01 / CURIOSITY</span><strong>It starts with a what if.</strong></p>
+        <p className="loader-chapter loader-chapter--three"><span>02 / CONNECTION</span><strong>One spark meets another.</strong></p>
+        <p className="loader-chapter loader-chapter--four"><span>03 / CREATION</span><strong>Think. Experiment. Make.</strong></p>
       </div>
       <span className="sr-only">Preparing the IDEA Lab website.</span>
     </div>

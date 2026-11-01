@@ -64,3 +64,10 @@ Retro typography: Press Start 2P, official Google Fonts repository at pinned com
 
 
 Bricolage Grotesque is self-hosted from the official Google Fonts repository at pinned commit `6ce172f74aa355ea43eb964fa4a91570a4d3064d`, directory `ofl/bricolagegrotesque`. The variable TTF and its OFL license are stored together under `src/app/fonts/`. The official homepage loader was inspected in a real browser for the repeated lowercase wordmark and staggered-row composition; the prototype mark, type masks and transitions in this implementation are original code. The three lower-ribbon quotations are original site mottos with no third-party attribution.
+
+The revised ASCII intro derives its hand anatomy and luminance from a pinned
+public-domain reproduction of Michelangelo's *The Creation of Adam*, rather than
+the earlier original silhouette study. The owner's contemporary reference sets
+the character spacing, cobalt accents and dot-matrix direction; its raster is not
+shipped. Source, license, checksum and offline conversion are recorded in the
+[cinematic intro provenance](quality/cinematic-ascii-2026-11-01.md).

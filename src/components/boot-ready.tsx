@@ -17,6 +17,7 @@ export function BootReady() {
     if (content) content.inert = true;
 
     const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
+    const explicitlyRequestedMotion = root.dataset.bootMotion === 'requested';
     let finished = false;
     let readyTimer: number | undefined;
     let exitTimer: number | undefined;
@@ -25,6 +26,7 @@ export function BootReady() {
     const finish = () => {
       if (finished) return;
       finished = true;
+      const focusWasInIntro = Boolean(document.activeElement?.closest('.boot-loader'));
       window.clearTimeout(exitTimer);
       window.clearTimeout(readyTimer);
       window.clearTimeout(failSafeTimer);
@@ -32,7 +34,9 @@ export function BootReady() {
       delete root.dataset.bootStarted;
       delete root.dataset.bootVisualStarted;
       delete root.dataset.bootHydrated;
+      delete root.dataset.bootMotion;
       if (content) content.inert = false;
+      if (focusWasInIntro) document.querySelector<HTMLAnchorElement>('.skip-link')?.focus({ preventScroll: true });
     };
 
     const leave = () => {
@@ -40,7 +44,7 @@ export function BootReady() {
       if (root.dataset.boot === 'loading') root.dataset.boot = 'leaving';
       if (root.dataset.boot !== 'leaving') {
         finish();
-      } else if (reducedMotion.matches) {
+      } else if (reducedMotion.matches && !explicitlyRequestedMotion) {
         finish();
       } else if (exitTimer === undefined) {
         exitTimer = window.setTimeout(finish, BRAND_LOADING_EXIT_MS);
@@ -48,7 +52,7 @@ export function BootReady() {
     };
 
     const onMotionChange = (event: MediaQueryListEvent) => {
-      if (event.matches) leave();
+      if (event.matches && !explicitlyRequestedMotion) leave();
     };
     reducedMotion.addEventListener('change', onMotionChange);
     const failSafeTimer = window.setTimeout(() => {
@@ -57,7 +61,7 @@ export function BootReady() {
     }, Math.max(0, BRAND_LOADING_WATCHDOG_MS - (performance.now() - bootStarted)));
 
     const showReadyState = async () => {
-      if (reducedMotion.matches) {
+      if (reducedMotion.matches && !explicitlyRequestedMotion) {
         leave();
         return;
       }
@@ -91,9 +95,11 @@ export function BootReady() {
       readyTimer = window.setTimeout(leave, remaining);
     };
 
+    window.addEventListener('idealab-skip-intro', finish);
     void showReadyState();
     return () => {
       reducedMotion.removeEventListener('change', onMotionChange);
+      window.removeEventListener('idealab-skip-intro', finish);
       window.clearTimeout(exitTimer);
       window.clearTimeout(readyTimer);
       window.clearTimeout(failSafeTimer);

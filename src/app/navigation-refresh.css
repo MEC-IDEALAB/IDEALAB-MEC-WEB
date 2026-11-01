@@ -1,0 +1,48 @@
+/* Public mobile navigation lives between the header rule and the home ticker. */
+.public-mobile-topnav { display: none; }
+
+.playful-site .hero-copy { position: relative; }
+.playful-site .hero-copy .hero-theme-toggle {
+  position: absolute;
+  top: 25px;
+  right: 0;
+  z-index: 2;
+  width: 44px;
+  height: 44px;
+}
+.playful-site .hero-copy:has(.hero-theme-toggle) h1 { padding-right: 52px; }
+
+@media (max-width: 800px) {
+  .site-header .header-inner .header-signin { margin-left: auto; }
+  .site-header .header-inner:has(.theme-toggle) .header-signin { margin-left: 0; }
+  .public-mobile-topnav {
+    display: grid;
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+    gap: 4px;
+    padding: 4px max(12px, env(safe-area-inset-right)) 4px max(12px, env(safe-area-inset-left));
+    border-bottom: 1px solid var(--line);
+    background: var(--paper);
+  }
+  .public-mobile-topnav a {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 0;
+    min-height: 44px;
+    padding: 5px 2px;
+    border-radius: 8px;
+    color: var(--ink);
+    font-size: .75rem;
+    font-weight: 500;
+    line-height: 1.25;
+    overflow-wrap: anywhere;
+    text-align: center;
+  }
+  .public-mobile-topnav a:hover { text-decoration: underline; text-underline-offset: 4px; }
+  .public-mobile-topnav a[aria-current=page] { background: var(--accent-yellow); color: var(--accent-ink); font-weight: 700; }
+  .public-mobile-topnav a:focus-visible { outline-offset: -3px; }
+}
+
+@media (max-width: 600px) {
+  .playful-site .hero-copy .hero-theme-toggle { top: 18px; }
+}

@@ -41,7 +41,7 @@ export function HomeTickerBottom() {
       <p className="sr-only" id="lab-quotes-copy">{quotes.join(' ')}</p>
       <div className="ticker-viewport quote-ticker-viewport">
         <div className="ticker-band quote-ticker-band">
-          <div className="quote-ticker-content" role="group" tabIndex={0} aria-label="Moving quotes. Focusing this region pauses automatic motion until it is resumed in the header." aria-describedby="lab-quotes-copy" onFocusCapture={pauseForKeyboard}><MovingTrack items={quotes} /></div>
+          <div className="quote-ticker-content" role="group" tabIndex={0} aria-label="Moving quotes. Focusing this region pauses automatic motion until it is resumed using the footer Motion setting." aria-describedby="lab-quotes-copy" onFocusCapture={pauseForKeyboard}><MovingTrack items={quotes} /></div>
         </div>
       </div>
     </section>
@@ -58,7 +58,7 @@ export function HomeTickerTop() {
       </p>
       <div className="ticker-viewport maker-ticker-viewport">
         <div className="ticker-band maker-ticker-band">
-          <div className="maker-ticker-content" role="group" tabIndex={0} aria-label="Moving highlights. Focusing this region pauses automatic motion until it is resumed in the header." aria-describedby="lab-highlights-copy" onFocusCapture={pauseForKeyboard}><MovingTrack /></div>
+          <div className="maker-ticker-content" role="group" tabIndex={0} aria-label="Moving highlights. Focusing this region pauses automatic motion until it is resumed using the footer Motion setting." aria-describedby="lab-highlights-copy" onFocusCapture={pauseForKeyboard}><MovingTrack /></div>
         </div>
       </div>
     </section>

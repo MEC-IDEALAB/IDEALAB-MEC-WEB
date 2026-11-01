@@ -53,7 +53,7 @@ html[data-ticker-motion=ready] .ticker-track-lower{animation-duration:42s}
 .ticker-accent-green{background:var(--accent-green)}
 .ticker-accent-purple{background:var(--accent-purple)}
 .ticker-accent-coral{background:var(--accent-red)}
-.automatic-motion-control{display:inline-flex;flex:none;width:44px;height:44px;align-items:center;justify-content:center;border:1.5px solid var(--ink);background:var(--surface);color:var(--ink);box-shadow:2px 2px 0 var(--ink)}
+.automatic-motion-control{display:inline-flex;flex:none;min-width:100px;min-height:44px;padding:8px 12px;align-items:center;justify-content:center;border:1.5px solid var(--ink);background:var(--surface);color:var(--ink);box-shadow:2px 2px 0 var(--ink)}
 .automatic-motion-control:hover{transform:translateY(-1px);box-shadow:3px 3px 0 var(--ink)}
 .automatic-motion-control:focus-visible{outline:3px solid var(--blue);outline-offset:3px}
 html[data-automatic-motion=paused] .playful-site .maker-ticker-content .ticker-track,

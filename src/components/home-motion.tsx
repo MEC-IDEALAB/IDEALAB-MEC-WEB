@@ -8,7 +8,6 @@ export function HomeMotion() {
     if (!('IntersectionObserver' in window) || !Element.prototype.animate) return;
     const preference = window.matchMedia('(prefers-reduced-motion: reduce)');
     const active = new Set<Animation>();
-    const seen = new WeakSet<Element>();
     let observer: IntersectionObserver | undefined;
 
     function play(element: Element, frames: Keyframe[], options: KeyframeAnimationOptions) {
@@ -26,10 +25,8 @@ export function HomeMotion() {
       if (preference.matches) return;
       observer = new IntersectionObserver(entries => {
         for (const entry of entries) {
-          if (!entry.isIntersecting || seen.has(entry.target)) continue;
+          if (!entry.isIntersecting) continue;
           const element = entry.target;
-          seen.add(element);
-          observer?.unobserve(element);
           if (element.matches('[data-reveal]') && !element.contains(document.activeElement)) {
             const stagger = Math.min(2, Math.max(0, Number(element.getAttribute('data-stagger')) || 0));
             const timeline = element.matches('[data-reveal="timeline-step"]');
@@ -61,7 +58,7 @@ export function HomeMotion() {
         }
       }, { threshold: .12, rootMargin: '0px 0px -24px 0px' });
       document.querySelectorAll('.playful-site [data-reveal], .playful-site .doodle, .member-shell--preview [data-reveal]').forEach(element => {
-        if (!seen.has(element)) observer?.observe(element);
+        observer?.observe(element);
       });
     }
 

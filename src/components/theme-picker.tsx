@@ -1,6 +1,7 @@
 'use client';
 import { useSyncExternalStore } from 'react';
 import { Moon, Sun } from 'lucide-react';
+import { usePathname } from 'next/navigation';
 function isDark() {
   const theme = document.documentElement.dataset.theme;
   return theme === 'dark' || (theme !== 'light' && window.matchMedia('(prefers-color-scheme: dark)').matches);
@@ -15,7 +16,8 @@ function subscribe(callback: () => void) {
   window.addEventListener('storage', storage); window.addEventListener('idealab-theme', callback); media.addEventListener('change', callback);
   return () => { window.removeEventListener('storage', storage); window.removeEventListener('idealab-theme', callback); media.removeEventListener('change', callback); };
 }
-export function ThemePicker() {
+export function ThemePicker({ className = '', hideOnHome = false }: { className?: string; hideOnHome?: boolean }) {
+  const pathname = usePathname();
   const dark = useSyncExternalStore(subscribe, isDark, () => false);
   function toggle() {
     const theme = isDark() ? 'light' : 'dark';
@@ -23,5 +25,6 @@ export function ThemePicker() {
     document.documentElement.dataset.theme = theme;
     window.dispatchEvent(new Event('idealab-theme'));
   }
-  return <button className="theme-toggle" type="button" aria-label={dark ? 'Switch to light mode' : 'Switch to dark mode'} aria-pressed={dark} onClick={toggle}>{dark ? <Sun size={20} aria-hidden="true" /> : <Moon size={20} aria-hidden="true" />}</button>;
+  if (hideOnHome && pathname === '/') return null;
+  return <button className={`theme-toggle ${className}`.trim()} type="button" aria-label={dark ? 'Switch to light mode' : 'Switch to dark mode'} aria-pressed={dark} onClick={toggle}>{dark ? <Sun size={20} aria-hidden="true" /> : <Moon size={20} aria-hidden="true" />}</button>;
 }

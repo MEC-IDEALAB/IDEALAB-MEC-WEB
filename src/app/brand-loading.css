@@ -1,4 +1,20 @@
 /* One short, first-visit brand sequence with a deliberate motion hand-off. */
+.loader-ascii { position:absolute; left:0; top:4%; width:100%; height:66%; fill:#e6e9df; overflow:visible; }
+.ascii-hand { transform-box:fill-box; transform-origin:center; }
+.ascii-hand--left { animation:ascii-reach-left 4.8s ease-in-out infinite alternate; }
+.ascii-hand--right { animation:ascii-reach-right 4.8s ease-in-out infinite alternate; }
+.ascii-connection { animation:ascii-connect 4.8s ease-in-out infinite alternate; transform-origin:600px 250px; }
+@keyframes ascii-reach-left { from { translate:-35px 12px; rotate:-3deg; opacity:.45; } to { translate:15px 0; rotate:0deg; opacity:1; } }
+@keyframes ascii-reach-right { from { translate:35px -12px; rotate:3deg; opacity:.45; } to { translate:-15px 0; rotate:0deg; opacity:1; } }
+@keyframes ascii-connect { 0%,50% { opacity:.1; scale:.5; } 100% { opacity:1; scale:1.6; } }
+html[data-boot] .brand-loader .loader-core { align-self:end; margin-bottom:5vh; }
+html[data-boot] .brand-loader .loader-core::before { background:transparent; box-shadow:none; }
+html[data-boot] .brand-loader .loader-lockup { font-size:clamp(2.9rem,7vw,5rem); }
+html[data-boot] .brand-loader .loader-wall { opacity:.08; animation:none; }
+.loader-ascii pattern text { fill:#e9ece2; }
+.loader-skip { position:absolute; top:max(20px,env(safe-area-inset-top)); right:20px; z-index:3; min-height:44px; padding:10px 16px; border:1px solid #f5f4ee; border-radius:999px; background:#000; color:#f5f4ee; font:inherit; cursor:pointer; }
+.loader-skip:focus-visible { outline:3px solid #ffe029; outline-offset:4px; }
+@media(max-width:600px) { .loader-ascii { left:-30%; width:160%; top:5%; height:58%; } .ascii-coordinate { letter-spacing:1px; } }
 .brand-loader {
   position: relative;
   display: grid;
@@ -298,4 +314,10 @@ html[data-boot="leaving"] .loader-wall {
     animation: none !important;
     transition: none !important;
   }
+  /* Explicit Replay animated intro is a scoped opt-in, not a page preference change. */
+  html[data-boot-motion=requested] .boot-loader .loader-core { animation:loader-core-enter 1ms both!important; }
+  html[data-boot-motion=requested] .boot-loader .ascii-hand--left { animation:ascii-reach-left 4.8s ease-in-out infinite alternate!important; }
+  html[data-boot-motion=requested] .boot-loader .ascii-hand--right { animation:ascii-reach-right 4.8s ease-in-out infinite alternate!important; }
+  html[data-boot-motion=requested] .boot-loader .ascii-connection { animation:ascii-connect 4.8s ease-in-out infinite alternate!important; }
+  html[data-boot-motion=requested] .boot-loader .loader-loop { animation:loader-marquee 9s linear infinite!important; }
 }

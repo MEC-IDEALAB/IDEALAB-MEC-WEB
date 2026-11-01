@@ -206,6 +206,10 @@ try {
   assert.equal(markerPosts,0,'Preview recovery must not call a server action');
   await markerPreviewContext.close();
   const context = await browser.newContext();
+  // The dedicated loader contexts above measure the first visit. These public
+  // content checks represent a repeat visit, so the ten-second splash should
+  // not make unrelated page interactions start while content is inert.
+  await context.addInitScript(() => sessionStorage.setItem('idealab-mec:loader-seen:v2', '1'));
   const page = await context.newPage();
   const errors = [];
   const cspErrors = [];
@@ -243,19 +247,28 @@ try {
       const text = word.getBoundingClientRect();
       const clip = word.parentElement.getBoundingClientRect();
       const visibleHeight = Math.max(0, Math.min(text.bottom, clip.bottom) - Math.max(text.top, clip.top));
-      return text.width > 0 && text.height > 0 && visibleHeight > text.height * .6
-        && Number(getComputedStyle(word).opacity) >= .7;
+      const style = getComputedStyle(word);
+      return text.width > 0 && text.height > 0 && visibleHeight > text.height * .98
+        && Number(style.opacity) >= .99 && (!style.filter.startsWith('blur(') || style.filter === 'blur(0px)');
     });
-    return core && title && Number(getComputedStyle(core).opacity) >= .45
+    const progress = document.querySelector('.loader-progress');
+    const track = progress?.getBoundingClientRect();
+    const sweep = progress?.querySelector('span')?.getBoundingClientRect();
+    const geometryIsDrawn = [...document.querySelectorAll('.loader-build-shell, .loader-build-detail')]
+      .every(path => Number.parseFloat(getComputedStyle(path).strokeDashoffset) < .02);
+    return core && title && Number(getComputedStyle(core).opacity) >= .99
       && core.getBoundingClientRect().width > 0
       && core.getBoundingClientRect().height > 0
-      && title.getBoundingClientRect().width > 0 && visibleWords;
+      && title.getBoundingClientRect().width > 0 && visibleWords
+      && Number(getComputedStyle(document.querySelector('.loader-caption')).opacity) >= .99
+      && geometryIsDrawn
+      && track && sweep && sweep.width > 0 && sweep.right > track.left && sweep.left < track.right;
   }, null, { timeout: 800 });
   const criticalFrame = await loaderPage.locator('.loader-core').evaluate(element => {
     const rect = element.getBoundingClientRect();
     return { opacity: Number(getComputedStyle(element).opacity), width: rect.width, height: rect.height, title: element.querySelector('.loader-lockup')?.getBoundingClientRect().width ?? 0 };
   });
-  assert(criticalFrame.opacity >= .45 && criticalFrame.width > 0 && criticalFrame.height > 0 && criticalFrame.title > 0, `The loader's first animation frame has a visible branded composition after delayed CSS arrives: ${JSON.stringify(criticalFrame)}`);
+  assert(criticalFrame.opacity >= .99 && criticalFrame.width > 0 && criticalFrame.height > 0 && criticalFrame.title > 0, `The loader's reveal marker waits until the full brand composition is readable after delayed CSS arrives: ${JSON.stringify(criticalFrame)}`);
   releaseStyles();
   assert(stylesheetRequests > 0 && stylesheetHoldMs >= 400, `The delayed-CSS check holds a real stylesheet request for at least 400ms: ${JSON.stringify({ stylesheetRequests, stylesheetHoldMs })}`);
   clearTimeout(stylesReleaseTimer);
@@ -291,6 +304,10 @@ try {
     return { track: { x: track.x, width: track.width, height: track.height }, sweep: { x: sweep.x, width: sweep.width, height: sweep.height }, transform: style.transform };
   });
   assert(railMetrics.track.width > 0 && railMetrics.sweep && railMetrics.sweep.width > 0 && railMetrics.sweep.x < railMetrics.track.x + railMetrics.track.width && railMetrics.sweep.x + railMetrics.sweep.width > railMetrics.track.x, `The moving lime sweep is visible within its track before the loader exits: ${JSON.stringify(railMetrics)}`);
+  const buildMarkerSizeDuringLoading = await loaderPage.locator('.loader-build').evaluate(element => {
+    const rect = element.getBoundingClientRect();
+    return { width: rect.width, height: rect.height };
+  });
   await loaderPage.screenshot({ path: 'artifacts/acceptance/wordmark-loading.png' });
   const loaderExitState = loaderPage.evaluate(() => new Promise(resolve => {
     const root = document.documentElement;
@@ -307,8 +324,13 @@ try {
   releaseScripts();
   const exitState = await loaderExitState;
   assert.equal(exitState.inert, true, 'Page content stays inert at the instant the loader begins its exit');
-  assert(exitState.visualAge >= 1550, `The complete motion sequence stays visible for at least 1,550 ms after it becomes visible (${Math.round(exitState.visualAge)} ms)`);
-  assert(exitState.bootAge < 2600, `A fast first visit does not linger after its readiness checks (${Math.round(exitState.bootAge)} ms)`);
+  assert(exitState.visualAge >= 8500, `The complete composition remains visible through the ten-second opening sequence (${Math.round(exitState.visualAge)} ms)`);
+  assert(exitState.bootAge >= 10000 && exitState.bootAge < 12000, `A normal first visit runs the intro for at least 10 seconds including assembly (${Math.round(exitState.bootAge)} ms)`);
+  const buildMarkerSizeDuringExit = await loaderPage.locator('.loader-build').evaluate(element => {
+    const rect = element.getBoundingClientRect();
+    return { width: rect.width, height: rect.height };
+  });
+  assert.deepEqual(buildMarkerSizeDuringExit, buildMarkerSizeDuringLoading, 'The prototype mark keeps one size through the CSS fallback to fade handoff');
   assert.match(await loaderPage.locator('.boot-loader').evaluate(element => getComputedStyle(element).transitionDuration), /^0\.32s(?:,|$)/, 'Boot screen has a measured fade-out');
   await loaderPage.locator('.boot-loader').waitFor({ state: 'hidden' });
   assert.equal(await loaderPage.locator('#site-content').evaluate(element => element.inert), false, 'Page content becomes interactive after the loader exits');
@@ -322,6 +344,44 @@ try {
   await loaderPage.goto(base + '/sign-in');
   assert.equal(await loaderPage.locator('html').getAttribute('data-boot'), null, 'Loader does not repeat between pages');
   await loaderContext.close();
+
+  const compactLoaderContext = await browser.newContext({ viewport: { width: 390, height: 844 } });
+  await compactLoaderContext.addInitScript(() => sessionStorage.setItem('idealab-mec:visited', '1'));
+  const compactLoaderPage = await compactLoaderContext.newPage();
+  await compactLoaderPage.goto(base, { waitUntil: 'domcontentloaded' });
+  await compactLoaderPage.waitForFunction(() => document.documentElement.dataset.boot === 'loading');
+  assert.equal(await compactLoaderPage.locator('html').getAttribute('data-boot'), 'loading', 'The revised loader plays once in tabs carrying the previous visit marker');
+  await compactLoaderPage.waitForFunction(() => Number(document.documentElement.dataset.bootVisualStarted) > 0);
+  const compactTiming = await compactLoaderPage.evaluate(() => ({
+    visualStart: Number(document.documentElement.dataset.bootVisualStarted),
+    bootStart: Number(document.documentElement.dataset.bootStarted),
+  }));
+  const compactScene = await compactLoaderPage.evaluate(() => {
+    const root = document.documentElement;
+    const core = document.querySelector('.loader-core').getBoundingClientRect();
+    const mark = document.querySelector('.loader-build').getBoundingClientRect();
+    return {
+      scrollWidth: root.scrollWidth,
+      viewportWidth: innerWidth,
+      coreLeft: core.left,
+      coreRight: core.right,
+      markSize: { width: mark.width, height: mark.height },
+    };
+  });
+  assert(compactScene.scrollWidth <= compactScene.viewportWidth && compactScene.coreLeft >= 0 && compactScene.coreRight <= compactScene.viewportWidth, `Compact loader composition stays within the viewport: ${JSON.stringify(compactScene)}`);
+  assert.deepEqual(compactScene.markSize, { width: 66, height: 70 }, 'Compact loader uses its intended mobile prototype size');
+  await compactLoaderPage.screenshot({ path: 'artifacts/acceptance/wordmark-loading-mobile.png' });
+  await compactLoaderPage.waitForFunction(() => document.documentElement.dataset.boot === 'leaving' || !document.documentElement.hasAttribute('data-boot'));
+  const compactExit = await compactLoaderPage.evaluate(({ visualStart, bootStart }) => ({
+    visualAge: performance.now() - visualStart,
+    bootAge: performance.now() - bootStart,
+    markSize: (() => { const rect = document.querySelector('.loader-build').getBoundingClientRect(); return { width: rect.width, height: rect.height }; })(),
+  }), compactTiming);
+  assert(compactExit.visualAge >= 8500, `Compact loader keeps the complete composition visible through the ten-second opening sequence (${Math.round(compactExit.visualAge)} ms)`);
+  assert(compactExit.bootAge >= 10000 && compactExit.bootAge < 12000, `Compact first visit runs the intro for at least 10 seconds including assembly (${Math.round(compactExit.bootAge)} ms)`);
+  assert.deepEqual(compactExit.markSize, compactScene.markSize, 'Compact prototype mark stays the same size into its fade');
+  await compactLoaderPage.waitForFunction(() => !document.documentElement.hasAttribute('data-boot'));
+  await compactLoaderContext.close();
 
   const reducedLoaderContext = await browser.newContext({ reducedMotion: 'reduce' });
   const reducedLoaderPage = await reducedLoaderContext.newPage();
@@ -386,7 +446,7 @@ try {
   const slowReleaseAt = Date.now();
   releaseSlowScripts();
   await slowLoaderPage.waitForFunction(() => document.documentElement.dataset.boot === 'leaving');
-  assert(Date.now() - slowReleaseAt < 1600, 'A delayed hydration completes within the remaining branded motion sequence');
+  assert(Date.now() - slowReleaseAt < 10500, 'A delayed hydration completes within the remaining branded motion sequence');
   await slowLoaderPage.locator('.boot-loader').waitFor({ state: 'hidden' });
   await slowLoaderContext.close();
 
@@ -399,9 +459,9 @@ try {
   await watchdogPage.locator('.boot-loader').waitFor({ state: 'visible' });
   await watchdogPage.waitForFunction(() => document.getElementById('site-content')?.inert === true);
   const watchdogStart = await watchdogPage.evaluate(() => Number(document.documentElement.dataset.bootStarted));
-  await watchdogPage.waitForFunction(() => !document.documentElement.hasAttribute('data-boot'), { timeout: 3500 });
+  await watchdogPage.waitForFunction(() => !document.documentElement.hasAttribute('data-boot'), { timeout: 13500 });
   const noHydrationElapsed = await watchdogPage.evaluate(start => performance.now() - start, watchdogStart);
-  assert(noHydrationElapsed < 3200, `The inline fallback releases the boot overlay promptly without hydration (${Math.round(noHydrationElapsed)} ms)`);
+  assert(noHydrationElapsed < 13300, `The inline fallback releases the boot overlay promptly without hydration (${Math.round(noHydrationElapsed)} ms)`);
   assert.equal(await watchdogPage.locator('#site-content').evaluate(element => element.inert), false, 'The no-hydration watchdog always releases page inertness');
   await watchdogPage.keyboard.press('Tab');
   assert(await watchdogPage.getByRole('link', { name: 'Skip to content' }).evaluate(element => element === document.activeElement), 'Keyboard navigation resumes after the no-hydration watchdog');
@@ -414,7 +474,7 @@ try {
   // already be in its enhanced state before hydration begins.
   const revisitContext = await browser.newContext({ viewport: { width: 320, height: 667 } });
   const revisitPage = await revisitContext.newPage();
-  await revisitPage.addInitScript(() => sessionStorage.setItem('idealab-mec:visited', '1'));
+  await revisitPage.addInitScript(() => sessionStorage.setItem('idealab-mec:loader-seen:v2', '1'));
   let releaseRevisitScripts;
   const revisitScriptsReady = new Promise(resolve => { releaseRevisitScripts = resolve; });
   await revisitPage.route('**/_next/static/**/*.js', async route => { await revisitScriptsReady; await route.continue(); });
@@ -925,6 +985,7 @@ try {
     if (/supabase\.co|\/rest\/v1(?:\/|\?|$)|\/api\//i.test(request.url())) studentDataRequests.push(request.url());
   });
   const skeletonContext = await browser.newContext({ viewport: { width: 320, height: 800 } });
+  await skeletonContext.addInitScript(() => sessionStorage.setItem('idealab-mec:loader-seen:v2', '1'));
   const skeletonPage = await skeletonContext.newPage();
   const skeletonDataRequests = [];
   skeletonPage.on('request', request => {

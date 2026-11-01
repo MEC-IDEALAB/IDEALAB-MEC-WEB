@@ -2,7 +2,7 @@
 import { useEffect } from 'react';
 import {
   BRAND_LOADING_EXIT_MS,
-  BRAND_LOADING_MINIMUM_REVEAL_MS,
+  BRAND_LOADING_MINIMUM_DURATION_MS,
   BRAND_LOADING_READY_CHECK_LIMIT_MS,
   BRAND_LOADING_WATCHDOG_MS,
 } from '@/lib/brand-loading';
@@ -81,8 +81,7 @@ export function BootReady() {
         return;
       }
 
-      const started = Number(root.dataset.bootVisualStarted) || Number(root.dataset.bootStarted) || performance.now();
-      const remaining = Math.max(0, BRAND_LOADING_MINIMUM_REVEAL_MS - (performance.now() - started));
+      const remaining = Math.max(0, BRAND_LOADING_MINIMUM_DURATION_MS - (performance.now() - bootStarted));
       readyTimer = window.setTimeout(leave, remaining);
     };
 

@@ -18,6 +18,22 @@ async function availablePort() {
 }
 const port = await availablePort();
 const base = `http://127.0.0.1:${port}`;
+function observeFilmExit(page) {
+  return page.evaluate(() => new Promise(resolve => {
+    const root = document.documentElement;
+    const capture = () => {
+      const mark = document.querySelector('.loader-build').getBoundingClientRect();
+      return { inert: document.getElementById('site-content')?.inert === true,
+        opacity: getComputedStyle(document.querySelector('.boot-loader')).opacity,
+        bootAge: performance.now() - Number(root.dataset.bootStarted),
+        visualAge: performance.now() - Number(root.dataset.bootVisualStarted),
+        markSize: { width: mark.width, height: mark.height } };
+    };
+    if (root.dataset.boot === 'leaving') { resolve(capture()); return; }
+    const observer = new MutationObserver(() => { if (root.dataset.boot === 'leaving') { observer.disconnect(); resolve(capture()); } });
+    observer.observe(root, { attributes: true, attributeFilter: ['data-boot'] });
+  }));
+}
 async function setTheme(page, theme) {
   await page.waitForFunction(() => {
     const currentTheme = document.documentElement.dataset.theme;
@@ -260,83 +276,66 @@ try {
   await loaderPage.locator('.boot-loader').waitFor({ state: 'visible' });
   await loaderPage.waitForFunction(() => document.getElementById('site-content')?.inert === true);
   await loaderPage.waitForFunction(() => Number(document.documentElement.dataset.bootVisualStarted) > 0);
-  await loaderPage.waitForFunction(() => {
-    const core = document.querySelector('.loader-core');
-    const title = core?.querySelector('.loader-lockup');
-    const visibleWords = [...(core?.querySelectorAll('.loader-title-chunk > span') ?? [])].every(word => {
-      const text = word.getBoundingClientRect();
-      const clip = word.parentElement.getBoundingClientRect();
-      const visibleHeight = Math.max(0, Math.min(text.bottom, clip.bottom) - Math.max(text.top, clip.top));
-      const style = getComputedStyle(word);
-      return text.width > 0 && text.height > 0 && visibleHeight > text.height * .98
-        && Number(style.opacity) >= .99 && (!style.filter.startsWith('blur(') || style.filter === 'blur(0px)');
-    });
-    const hands = document.querySelector('.loader-ascii')?.getBoundingClientRect();
-    const geometryIsDrawn = [...document.querySelectorAll('.loader-build-shell, .loader-build-detail')]
-      .every(path => Number.parseFloat(getComputedStyle(path).strokeDashoffset) < .02);
-    return core && title && Number(getComputedStyle(core).opacity) >= .99
-      && core.getBoundingClientRect().width > 0
-      && core.getBoundingClientRect().height > 0
-      && title.getBoundingClientRect().width > 0 && visibleWords
-      && Number(getComputedStyle(document.querySelector('.loader-caption')).opacity) >= .99
-      && geometryIsDrawn
-      && hands && hands.width > 0 && hands.height > 0;
-  }, null, { timeout: 800 });
-  const criticalFrame = await loaderPage.locator('.loader-core').evaluate(element => {
-    const rect = element.getBoundingClientRect();
-    return { opacity: Number(getComputedStyle(element).opacity), width: rect.width, height: rect.height, title: element.querySelector('.loader-lockup')?.getBoundingClientRect().width ?? 0 };
-  });
-  assert(criticalFrame.opacity >= .99 && criticalFrame.width > 0 && criticalFrame.height > 0 && criticalFrame.title > 0, `The loader's reveal marker waits until the full brand composition is readable after delayed CSS arrives: ${JSON.stringify(criticalFrame)}`);
+  const sceneReady = await loaderPage.locator('.boot-loader').evaluate(element => ({
+    css: getComputedStyle(element).getPropertyValue('--intro-scene-ready').trim(),
+    titleOpacity: Number(getComputedStyle(element.querySelector('.loader-core')).opacity),
+    fields: element.querySelectorAll('.ascii-hand image').length,
+  }));
+  assert(sceneReady.css === '1' && sceneReady.titleOpacity === 0 && sceneReady.fields === 2, 'The timeline starts with decoded hand textures and the first act, before the intentional late brand reveal');
+  // Observe before taking timeline screenshots: hydration/PNG capture must not
+  // make the test miss the short leaving state or measure an already hidden SVG.
+  const loaderExitState = observeFilmExit(loaderPage);
   releaseStyles();
   assert(stylesheetRequests > 0 && stylesheetHoldMs >= 400, `The delayed-CSS check holds a real stylesheet request for at least 400ms: ${JSON.stringify({ stylesheetRequests, stylesheetHoldMs })}`);
   clearTimeout(stylesReleaseTimer);
-  const orbit = loaderPage.locator('.loader-build-orbit');
-  const firstOrbitTransform = await orbit.evaluate(element => getComputedStyle(element).transform);
-  await loaderPage.waitForFunction(transform => getComputedStyle(document.querySelector('.loader-build-orbit')).transform !== transform, firstOrbitTransform, { timeout: 400 });
-  assert.notEqual(await orbit.evaluate(element => getComputedStyle(element).transform), firstOrbitTransform, 'The blueprint marker orbits the prototype while loading');
   await loaderPage.keyboard.press('Tab');
   assert.equal(await loaderPage.evaluate(() => Boolean(document.activeElement?.closest('#site-content'))), false, 'Covered page controls cannot receive keyboard focus before hydration');
   assert.equal(await loaderPage.locator('.boot-loader').evaluate(element => getComputedStyle(element).pointerEvents), 'auto', 'Boot screen blocks pointer input while it covers the page');
-  const loop = loaderPage.locator('.loader-loop').first();
-  const firstPosition = await loop.evaluate(element => element.getBoundingClientRect().x);
-  await loaderPage.waitForFunction(position => document.querySelector('.loader-loop')?.getBoundingClientRect().x !== position, firstPosition, { timeout: 400 });
-  const nextPosition = await loop.evaluate(element => element.getBoundingClientRect().x);
-  assert.notEqual(nextPosition, firstPosition, 'Brand ribbons move while the first visit is loading');
-  assert.deepEqual(await loaderPage.locator('.loader-title-chunk > span').evaluateAll(elements => elements.map(element => getComputedStyle(element).animationDelay)), ['0.18s', '0.27s', '0.36s'], 'The IDEALAB lockup reveals in a clear three-beat sequence');
   assert.equal(await loaderPage.locator('.loader-progress').count(), 0, 'The old line progress indicator is removed');
   const hand = loaderPage.locator('.ascii-hand--left');
   const handPosition = await hand.evaluate(element => getComputedStyle(element).translate);
   await loaderPage.waitForTimeout(200);
   assert.notEqual(await hand.evaluate(element => getComputedStyle(element).translate), handPosition, 'Original ASCII hands visibly reach toward one another');
-  assert.equal(await loaderPage.locator('.loader-ascii defs g text').count(), 56, 'The hands use a continuous shaded code field rather than a repeating tile');
-  assert.equal(await loaderPage.locator('.loader-ascii clipPath').count(), 2, 'Each hand has its own curved silhouette');
+  const decodedTextures = await loaderPage.locator('.ascii-sprite').evaluateAll(elements => Promise.all(elements.map(async element => {
+    const image = new Image(); image.src = element.getAttribute('href'); await image.decode();
+    return { width: image.naturalWidth, height: image.naturalHeight };
+  })));
+  assert.equal(decodedTextures.length, 4, 'The film loads its two hands, television and energy textures');
+  assert(decodedTextures.every(texture => texture.width === 1800 && texture.height >= 750), 'Every high-resolution glyph texture really decodes before the script plays');
   const buildMarkerSizeDuringLoading = await loaderPage.locator('.loader-build').evaluate(element => {
     const rect = element.getBoundingClientRect();
     return { width: rect.width, height: rect.height };
   });
-  await loaderPage.screenshot({ path: 'artifacts/acceptance/wordmark-loading.png' });
-  const loaderExitState = loaderPage.evaluate(() => new Promise(resolve => {
-    const root = document.documentElement;
-    const content = document.getElementById('site-content');
-    const capture = () => ({ inert: content?.inert === true, opacity: getComputedStyle(document.querySelector('.boot-loader')).opacity, bootAge: performance.now() - Number(root.dataset.bootStarted), visualAge: performance.now() - Number(root.dataset.bootVisualStarted) });
-    if (root.dataset.boot === 'leaving') { resolve(capture()); return; }
-    const observer = new MutationObserver(() => {
-      if (root.dataset.boot !== 'leaving') return;
-      observer.disconnect();
-      resolve(capture());
-    });
-    observer.observe(root, { attributes: true, attributeFilter: ['data-boot'] });
+  const waitForFilmAge = age => loaderPage.waitForFunction(age => performance.now() - Number(document.documentElement.dataset.bootVisualStarted) >= age, age);
+  const opacity = selector => loaderPage.locator(selector).evaluate(element => Number(getComputedStyle(element).opacity));
+  await waitForFilmAge(1000);
+  assert(await opacity('.loader-chapter--one') >= .99 && await opacity('.loader-core') === 0 && await opacity('.ascii-tv') >= .99, 'Act one tunes the ASCII television into the hands while the first caption is readable');
+  await loaderPage.screenshot({ path: 'artifacts/acceptance/intro-act-one.png' });
+  await waitForFilmAge(3500);
+  assert(await opacity('.loader-chapter--two') >= .99 && await opacity('.ascii-packet--left') >= .99, 'Act two sends blue signal packets toward the fingertips');
+  const packetPosition = await loaderPage.locator('.ascii-packet--left').evaluate(element => getComputedStyle(element).translate);
+  await loaderPage.waitForTimeout(150);
+  assert.notEqual(await loaderPage.locator('.ascii-packet--left').evaluate(element => getComputedStyle(element).translate), packetPosition, 'The blue signal travels rather than remaining a static decoration');
+  await loaderPage.screenshot({ path: 'artifacts/acceptance/intro-act-two.png' });
+  await waitForFilmAge(6000);
+  assert(await opacity('.loader-chapter--three') >= .99 && await opacity('.ascii-connection') >= .99 && await opacity('.ascii-tv') === 0 && await opacity('.ascii-burst') > .7, 'Act three forms the fingertip connection and expands a single code burst after leaving the television');
+  assert(await loaderPage.locator('.ascii-bridge').evaluate(element => Number.parseFloat(getComputedStyle(element).strokeDashoffset)) < .02, 'The connection bridge has drawn completely');
+  await loaderPage.screenshot({ path: 'artifacts/acceptance/intro-act-three.png' });
+  await waitForFilmAge(8500);
+  assert(await opacity('.loader-core') >= .99 && await opacity('.loader-chapter--four') >= .99 && await opacity('.loader-ascii') < .1, 'Act four hands focus from the artwork to the readable IDEALAB identity');
+  assert(await opacity('.loader-caption') >= .99, 'The final brand caption is readable before exit');
+  const settledWords = await loaderPage.locator('.loader-title-chunk > span').evaluateAll(elements => elements.every(word => {
+    const box = word.getBoundingClientRect(), clip = word.parentElement.getBoundingClientRect();
+    return Number(getComputedStyle(word).opacity) >= .99 && box.top >= clip.top - 1 && box.bottom <= clip.bottom + 1;
   }));
+  assert(settledWords, 'The staggered brand lettering has fully cleared its masks in the final act');
+  await loaderPage.screenshot({ path: 'artifacts/acceptance/wordmark-loading.png' });
   releaseScripts();
   const exitState = await loaderExitState;
   assert.equal(exitState.inert, true, 'Page content stays inert at the instant the loader begins its exit');
   assert(exitState.visualAge >= 10000, `The complete composition remains animated for a full 10 seconds after it is visible (${Math.round(exitState.visualAge)} ms)`);
   assert(exitState.bootAge >= exitState.visualAge && exitState.bootAge < 15000, `A normal first visit completes within the loader's 15-second watchdog (${Math.round(exitState.bootAge)} ms)`);
-  const buildMarkerSizeDuringExit = await loaderPage.locator('.loader-build').evaluate(element => {
-    const rect = element.getBoundingClientRect();
-    return { width: rect.width, height: rect.height };
-  });
-  assert.deepEqual(buildMarkerSizeDuringExit, buildMarkerSizeDuringLoading, 'The prototype mark keeps one size through the CSS fallback to fade handoff');
+  assert.deepEqual(exitState.markSize, buildMarkerSizeDuringLoading, 'The prototype mark keeps one size through the CSS fallback to fade handoff');
   assert.match(await loaderPage.locator('.boot-loader').evaluate(element => getComputedStyle(element).transitionDuration), /^0\.32s(?:,|$)/, 'Boot screen has a measured fade-out');
   await loaderPage.locator('.boot-loader').waitFor({ state: 'hidden' });
   assert.equal(await loaderPage.locator('#site-content').evaluate(element => element.inert), false, 'Page content becomes interactive after the loader exits');
@@ -352,7 +351,7 @@ try {
   await loaderPage.goto(`${base}/?loader=preview`);
   await loaderPage.waitForFunction(() => document.documentElement.dataset.boot === 'loading');
   await loaderPage.waitForFunction(() => Number(document.documentElement.dataset.bootVisualStarted) > 0);
-  assert.notEqual(await loaderPage.locator('.loader-build-orbit').evaluate(element => getComputedStyle(element).transform), 'none', 'Local preview query replays the visible animated loader after its one-time visit');
+  assert.notEqual(await loaderPage.locator('.loader-ascii').evaluate(element => getComputedStyle(element).transform), 'none', 'Local preview query replays the film after its one-time visit');
   await loaderPage.getByRole('button', { name: 'Skip intro' }).click();
   await loaderPage.locator('.boot-loader').waitFor({ state: 'hidden' });
   assert.equal(await loaderPage.locator('#site-content').evaluate(element => element.inert), false, 'Skipping the intro releases page interaction');
@@ -391,10 +390,7 @@ try {
   await compactLoaderPage.waitForFunction(() => document.documentElement.dataset.boot === 'loading');
   assert.equal(await compactLoaderPage.locator('html').getAttribute('data-boot'), 'loading', 'The revised loader plays once in tabs carrying the previous visit marker');
   await compactLoaderPage.waitForFunction(() => Number(document.documentElement.dataset.bootVisualStarted) > 0);
-  const compactTiming = await compactLoaderPage.evaluate(() => ({
-    visualStart: Number(document.documentElement.dataset.bootVisualStarted),
-    bootStart: Number(document.documentElement.dataset.bootStarted),
-  }));
+  const compactExitPromise = observeFilmExit(compactLoaderPage);
   const compactScene = await compactLoaderPage.evaluate(() => {
     const root = document.documentElement;
     const core = document.querySelector('.loader-core').getBoundingClientRect();
@@ -409,18 +405,55 @@ try {
   });
   assert(compactScene.scrollWidth <= compactScene.viewportWidth && compactScene.coreLeft >= 0 && compactScene.coreRight <= compactScene.viewportWidth, `Compact loader composition stays within the viewport: ${JSON.stringify(compactScene)}`);
   assert.deepEqual(compactScene.markSize, { width: 66, height: 70 }, 'Compact loader uses its intended mobile prototype size');
+  await compactLoaderPage.waitForFunction(() => performance.now() - Number(document.documentElement.dataset.bootVisualStarted) >= 8500);
+  assert(await compactLoaderPage.locator('.loader-core').evaluate(element => Number(getComputedStyle(element).opacity)) >= .99, 'The final identity appears on phone screens before the film exits');
   await compactLoaderPage.screenshot({ path: 'artifacts/acceptance/wordmark-loading-mobile.png' });
-  await compactLoaderPage.waitForFunction(() => document.documentElement.dataset.boot === 'leaving' || !document.documentElement.hasAttribute('data-boot'));
-  const compactExit = await compactLoaderPage.evaluate(({ visualStart, bootStart }) => ({
-    visualAge: performance.now() - visualStart,
-    bootAge: performance.now() - bootStart,
-    markSize: (() => { const rect = document.querySelector('.loader-build').getBoundingClientRect(); return { width: rect.width, height: rect.height }; })(),
-  }), compactTiming);
+  const compactExit = await compactExitPromise;
   assert(compactExit.visualAge >= 10000, `Compact loader remains fully visible for a full 10 seconds after assembly (${Math.round(compactExit.visualAge)} ms)`);
   assert(compactExit.bootAge >= compactExit.visualAge && compactExit.bootAge < 15000, `Compact first visit completes within the loader's 15-second watchdog (${Math.round(compactExit.bootAge)} ms)`);
   assert.deepEqual(compactExit.markSize, compactScene.markSize, 'Compact prototype mark stays the same size into its fade');
   await compactLoaderPage.waitForFunction(() => !document.documentElement.hasAttribute('data-boot'));
   await compactLoaderContext.close();
+
+  const landscapeContext = await browser.newContext({ viewport: { width: 844, height: 390 } });
+  const landscapePage = await landscapeContext.newPage();
+  await landscapePage.goto(`${base}/?intro=replay`);
+  await landscapePage.waitForFunction(() => Number(document.documentElement.dataset.bootVisualStarted) > 0);
+  const landscapeExit = observeFilmExit(landscapePage);
+  const landscapeSize = () => landscapePage.locator('.loader-build').evaluate(element => {
+    const box = element.getBoundingClientRect(); return { width: box.width, height: box.height };
+  });
+  const landscapeLoadingSize = await landscapeSize();
+  assert.deepEqual(landscapeLoadingSize, { width: 38, height: 40 }, 'Short landscape composition uses its compact brand mark while loading');
+  await landscapePage.waitForFunction(() => performance.now() - Number(document.documentElement.dataset.bootVisualStarted) >= 8500);
+  await landscapePage.screenshot({ path: 'artifacts/acceptance/wordmark-loading-landscape.png' });
+  assert.deepEqual((await landscapeExit).markSize, landscapeLoadingSize, 'Short landscape brand mark does not resize when the intro begins to fade');
+  await landscapeContext.close();
+
+  const textureContext = await browser.newContext();
+  const texturePage = await textureContext.newPage();
+  let releaseTextures;
+  const texturesHeld = new Promise(resolve => { releaseTextures = resolve; });
+  let textureRequests = 0;
+  await texturePage.route('**/intro/*.png', async route => { textureRequests++; await texturesHeld; await route.continue(); });
+  await texturePage.goto(`${base}/?intro=replay`, { waitUntil: 'domcontentloaded' });
+  await texturePage.waitForFunction(() => document.querySelectorAll('.ascii-sprite').length === 4);
+  await texturePage.waitForTimeout(300);
+  assert(textureRequests >= 4, 'The real texture requests are held before decode');
+  assert.equal(await texturePage.locator('html').getAttribute('data-boot-visual-started'), null, 'The film cannot consume its timeline while textures are unavailable');
+  assert(await texturePage.locator('.boot-loader').evaluate(element => element.getAnimations({ subtree: true }).every(animation => animation.playState === 'paused')), 'Every film clock stays paused while textures load');
+  releaseTextures();
+  await texturePage.waitForFunction(() => Number(document.documentElement.dataset.bootVisualStarted) > 0);
+  await texturePage.getByRole('button', { name: 'Skip intro' }).click();
+  await textureContext.close();
+
+  const brokenTextureContext = await browser.newContext();
+  const brokenTexturePage = await brokenTextureContext.newPage();
+  await brokenTexturePage.route('**/intro/hand-left.png', route => route.fulfill({ status: 404, body: '' }));
+  await brokenTexturePage.goto(`${base}/?intro=replay`, { waitUntil: 'domcontentloaded' });
+  await brokenTexturePage.waitForFunction(() => !document.documentElement.hasAttribute('data-boot'), null, { timeout: 5000 });
+  assert.equal(await brokenTexturePage.locator('#site-content').evaluate(element => element.inert), false, 'A failed texture immediately releases the page instead of leaving a blank ten-second film');
+  await brokenTextureContext.close();
 
   const reducedLoaderContext = await browser.newContext({ reducedMotion: 'reduce' });
   const reducedLoaderPage = await reducedLoaderContext.newPage();
@@ -433,7 +466,7 @@ try {
   await reducedLoaderPage.waitForLoadState('domcontentloaded');
   assert.equal(await reducedLoaderPage.locator('html').getAttribute('data-boot'), null, 'Reduced-motion users skip the brand intro before client hydration');
   assert.equal(await reducedLoaderPage.locator('#site-content').evaluate(element => element.inert), false, 'Reduced-motion users can access the page without waiting for hydration');
-  assert.equal(await reducedLoaderPage.locator('.loader-loop').first().evaluate(element => getComputedStyle(element).animationName), 'none', 'Brand loading respects reduced motion');
+  assert.equal(await reducedLoaderPage.locator('.ascii-hand--left').evaluate(element => getComputedStyle(element).animationName), 'none', 'Brand loading respects reduced motion');
   assert.equal(await reducedLoaderPage.locator('.boot-loader').evaluate(element => getComputedStyle(element).display), 'none', 'Reduced-motion users do not receive a static overlay delay');
   assert.equal(await reducedLoaderPage.locator('.loader-core').evaluate(element => getComputedStyle(element).borderStyle), 'none', 'The wordmark loader uses the official open composition without a framed card');
   assert(await reducedLoaderPage.evaluate(() => document.documentElement.scrollWidth <= innerWidth), 'Reduced-motion page has no horizontal overflow at 320px');
@@ -491,23 +524,40 @@ try {
 
   const delayedVisualContext = await browser.newContext();
   const delayedVisualPage = await delayedVisualContext.newPage();
+  await delayedVisualPage.addInitScript(() => {
+    const holdScene = () => {
+      const nonceStyle = document.querySelector('style[nonce]');
+      if (!(nonceStyle instanceof HTMLStyleElement) || !nonceStyle.sheet) return false;
+      const index = nonceStyle.sheet.insertRule('.boot-loader { --intro-scene-ready: 0 !important; }');
+      globalThis.__idealabSceneHold = { sheet: nonceStyle.sheet, index };
+      return true;
+    };
+    if (!holdScene()) {
+      const observer = new MutationObserver(() => { if (holdScene()) observer.disconnect(); });
+      observer.observe(document, { childList: true, subtree: true });
+    }
+  });
   await delayedVisualPage.goto(base, { waitUntil: 'commit' });
   await delayedVisualPage.locator('.boot-loader').waitFor({ state: 'visible' });
-  const delayedAnimationRuleAdded = await delayedVisualPage.evaluate(() => {
-    const nonceStyle = document.querySelector('style[nonce]');
-    if (!(nonceStyle instanceof HTMLStyleElement) || !nonceStyle.sheet) return false;
-    nonceStyle.sheet.insertRule('.boot-loader .loader-core { animation-delay: 6s !important; }');
-    return true;
+  await delayedVisualPage.waitForFunction(() => globalThis.__idealabSceneHold && document.querySelector('.loader-ascii').getAnimations().length > 0);
+  await delayedVisualPage.waitForTimeout(6000);
+  const heldScene = await delayedVisualPage.locator('.boot-loader').evaluate(element => ({
+    marked: Number(document.documentElement.dataset.bootVisualStarted) > 0,
+    animations: element.getAnimations({ subtree: true }).map(animation => ({ state: animation.playState, time: animation.currentTime })),
+  }));
+  assert(!heldScene.marked && heldScene.animations.length > 10 && heldScene.animations.every(animation => animation.state === 'paused' && Number(animation.time) <= 1), 'Every scripted clock stays at zero while scene CSS readiness is delayed');
+  await delayedVisualPage.evaluate(() => {
+    globalThis.__idealabSceneHold.sheet.deleteRule(globalThis.__idealabSceneHold.index);
+    delete globalThis.__idealabSceneHold;
   });
-  assert(delayedAnimationRuleAdded, 'Delayed-animation acceptance uses the existing nonce-authorized style sheet');
   await delayedVisualPage.waitForFunction(() => Number(document.documentElement.dataset.bootVisualStarted) > 0, null, { timeout: 10000 });
   await delayedVisualPage.waitForFunction(() => document.documentElement.dataset.boot === 'leaving', null, { timeout: 16000 });
   const delayedVisualTiming = await delayedVisualPage.evaluate(() => ({
     bootAge: performance.now() - Number(document.documentElement.dataset.bootStarted),
     visualAge: performance.now() - Number(document.documentElement.dataset.bootVisualStarted),
   }));
-  assert(delayedVisualTiming.bootAge > 15000, `A delayed visual composition runs beyond the former 15-second cutoff (${Math.round(delayedVisualTiming.bootAge)} ms)`);
-  assert(delayedVisualTiming.visualAge >= 10000, `A delayed visual composition still remains visible for 10 seconds (${Math.round(delayedVisualTiming.visualAge)} ms)`);
+  assert(delayedVisualTiming.bootAge > 15000, `Delayed scene readiness does not truncate the film at the former 15-second cutoff (${Math.round(delayedVisualTiming.bootAge)} ms)`);
+  assert(delayedVisualTiming.visualAge >= 10000, `The complete script still receives ten seconds after delayed readiness (${Math.round(delayedVisualTiming.visualAge)} ms)`);
   await delayedVisualPage.locator('.boot-loader').waitFor({ state: 'hidden' });
   await delayedVisualContext.close();
 
@@ -559,8 +609,29 @@ try {
   const noVisualElapsed = await noVisualPage.evaluate(start => performance.now() - start, noVisualStart);
   assert(noVisualElapsed >= 20000 && noVisualElapsed < 22000, `The no-visual fallback releases within its bounded 20-second watchdog (${Math.round(noVisualElapsed)} ms)`);
   assert.equal(await noVisualPage.locator('#site-content').evaluate(element => element.inert), false, 'The no-visual fallback always releases page inertness');
+  assert.equal(await noVisualPage.locator('.boot-loader').evaluate(element => getComputedStyle(element).display), 'none', 'The failed-CSS fallback stays hidden after its watchdog releases the page');
   releaseNoVisualScripts();
   await noVisualContext.close();
+
+  for (const width of [1440, 390]) {
+    const fallbackContext = await browser.newContext({ viewport: { width, height: 844 } });
+    const fallbackPage = await fallbackContext.newPage();
+    let releaseFallbackScripts;
+    const fallbackScripts = new Promise(resolve => { releaseFallbackScripts = resolve; });
+    await fallbackPage.route('**/_next/static/**/*.css', route => route.fulfill({ status: 200, contentType: 'text/css', body: '' }));
+    await fallbackPage.route('**/_next/static/**/*.js', async route => { await fallbackScripts; await route.continue(); });
+    await fallbackPage.goto(base, { waitUntil: 'commit' });
+    const fallbackSkip = fallbackPage.getByRole('button', { name: 'Skip intro' });
+    await fallbackSkip.waitFor({ state: 'visible' });
+    assert(await fallbackSkip.evaluate(element => element.getBoundingClientRect().height) >= 44, `Failed-CSS Skip retains a touch target at ${width}px`);
+    assert.equal(await fallbackPage.locator('.loader-ascii').evaluate(element => getComputedStyle(element).display), 'none', 'Unstyled film layers are suppressed while scene CSS is unavailable');
+    await fallbackSkip.click();
+    await fallbackPage.locator('.boot-loader').waitFor({ state: 'hidden' });
+    assert.equal(await fallbackPage.locator('#site-content').evaluate(element => element.inert), false, 'A real pointer click exits the failed-CSS intro before hydration');
+    assert(await fallbackPage.getByRole('link', { name: 'Skip to content' }).evaluate(element => element === document.activeElement), 'Failed-CSS Skip restores keyboard focus');
+    releaseFallbackScripts();
+    await fallbackContext.close();
+  }
 
   // Repeat visits skip the first-visit boot screen, so the ticker layout must
   // already be in its enhanced state before hydration begins.

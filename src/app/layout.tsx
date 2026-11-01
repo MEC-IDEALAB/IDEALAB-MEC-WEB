@@ -116,6 +116,11 @@ try {
 `;
 
 const BOOT_LOADING_FALLBACK_CSS = `
+.boot-loader { display: none; }
+.boot-loader .loader-ascii, .boot-loader .loader-film-heading, .boot-loader .loader-film-captions { display: none; }
+.boot-loader .sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0,0,0,0); white-space: nowrap; border: 0; }
+.boot-loader .loader-skip { position: absolute; top: max(20px,env(safe-area-inset-top)); right: 20px; z-index: 3; min-height: 44px; padding: 10px 16px; border: 1px solid #b1b7c1; border-radius: 999px; background: #000; color: #f5f4ee; font: inherit; cursor: pointer; }
+.boot-loader .loader-skip:focus-visible { outline: 3px solid #ffe029; outline-offset: 4px; }
 html[data-boot="loading"] .boot-loader {
   position: fixed;
   inset: 0;
@@ -129,32 +134,6 @@ html[data-boot="loading"] .boot-loader {
   color: #f5f4ee;
   pointer-events: auto;
 }
-html[data-boot="loading"] .loader-wall {
-  position: absolute;
-  inset: -10% -20%;
-  display: grid;
-  align-content: center;
-  gap: clamp(10px, 2vh, 22px);
-  overflow: hidden;
-  transform: rotate(-4deg);
-  user-select: none;
-  opacity: .28;
-}
-html[data-boot="loading"] .loader-row {
-  width: max-content;
-  white-space: nowrap;
-  font-family: var(--font-display), sans-serif;
-  font-size: clamp(2.5rem, 7.2vw, 7rem);
-  font-weight: 700;
-  line-height: 1.05;
-  letter-spacing: -.075em;
-}
-html[data-boot="loading"] .loader-row[data-row="1"] { color: transparent; -webkit-text-stroke: 1px #f5f4ee; }
-html[data-boot="loading"] .loader-loop,
-html[data-boot="loading"] .loader-run { display: flex; width: max-content; }
-html[data-boot="loading"] .loader-loop { will-change: transform; }
-html[data-boot="loading"] .loader-run { flex: 0 0 auto; align-items: center; gap: clamp(24px, 4vw, 70px); padding-right: clamp(24px, 4vw, 70px); }
-html[data-boot="loading"] .loader-wordmark { display: inline-flex; align-items: baseline; }
 html[data-boot="loading"] .loader-core {
   position: relative;
   z-index: 1;
@@ -164,7 +143,6 @@ html[data-boot="loading"] .loader-core {
   padding: 28px 16px;
   text-align: center;
 }
-html[data-boot="loading"] .loader-core::before { position: absolute; z-index: -1; inset: -35px -50px; background: #000; box-shadow: 0 0 55px 35px #000; content: ''; }
 html[data-boot="loading"] .loader-build { width: 82px; height: 86px; margin-bottom: 22px; stroke-width: 1.5; stroke-linecap: round; stroke-linejoin: round; }
 html[data-boot="loading"] .loader-build-orbit-track { stroke: #a4a39b; stroke-width: 1; stroke-dasharray: 2 4; opacity: .76; }
 html[data-boot="loading"] .loader-build-orbit-node { fill: #ff42c6; }
@@ -188,11 +166,7 @@ html[data-boot="loading"] .loader-title-chunk > span { display: block; }
 html[data-boot="loading"] .loader-title-chunk--mec { color: #ffe029; }
 html[data-boot="loading"] .loader-title-star { width: .36em; height: .36em; margin: 0 0 0 .15em; align-self: flex-start; stroke: #ff42c6; stroke-width: 2.5; }
 html[data-boot="loading"] .loader-caption { margin: 15px 0 0; color: #c4c4bd; font-size: clamp(.75rem, 1.3vw, .95rem); line-height: 1.5; }
-html[data-boot="loading"] .loader-progress { position: relative; width: 104px; height: 3px; margin-top: 25px; overflow: hidden; background: rgb(245 244 238 / 24%); }
-html[data-boot="loading"] .loader-progress > span { position: absolute; inset: 0 auto 0 -35%; width: 35%; background: #ffe029; }
 @media (max-width: 480px) {
-  html[data-boot="loading"] .loader-wall { inset: -10% -55%; gap: 22px; }
-  html[data-boot="loading"] .loader-row { font-size: 3rem; }
   html[data-boot="loading"] .loader-core { padding-inline: 8px; }
   html[data-boot="loading"] .loader-lockup { font-size: clamp(2.55rem, 12vw, 4.6rem); }
   html[data-boot="loading"] .loader-build { width: 66px; height: 70px; margin-bottom: 18px; }
@@ -204,38 +178,48 @@ try {
   var root = document.documentElement;
   if (root.dataset.boot === 'loading') {
     var bootStarted = Number(root.dataset.bootStarted) || performance.now();
+    var spriteState = 'idle';
     var markVisualStart = function () {
       if (root.dataset.boot !== 'loading') return;
-      var core = document.querySelector('.loader-core');
-      if (core && core.getBoundingClientRect().width > 0) {
-        var animations = getComputedStyle(core).animationName.split(',').map(function (name) { return name.trim(); });
-        var words = core.querySelectorAll('.loader-title-chunk > span');
-        var titleIsSettled = words.length === 3 && Array.prototype.every.call(words, function (word) {
-          var textBox = word.getBoundingClientRect();
-          var clipBox = word.parentElement.getBoundingClientRect();
-          var visibleHeight = Math.max(0, Math.min(textBox.bottom, clipBox.bottom) - Math.max(textBox.top, clipBox.top));
-          var style = getComputedStyle(word);
-          var blur = style.filter.match(/blur\\(([-\\d.]+)px\\)/);
-          return textBox.width > 0 && textBox.height > 0 && visibleHeight > textBox.height * .98
-            && Number(style.opacity) >= .99 && (!blur || Number(blur[1]) < .05);
+      var scene = document.querySelector('.boot-loader');
+      var hands = document.querySelector('.loader-ascii');
+      if (scene && hands && hands.getBoundingClientRect().width > 0) {
+        var stylesheetReady = getComputedStyle(scene).getPropertyValue('--intro-scene-ready').trim() === '1';
+        var handFields = hands.querySelectorAll('.ascii-hand');
+        var sprites = hands.querySelectorAll('.ascii-sprite');
+        var artworkDeclared = handFields.length === 2 && sprites.length === 4;
+        var artworkReady = artworkDeclared && Array.prototype.every.call(handFields, function (hand) {
+          var bounds = hand.getBBox();
+          return bounds.width > 0 && bounds.height > 0;
         });
-        var rows = document.querySelectorAll('.loader-row');
-        var rowsAreSettled = rows.length >= 7 && Array.prototype.every.call(rows, function (row) {
-          return Number(getComputedStyle(row).opacity) >= .99;
-        });
-        var shell = document.querySelector('.loader-build-shell');
-        var detail = document.querySelector('.loader-build-detail');
-        var geometryIsDrawn = shell && detail
-          && Number.parseFloat(getComputedStyle(shell).strokeDashoffset) < .02
-          && Number.parseFloat(getComputedStyle(detail).strokeDashoffset) < .02;
-        var hands = document.querySelector('.loader-ascii');
-        var progressIsMoving = hands && hands.getBoundingClientRect().width > 0;
-        var secondaryCopyIsReady = ['.loader-campus', '.loader-caption', '.loader-title-star'].every(function (selector) {
-          var element = document.querySelector(selector);
-          return element && Number(getComputedStyle(element).opacity) >= .99;
-        });
-        if (animations.includes('loader-core-enter') && Number(getComputedStyle(core).opacity) >= .99
-          && titleIsSettled && rowsAreSettled && geometryIsDrawn && progressIsMoving && secondaryCopyIsReady) {
+        if (stylesheetReady && artworkDeclared && spriteState === 'idle') {
+          spriteState = 'decoding';
+          Promise.all(Array.prototype.map.call(sprites, function (sprite) {
+            var image = new Image();
+            var source = sprite.getAttribute('data-src');
+            sprite.setAttribute('href', source);
+            image.src = source;
+            return image.decode();
+          })).then(function () {
+            spriteState = 'ready';
+          }).catch(function () {
+            if (root.dataset.boot !== 'loading') return;
+            // A missing texture must never trap a visitor behind a blank film.
+            var focusWasInIntro = document.activeElement && document.activeElement.closest('.boot-loader');
+            window.dispatchEvent(new Event('idealab-skip-intro'));
+            root.removeAttribute('data-boot');
+            delete root.dataset.bootStarted;
+            delete root.dataset.bootVisualStarted;
+            delete root.dataset.bootMotion;
+            var content = document.getElementById('site-content');
+            if (content) content.inert = false;
+            var skip = document.querySelector('.skip-link');
+            if (focusWasInIntro && skip) skip.focus({ preventScroll: true });
+          });
+        }
+        // The brand is intentionally revealed in act four. Start all paused
+        // clocks together once the opening scene can render, before hydration.
+        if (stylesheetReady && artworkReady && spriteState === 'ready') {
           root.dataset.bootVisualStarted = String(performance.now());
           return;
         }

@@ -20,3 +20,5 @@ jobs:
           node-version: '24.19.0'
           package-manager-cache: false
       - run: node scripts/check-docs.mjs
+      - run: node --test scripts/check-validation-ledger.test.mjs
+      - run: node scripts/check-validation-ledger.mjs

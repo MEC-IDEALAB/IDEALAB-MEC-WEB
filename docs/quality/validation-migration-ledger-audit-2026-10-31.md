@@ -1,5 +1,10 @@
 # Validation migration ledger audit — 31 October 2026
 
+Follow-up: [the 1 November archive](applied-validation-archive-2026-11-01.md)
+now preserves exact applied text and server SHA-256 fingerprints for the six
+project-create patches. It fills their missing-source gap on current main;
+the broader schema/ledger/production migration gates below remain open.
+
 ## Scope and current project state
 
 This is a read-only audit of Supabase metadata and migration text fingerprints for

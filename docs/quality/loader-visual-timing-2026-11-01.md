@@ -4,9 +4,9 @@
 
 Production was serving `d258dd25e483745dd82bf5edd6be662a5e7cb016` (PR #38). On that deployed build, Playwright observed the loader leave after 1,963 ms from its boot timestamp; the visual-start marker was only 67 ms after boot. The tab had the previous `idealab-mec:visited=1` session marker and no versioned marker. The running local service at port 3015 also used the old marker and removed its loader after 1,635 ms. Both observations reproduce the user's report that the intro appears briefly and vanishes before it reads as a complete animation.
 
-The localhost service belongs to a separate in-progress checkout with unrelated uncommitted changes. It was left untouched during this follow-up.
+The localhost service belongs to a separate in-progress checkout with unrelated uncommitted changes. It was left untouched during the baseline capture; a later, narrowly scoped local loader patch is recorded under Release status below.
 
-The corrected build is running separately at `http://127.0.0.1:3016`. A fresh Chromium tab measured 10,350 ms from boot to loader removal, with the full-composition marker at 1,190 ms. This is the current-source local preview; port 3015 remains the other checkout.
+At the time of the baseline run, the corrected build was running separately at `http://127.0.0.1:3016`. A fresh Chromium tab measured 10,350 ms from boot to loader removal, with the full-composition marker at 1,190 ms. Port 3015 was then serving the other checkout.
 
 ## Updated behavior
 
@@ -43,4 +43,8 @@ Manifest SHA-256: `7abe726ec02a020bb54aa90a7b49bbe8aa6193aa5f7c5bcab8817f10a2b4b
 
 ## Release status
 
-The ten-second update is local and has not been deployed. Production remains on the PR #38 commit above until the follow-up pull request passes review and required CI, merges, and Vercel completes its deployment. After release, verify a fresh desktop and mobile visit and a tab carrying the old visit marker on the production alias.
+PR #47 merged on 2026-11-01 as `9787f39484ddfd2635396e3aecab1f8df17e1997` after independent review and passing Website CI, Documentation CI, the required gate, and Vercel checks on head `038bf27b2a7befe6f910aee86abb4a6f5cf23ea0`. Vercel production deployment `dpl_3bosN2yXgomcFWhuTUCBhvMBqcUv` is Ready and serves `https://idealab-mec-web.vercel.app/`.
+
+A fresh Chromium run against the production alias returned HTTP 200, observed the `loader-marquee` and `loader-build-orbit-spin` animations, and measured 10,429 ms from boot to loader removal with zero page errors. The v2 session marker was set. A same-tab repeat is intentionally skipped; use a fresh tab to verify the first-visit sequence again. Reduced-motion behavior is covered by local browser and CI acceptance.
+
+The user’s active localhost checkout on port 3015 was later updated locally to use the ten-second minimum, a 12-second watchdog, an orbit graphic and faster marquee. A fresh browser measured 10,431 ms; ordinary same-tab reload skipped the loader, `?loader=preview` replayed it on localhost, and reduced-motion mode skipped the overlay. These four loader-file edits remain uncommitted in the separate `codex/issue18-project-create-intent` checkout and are not part of the deployed PR #47 source.

@@ -18,8 +18,13 @@ import './account-setup.css';
 import { BrandLoading } from '@/components/brand-loading';
 import { BootReady } from '@/components/boot-ready';
 import { PwaServiceWorker } from '@/components/pwa-service-worker';
+import { AutomaticMotionProvider } from '@/components/automatic-motion';
 import { VercelTelemetry } from '@/components/vercel-telemetry';
-import { BRAND_LOADING_EXIT_MS, BRAND_LOADING_WATCHDOG_MS } from '@/lib/brand-loading';
+import {
+  BRAND_LOADING_EXIT_MS,
+  BRAND_LOADING_MINIMUM_DURATION_MS,
+  BRAND_LOADING_WATCHDOG_MS,
+} from '@/lib/brand-loading';
 
 const display = localFont({ src: [{ path: "./fonts/SpaceGrotesk-Regular.ttf", weight: "400" }, { path: "./fonts/SpaceGrotesk-Bold.ttf", weight: "700" }], variable: "--font-display", display: "swap" });
 const brutal = localFont({ src: './fonts/Anton-Regular.ttf', variable: '--font-brutal', display: 'swap' });
@@ -36,18 +41,25 @@ try {
   if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
     document.documentElement.dataset.tickerMotion = 'ready';
   }
+  document.documentElement.dataset.automaticMotion = 'paused';
+  if (localStorage.getItem('idealab-mec:automatic-motion:v1') === 'paused') {
+    document.documentElement.dataset.automaticMotion = 'paused';
+  }
 } catch {}
 try {
   var root = document.documentElement;
   var reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
   var loaderVisitKey = 'idealab-mec:loader-seen:v2';
-  if (!sessionStorage.getItem(loaderVisitKey)) {
+  var localLoaderPreview = (location.hostname === '127.0.0.1' || location.hostname === 'localhost')
+    && new URLSearchParams(location.search).get('loader') === 'preview';
+  if (localLoaderPreview) sessionStorage.removeItem(loaderVisitKey);
+  if (localLoaderPreview || !sessionStorage.getItem(loaderVisitKey)) {
     sessionStorage.setItem(loaderVisitKey, '1');
     if (!reducedMotion) {
       root.dataset.boot = 'loading';
       root.dataset.bootStarted = String(performance.now());
-      setTimeout(function () {
-        if (root.dataset.boot !== 'loading') return;
+      var releaseFallback = function () {
+        if (root.dataset.bootHydrated === '1' || root.dataset.boot !== 'loading') return;
         root.dataset.boot = 'leaving';
         setTimeout(function () {
           root.removeAttribute('data-boot');
@@ -56,7 +68,28 @@ try {
           var content = document.getElementById('site-content');
           if (content) content.inert = false;
         }, ${BRAND_LOADING_EXIT_MS});
-      }, ${BRAND_LOADING_WATCHDOG_MS});
+      };
+      var releaseFallbackAfterVisual = function () {
+        if (root.dataset.bootHydrated === '1' || root.dataset.boot !== 'loading') return;
+        var now = performance.now();
+        var visualStarted = Number(root.dataset.bootVisualStarted);
+        if (visualStarted > 0) {
+          var remaining = ${BRAND_LOADING_MINIMUM_DURATION_MS} - (now - visualStarted);
+          if (remaining > 0) {
+            setTimeout(releaseFallbackAfterVisual, remaining);
+            return;
+          }
+          releaseFallback();
+          return;
+        }
+        var bootAge = now - Number(root.dataset.bootStarted);
+        if (bootAge < ${BRAND_LOADING_WATCHDOG_MS}) {
+          setTimeout(releaseFallbackAfterVisual, Math.min(250, ${BRAND_LOADING_WATCHDOG_MS} - bootAge));
+          return;
+        }
+        releaseFallback();
+      };
+      releaseFallbackAfterVisual();
     }
   }
 } catch {}
@@ -223,16 +256,18 @@ export default async function RootLayout({ children }: Readonly<{ children: Reac
         <PwaServiceWorker />
         <BrandLoading boot />
         <BootReady />
-        <div id="site-content" suppressHydrationWarning>
-          <script
-            nonce={nonce}
-            dangerouslySetInnerHTML={{
-              __html: "if(document.documentElement.dataset.boot==='loading'&&document.currentScript&&document.currentScript.parentElement){document.currentScript.parentElement.inert=true}",
-            }}
-          />
-          <a className="skip-link" href="#main-content">Skip to content</a>
-          {children}
-        </div>
+        <AutomaticMotionProvider>
+          <div id="site-content" suppressHydrationWarning>
+            <script
+              nonce={nonce}
+              dangerouslySetInnerHTML={{
+                __html: "if(document.documentElement.dataset.boot==='loading'&&document.currentScript&&document.currentScript.parentElement){document.currentScript.parentElement.inert=true}",
+              }}
+            />
+            <a className="skip-link" href="#main-content">Skip to content</a>
+            {children}
+          </div>
+        </AutomaticMotionProvider>
         <VercelTelemetry vercelEnvironment={process.env.VERCEL_ENV} />
       </body>
     </html>

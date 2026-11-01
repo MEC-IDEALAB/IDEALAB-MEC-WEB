@@ -678,7 +678,7 @@ html[data-theme=dark] .playful-site .maker-ticker-content .ticker-separator { co
 @media (prefers-reduced-motion: no-preference) and (max-width: 800px) {
   .public-mobile-nav { animation: mobile-nav-arrive 360ms cubic-bezier(.2, .75, .25, 1) both; }
   .public-mobile-nav a[aria-current=page] > svg { animation: mobile-nav-selected 320ms cubic-bezier(.2, .75, .25, 1); }
-  @keyframes mobile-nav-arrive { from { opacity: 0; translate: 0 12px; } to { opacity: 1; translate: 0 0; } }
+  @keyframes mobile-nav-arrive { from { translate: 0 12px; } to { translate: 0 0; } }
   @keyframes mobile-nav-selected { 0% { translate: 0 3px; scale: .85; } 65% { translate: 0 -2px; scale: 1.12; } 100% { translate: 0 0; scale: 1; } }
 }
 

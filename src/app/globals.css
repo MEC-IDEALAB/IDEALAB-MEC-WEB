@@ -53,23 +53,16 @@ html[data-ticker-motion=ready] .ticker-track-lower{animation-duration:42s}
 .ticker-accent-green{background:var(--accent-green)}
 .ticker-accent-purple{background:var(--accent-purple)}
 .ticker-accent-coral{background:var(--accent-red)}
-.ticker-motion-toggle{position:relative;z-index:2;display:none;flex:none}
-.ticker-motion-checkbox{position:absolute;inset-block-start:50%;inset-inline-start:2px;width:1px;height:1px;margin:0;opacity:0}
-.ticker-motion-control{position:relative;z-index:2;display:inline-flex;min-width:86px;min-height:40px;align-items:center;justify-content:center;gap:7px;border:1.5px solid var(--accent-ink);border-radius:999px;background:var(--accent-ink);color:#fffef9;font-size:.72rem;font-weight:600;box-shadow:2px 2px 0 color-mix(in srgb,var(--accent-ink) 18%,transparent);cursor:pointer}
-.ticker-motion-checkbox:focus-visible+.ticker-motion-control{outline:3px solid var(--brand-cobalt);outline-offset:3px}
-.ticker-motion-resume,.ticker-motion-label-resume{display:none}
-.ticker-motion-checkbox:checked+.ticker-motion-control .ticker-motion-pause,
-.ticker-motion-checkbox:checked+.ticker-motion-control .ticker-motion-label-pause{display:none}
-.ticker-motion-checkbox:checked+.ticker-motion-control .ticker-motion-resume,
-.ticker-motion-checkbox:checked+.ticker-motion-control .ticker-motion-label-resume{display:inline}
-html[data-ticker-motion=ready] .ticker-motion-toggle{display:block}
-.ticker-motion-control:hover{box-shadow:3px 3px 0 color-mix(in srgb,var(--accent-ink) 30%,transparent);transform:translateY(-1px)}
-.ticker-region:hover .ticker-track,.ticker-region:focus-within .ticker-track{animation-play-state:paused}
-html:has(.ticker-motion-checkbox:checked) .ticker-track{animation-play-state:paused}
+.automatic-motion-control{display:inline-flex;flex:none;width:44px;height:44px;align-items:center;justify-content:center;border:1.5px solid var(--ink);background:var(--surface);color:var(--ink);box-shadow:2px 2px 0 var(--ink)}
+.automatic-motion-control:hover{transform:translateY(-1px);box-shadow:3px 3px 0 var(--ink)}
+.automatic-motion-control:focus-visible{outline:3px solid var(--blue);outline-offset:3px}
+html[data-automatic-motion=paused] .playful-site .maker-ticker-content .ticker-track,
+html[data-automatic-motion=paused] .playful-site .quote-ticker-content .ticker-track,
+html[data-automatic-motion=paused] .playful-site .home-vector-orbits,
+html[data-automatic-motion=paused] .playful-site .home-vector-sun{animation-play-state:paused!important}
 @keyframes idealab-ticker-marquee{from{transform:translateX(0)}to{transform:translateX(-50%)}}
-@media(max-width:600px){.maker-ticker-region{margin-block:2px 5px}.maker-ticker-viewport{padding-block:7px}.maker-ticker-band{min-height:60px;padding-inline:20px}.ticker-static-brand{padding-right:15px}.ticker-run{gap:25px;padding:8px 30px 8px 19px}.ticker-brand{gap:8px}.ticker-brand-logo{width:38px;height:38px}.ticker-brand-logo img{width:33px;height:33px}.ticker-brand-name strong{font-size:.92rem}.ticker-brand-name small{font-size:.31rem}.ticker-item{min-height:30px;padding-left:14px;font-size:.69rem}.maker-ticker-content .ticker-run{gap:22px;padding-inline:20px 18px}.maker-ticker-content .ticker-item{font-size:.65rem;letter-spacing:0}.workshop-ticker-viewport{gap:10px;padding-inline:20px}.ticker-track-lower .ticker-run{gap:10px;padding-inline:18px}.ticker-kicker{font-size:.46rem}.ticker-track-lower .ticker-item{min-height:32px;padding-inline:12px;font-size:.7rem}.ticker-motion-control{min-width:76px;min-height:38px;font-size:.68rem}}
-@media(max-width:380px){.maker-ticker-band{padding-inline:15px}.ticker-static-brand{padding-right:11px}.ticker-brand{gap:6px}.ticker-brand-name strong{font-size:.82rem}.ticker-brand-name small{font-size:.26rem}.maker-ticker-content .ticker-run{gap:16px;padding-inline:14px}.ticker-run{gap:20px}.workshop-ticker-viewport{gap:8px;padding-inline:12px}.ticker-motion-control{min-width:66px}}
-@media(prefers-reduced-motion:reduce){.ticker-track{animation:none;transform:none;will-change:auto}.ticker-motion-toggle{display:none}}
+@media(max-width:600px){.maker-ticker-region{margin-block:2px 5px}.maker-ticker-viewport{padding-block:7px}.maker-ticker-band{min-height:60px;padding-inline:20px}.ticker-static-brand{padding-right:15px}.ticker-run{gap:25px;padding:8px 30px 8px 19px}.ticker-brand{gap:8px}.ticker-brand-logo{width:38px;height:38px}.ticker-brand-logo img{width:33px;height:33px}.ticker-brand-name strong{font-size:.92rem}.ticker-brand-name small{font-size:.31rem}.ticker-item{min-height:30px;padding-left:14px;font-size:.69rem}.maker-ticker-content .ticker-run{gap:22px;padding-inline:20px 18px}.maker-ticker-content .ticker-item{font-size:.65rem;letter-spacing:0}.workshop-ticker-viewport{gap:10px;padding-inline:20px}.ticker-track-lower .ticker-run{gap:10px;padding-inline:18px}.ticker-kicker{font-size:.46rem}.ticker-track-lower .ticker-item{min-height:32px;padding-inline:12px;font-size:.7rem}}
+@media(prefers-reduced-motion:reduce){.ticker-track{animation:none;transform:none;will-change:auto}.automatic-motion-control{display:none}}
 
 /* Before hydration, without JS and with reduced motion, show all copy as rows. */
 html:not([data-ticker-motion=ready]) .maker-ticker-content,
@@ -80,7 +73,6 @@ html:not([data-ticker-motion=ready]) .ticker-run:not(:first-child){display:none}
 html:not([data-ticker-motion=ready]) .ticker-item{min-width:0;max-width:100%;flex:0 1 auto;white-space:normal;overflow-wrap:anywhere}
 html:not([data-ticker-motion=ready]) .ticker-separator{color:#ffe029;font-family:var(--font-retro),monospace;font-size:.8rem;font-weight:700}
 html:not([data-ticker-motion=ready]) .workshop-ticker-band{width:100%}
-html:not([data-ticker-motion=ready]) .ticker-motion-toggle{display:none}
 @media(prefers-reduced-motion:reduce){
  html[data-ticker-motion=ready] .maker-ticker-content,
  html[data-ticker-motion=ready] .workshop-ticker-window{overflow:visible}
@@ -90,7 +82,6 @@ html:not([data-ticker-motion=ready]) .ticker-motion-toggle{display:none}
  html[data-ticker-motion=ready] .ticker-item{min-width:0;max-width:100%;flex:0 1 auto;white-space:normal;overflow-wrap:anywhere}
  html[data-ticker-motion=ready] .ticker-separator{color:#ffe029;font-family:var(--font-retro),monospace;font-size:.8rem;font-weight:700}
  html[data-ticker-motion=ready] .workshop-ticker-band{width:100%}
- .ticker-motion-toggle{display:none}
 }
 
 

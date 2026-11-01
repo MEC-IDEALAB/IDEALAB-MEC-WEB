@@ -12,6 +12,7 @@ export function BootReady() {
     const root = document.documentElement;
     if (root.dataset.boot !== 'loading' && root.dataset.boot !== 'leaving') return;
 
+    root.dataset.bootHydrated = '1';
     const content = document.getElementById('site-content');
     if (content) content.inert = true;
 
@@ -30,6 +31,7 @@ export function BootReady() {
       root.removeAttribute('data-boot');
       delete root.dataset.bootStarted;
       delete root.dataset.bootVisualStarted;
+      delete root.dataset.bootHydrated;
       if (content) content.inert = false;
     };
 
@@ -49,7 +51,10 @@ export function BootReady() {
       if (event.matches) leave();
     };
     reducedMotion.addEventListener('change', onMotionChange);
-    const failSafeTimer = window.setTimeout(leave, Math.max(0, BRAND_LOADING_WATCHDOG_MS - (performance.now() - bootStarted)));
+    const failSafeTimer = window.setTimeout(() => {
+      if (Number(root.dataset.bootVisualStarted) > 0) return;
+      leave();
+    }, Math.max(0, BRAND_LOADING_WATCHDOG_MS - (performance.now() - bootStarted)));
 
     const showReadyState = async () => {
       if (reducedMotion.matches) {
@@ -81,7 +86,8 @@ export function BootReady() {
         return;
       }
 
-      const remaining = Math.max(0, BRAND_LOADING_MINIMUM_DURATION_MS - (performance.now() - bootStarted));
+      const visualStarted = Number(root.dataset.bootVisualStarted) || bootStarted;
+      const remaining = Math.max(0, BRAND_LOADING_MINIMUM_DURATION_MS - (performance.now() - visualStarted));
       readyTimer = window.setTimeout(leave, remaining);
     };
 

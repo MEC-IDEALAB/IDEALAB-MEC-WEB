@@ -35,8 +35,8 @@ export function HomeMotion() {
             const timeline = element.matches('[data-reveal="timeline-step"]');
             const card = element.matches('[data-reveal="card"]');
             play(element, [
-              { opacity: .3, translate: timeline ? '26px 0' : '0 28px', rotate: card ? '-1deg' : '0deg' },
-              { opacity: 1, translate: '0 0', rotate: '0deg' },
+              { translate: timeline ? '26px 0' : '0 28px', rotate: card ? '-1deg' : '0deg' },
+              { translate: '0 0', rotate: '0deg' },
             ], {
               duration: 650, delay: stagger * 110, easing: 'cubic-bezier(.2,.7,.2,1)', fill: 'backwards',
             });

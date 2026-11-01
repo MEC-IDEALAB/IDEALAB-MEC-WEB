@@ -2,30 +2,19 @@
 
 import Image from 'next/image';
 import { ArrowUpRight, ChevronLeft, ChevronRight } from 'lucide-react';
-import { useEffect, useRef, useState, type CSSProperties, type FocusEvent, type PointerEvent } from 'react';
+import { useEffect, useRef, useState, type CSSProperties, type PointerEvent } from 'react';
 import { pastEvents } from '@/content/past-events';
+import { useAutomaticMotion } from '@/components/automatic-motion';
 
 export function PastEventCarousel({ variant = 'feature' }: { variant?: 'feature' | 'editorial' }) {
   const [active, setActive] = useState(0);
-  const [allowsMotion, setAllowsMotion] = useState(false);
   const [pointerInside, setPointerInside] = useState(false);
-  const [keyboardEngaged, setKeyboardEngaged] = useState(false);
   const [isVisible, setIsVisible] = useState(false);
   const [pageVisible, setPageVisible] = useState(true);
+  const { allowed, paused, pauseForKeyboard } = useAutomaticMotion();
   const carouselRef = useRef<HTMLDivElement>(null);
   const pointerStart = useRef<{ x: number; y: number } | null>(null);
   const count = pastEvents.length;
-
-  useEffect(() => {
-    const preference = window.matchMedia('(prefers-reduced-motion: reduce)');
-    const syncMotionPreference = () => {
-      const allowed = !preference.matches;
-      setAllowsMotion(allowed);
-    };
-    syncMotionPreference();
-    preference.addEventListener('change', syncMotionPreference);
-    return () => preference.removeEventListener('change', syncMotionPreference);
-  }, []);
 
   useEffect(() => {
     const carousel = carouselRef.current;
@@ -46,12 +35,12 @@ export function PastEventCarousel({ variant = 'feature' }: { variant?: 'feature'
   }, []);
 
   useEffect(() => {
-    if (!allowsMotion || !isVisible || !pageVisible || pointerInside || keyboardEngaged) return;
+    if (!allowed || paused || !isVisible || !pageVisible || pointerInside) return;
     const timer = window.setInterval(() => {
       setActive(current => (current + 1) % count);
     }, 6500);
     return () => window.clearInterval(timer);
-  }, [allowsMotion, count, isVisible, pageVisible, keyboardEngaged, pointerInside]);
+  }, [allowed, paused, count, isVisible, pageVisible, pointerInside]);
 
   function moveBy(amount: number) {
     setActive(current => (current + amount + count) % count);
@@ -72,18 +61,9 @@ export function PastEventCarousel({ variant = 'feature' }: { variant?: 'feature'
     moveBy(dx > 0 ? 1 : -1);
   }
 
-  function handleFocus() {
-    setKeyboardEngaged(true);
-  }
-
-  function handleBlur(event: FocusEvent<HTMLDivElement>) {
-    const nextTarget = event.relatedTarget;
-    const isStillInCarousel = nextTarget instanceof Node && event.currentTarget.contains(nextTarget);
-    if (!isStillInCarousel) setKeyboardEngaged(false);
-  }
-
   return (
     <div
+      id="past-events-carousel"
       className={`past-event-carousel past-event-carousel--${variant}`}
       role="region"
       aria-roledescription="carousel"
@@ -91,8 +71,7 @@ export function PastEventCarousel({ variant = 'feature' }: { variant?: 'feature'
       ref={carouselRef}
       onPointerEnter={() => setPointerInside(true)}
       onPointerLeave={() => setPointerInside(false)}
-      onFocusCapture={handleFocus}
-      onBlurCapture={handleBlur}
+      onFocusCapture={pauseForKeyboard}
     >
       <div className="event-carousel-topline">
         <span>ARCHIVE / 01—04</span>
@@ -161,7 +140,7 @@ export function PastEventCarousel({ variant = 'feature' }: { variant?: 'feature'
             />
           ))}
         </div>
-        <p className="event-carousel-status" aria-live={allowsMotion && !pointerInside && !keyboardEngaged && isVisible && pageVisible ? 'off' : 'polite'} aria-atomic="true">{String(active + 1).padStart(2, '0')} / {String(count).padStart(2, '0')}</p>
+        <p className="event-carousel-status" aria-live={allowed && !paused && !pointerInside && isVisible && pageVisible ? 'off' : 'polite'} aria-atomic="true">{String(active + 1).padStart(2, '0')} / {String(count).padStart(2, '0')}</p>
         <a href="https://idealab.mec.ac.in/events" target="_blank" rel="noreferrer">
           Official event archive <ArrowUpRight size={16} aria-hidden="true" />
         </a>

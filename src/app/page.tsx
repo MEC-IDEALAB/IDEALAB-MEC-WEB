@@ -18,7 +18,7 @@ const paths = [
 ];
 
 export default function Home() {
-  return <div className="playful-site"><PublicHeader /><HomeTickerTop /><HomeMotion /><main id="main-content">
+  return <div className="playful-site"><PublicHeader showMotionControl /><p className="sr-only" id="automatic-motion-description">This control pauses or resumes the moving home highlights, event archive, and quote strip. Keyboard focus on a moving region pauses it until you resume motion here.</p><HomeTickerTop /><HomeMotion /><main id="main-content">
     <section className="hero container" aria-labelledby="hero-title">
       <div className="hero-copy">
         <h1 id="hero-title" className="hero-pixel-headline">Big ideas.<br />Real things.<br /><span className="hero-highlight">Your move.</span></h1>

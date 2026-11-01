@@ -4,6 +4,7 @@ import { once } from 'node:events';
 import { mkdir } from 'node:fs/promises';
 import { createServer } from 'node:net';
 import { chromium } from 'playwright';
+import AxeBuilder from '@axe-core/playwright';
 
 // Real local production server/browser; no substituted backend or auth session.
 // This gate covers the public/configuration slice. Live member acceptance is a
@@ -19,14 +20,21 @@ const port = await availablePort();
 const base = `http://127.0.0.1:${port}`;
 async function setTheme(page, theme) {
   await page.waitForFunction(() => {
-    const button = document.querySelector('.theme-toggle');
-    const current = document.documentElement.dataset.theme;
-    const dark = current === 'dark' || (current !== 'light' && matchMedia('(prefers-color-scheme: dark)').matches);
-    return button?.getAttribute('aria-pressed') === String(dark);
+    const currentTheme = document.documentElement.dataset.theme;
+    const dark = currentTheme === 'dark' || (currentTheme !== 'light' && matchMedia('(prefers-color-scheme: dark)').matches);
+    return Array.from(document.querySelectorAll('.theme-toggle')).some(button =>
+      button.getClientRects().length > 0 && button.getAttribute('aria-pressed') === String(dark));
   });
-  const dark = await page.locator('.theme-toggle').getAttribute('aria-pressed') === 'true';
+  const toggle = page.locator('.theme-toggle:visible').first();
+  await toggle.waitFor({ state: 'visible' });
+  const dark = await toggle.getAttribute('aria-pressed') === 'true';
   if (dark !== (theme === 'dark')) {
-    await page.locator('.theme-toggle').click();
+    await toggle.click();
+    await page.waitForFunction(target => {
+      const pressed = String(target === 'dark');
+      return Array.from(document.querySelectorAll('.theme-toggle')).some(button =>
+        button.getClientRects().length > 0 && button.getAttribute('aria-pressed') === pressed);
+    }, theme);
     await page.waitForFunction(() => document.getAnimations().filter(animation => 'transitionProperty' in animation).every(animation => animation.playState !== 'running'), null, { timeout: 2500 });
   }
 }
@@ -62,6 +70,18 @@ async function contrastAgainst(page, textSelector, backgroundSelector) {
 async function loadPageImages(page) {
   for (const image of await page.locator('img:not(.ticker-track img)').all()) await image.scrollIntoViewIfNeeded();
   await page.waitForFunction(() => [...document.images].every(image => image.complete && image.naturalWidth > 0));
+}
+async function auditAccessibility(page, label) {
+  const result = await new AxeBuilder({ page })
+    .withTags(['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa', 'wcag22aa'])
+    .analyze();
+  const violations = result.violations.map(({ id, impact, description, nodes }) => ({
+    id,
+    impact,
+    description,
+    nodes: nodes.map(({ target, failureSummary }) => ({ target, failureSummary })),
+  }));
+  assert.deepEqual(violations, [], `axe WCAG checks pass for ${label}: ${JSON.stringify(violations)}`);
 }
 async function storageSnapshot(page) {
   return page.evaluate(() => {
@@ -324,8 +344,8 @@ try {
   releaseScripts();
   const exitState = await loaderExitState;
   assert.equal(exitState.inert, true, 'Page content stays inert at the instant the loader begins its exit');
-  assert(exitState.visualAge >= 8500, `The complete composition remains visible through the ten-second opening sequence (${Math.round(exitState.visualAge)} ms)`);
-  assert(exitState.bootAge >= 10000 && exitState.bootAge < 12000, `A normal first visit runs the intro for at least 10 seconds including assembly (${Math.round(exitState.bootAge)} ms)`);
+  assert(exitState.visualAge >= 10000, `The complete composition remains animated for a full 10 seconds after it is visible (${Math.round(exitState.visualAge)} ms)`);
+  assert(exitState.bootAge >= exitState.visualAge && exitState.bootAge < 15000, `A normal first visit completes within the loader's 15-second watchdog (${Math.round(exitState.bootAge)} ms)`);
   const buildMarkerSizeDuringExit = await loaderPage.locator('.loader-build').evaluate(element => {
     const rect = element.getBoundingClientRect();
     return { width: rect.width, height: rect.height };
@@ -343,6 +363,10 @@ try {
   assert.equal(await loaderPage.locator('html').getAttribute('data-boot'), null, 'Loader does not repeat on reload in the same visit');
   await loaderPage.goto(base + '/sign-in');
   assert.equal(await loaderPage.locator('html').getAttribute('data-boot'), null, 'Loader does not repeat between pages');
+  await loaderPage.goto(`${base}/?loader=preview`);
+  await loaderPage.waitForFunction(() => document.documentElement.dataset.boot === 'loading');
+  await loaderPage.waitForFunction(() => Number(document.documentElement.dataset.bootVisualStarted) > 0);
+  assert.notEqual(await loaderPage.locator('.loader-build-orbit').evaluate(element => getComputedStyle(element).transform), 'none', 'Local preview query replays the visible animated loader after its one-time visit');
   await loaderContext.close();
 
   const compactLoaderContext = await browser.newContext({ viewport: { width: 390, height: 844 } });
@@ -377,8 +401,8 @@ try {
     bootAge: performance.now() - bootStart,
     markSize: (() => { const rect = document.querySelector('.loader-build').getBoundingClientRect(); return { width: rect.width, height: rect.height }; })(),
   }), compactTiming);
-  assert(compactExit.visualAge >= 8500, `Compact loader keeps the complete composition visible through the ten-second opening sequence (${Math.round(compactExit.visualAge)} ms)`);
-  assert(compactExit.bootAge >= 10000 && compactExit.bootAge < 12000, `Compact first visit runs the intro for at least 10 seconds including assembly (${Math.round(compactExit.bootAge)} ms)`);
+  assert(compactExit.visualAge >= 10000, `Compact loader remains fully visible for a full 10 seconds after assembly (${Math.round(compactExit.visualAge)} ms)`);
+  assert(compactExit.bootAge >= compactExit.visualAge && compactExit.bootAge < 15000, `Compact first visit completes within the loader's 15-second watchdog (${Math.round(compactExit.bootAge)} ms)`);
   assert.deepEqual(compactExit.markSize, compactScene.markSize, 'Compact prototype mark stays the same size into its fade');
   await compactLoaderPage.waitForFunction(() => !document.documentElement.hasAttribute('data-boot'));
   await compactLoaderContext.close();
@@ -450,6 +474,28 @@ try {
   await slowLoaderPage.locator('.boot-loader').waitFor({ state: 'hidden' });
   await slowLoaderContext.close();
 
+  const delayedVisualContext = await browser.newContext();
+  const delayedVisualPage = await delayedVisualContext.newPage();
+  await delayedVisualPage.goto(base, { waitUntil: 'commit' });
+  await delayedVisualPage.locator('.boot-loader').waitFor({ state: 'visible' });
+  const delayedAnimationRuleAdded = await delayedVisualPage.evaluate(() => {
+    const nonceStyle = document.querySelector('style[nonce]');
+    if (!(nonceStyle instanceof HTMLStyleElement) || !nonceStyle.sheet) return false;
+    nonceStyle.sheet.insertRule('.boot-loader .loader-core { animation-delay: 6s !important; }');
+    return true;
+  });
+  assert(delayedAnimationRuleAdded, 'Delayed-animation acceptance uses the existing nonce-authorized style sheet');
+  await delayedVisualPage.waitForFunction(() => Number(document.documentElement.dataset.bootVisualStarted) > 0, null, { timeout: 10000 });
+  await delayedVisualPage.waitForFunction(() => document.documentElement.dataset.boot === 'leaving', null, { timeout: 16000 });
+  const delayedVisualTiming = await delayedVisualPage.evaluate(() => ({
+    bootAge: performance.now() - Number(document.documentElement.dataset.bootStarted),
+    visualAge: performance.now() - Number(document.documentElement.dataset.bootVisualStarted),
+  }));
+  assert(delayedVisualTiming.bootAge > 15000, `A delayed visual composition runs beyond the former 15-second cutoff (${Math.round(delayedVisualTiming.bootAge)} ms)`);
+  assert(delayedVisualTiming.visualAge >= 10000, `A delayed visual composition still remains visible for 10 seconds (${Math.round(delayedVisualTiming.visualAge)} ms)`);
+  await delayedVisualPage.locator('.boot-loader').waitFor({ state: 'hidden' });
+  await delayedVisualContext.close();
+
   const watchdogContext = await browser.newContext();
   const watchdogPage = await watchdogContext.newPage();
   let releaseWatchdogScripts;
@@ -459,9 +505,14 @@ try {
   await watchdogPage.locator('.boot-loader').waitFor({ state: 'visible' });
   await watchdogPage.waitForFunction(() => document.getElementById('site-content')?.inert === true);
   const watchdogStart = await watchdogPage.evaluate(() => Number(document.documentElement.dataset.bootStarted));
-  await watchdogPage.waitForFunction(() => !document.documentElement.hasAttribute('data-boot'), { timeout: 13500 });
-  const noHydrationElapsed = await watchdogPage.evaluate(start => performance.now() - start, watchdogStart);
-  assert(noHydrationElapsed < 13300, `The inline fallback releases the boot overlay promptly without hydration (${Math.round(noHydrationElapsed)} ms)`);
+  await watchdogPage.waitForFunction(() => document.documentElement.dataset.boot === 'leaving', { timeout: 18000 });
+  const visibleNoHydrationTiming = await watchdogPage.evaluate(start => ({
+    bootAge: performance.now() - start,
+    visualAge: performance.now() - Number(document.documentElement.dataset.bootVisualStarted),
+  }), watchdogStart);
+  assert(visibleNoHydrationTiming.visualAge >= 10000, `The inline fallback preserves 10 seconds of visible motion even without hydration (${Math.round(visibleNoHydrationTiming.visualAge)} ms)`);
+  assert(visibleNoHydrationTiming.bootAge < 20000, `A visible loader still exits before the no-visual safety bound (${Math.round(visibleNoHydrationTiming.bootAge)} ms)`);
+  await watchdogPage.waitForFunction(() => !document.documentElement.hasAttribute('data-boot'));
   assert.equal(await watchdogPage.locator('#site-content').evaluate(element => element.inert), false, 'The no-hydration watchdog always releases page inertness');
   await watchdogPage.keyboard.press('Tab');
   assert(await watchdogPage.getByRole('link', { name: 'Skip to content' }).evaluate(element => element === document.activeElement), 'Keyboard navigation resumes after the no-hydration watchdog');
@@ -469,6 +520,32 @@ try {
   assert.equal(await watchdogPage.locator('.ticker-track').first().evaluate(element => getComputedStyle(element).animationPlayState), 'paused', 'Keyboard focus can pause the ticker without hydration');
   releaseWatchdogScripts();
   await watchdogContext.close();
+
+  const noVisualContext = await browser.newContext();
+  const noVisualPage = await noVisualContext.newPage();
+  let releaseNoVisualScripts;
+  let noVisualCssInterceptedResolve;
+  const noVisualScriptsReady = new Promise(resolve => { releaseNoVisualScripts = resolve; });
+  const noVisualCssIntercepted = new Promise(resolve => { noVisualCssInterceptedResolve = resolve; });
+  await noVisualPage.route('**/_next/static/**/*.css', async route => {
+    noVisualCssInterceptedResolve();
+    await route.fulfill({ status: 200, contentType: 'text/css', body: '' });
+  });
+  await noVisualPage.route('**/_next/static/**/*.js', async route => {
+    await noVisualScriptsReady;
+    await route.continue();
+  });
+  await noVisualPage.goto(base, { waitUntil: 'commit' });
+  await noVisualPage.locator('.boot-loader').waitFor({ state: 'visible' });
+  await noVisualCssIntercepted;
+  const noVisualStart = await noVisualPage.evaluate(() => Number(document.documentElement.dataset.bootStarted));
+  await noVisualPage.waitForFunction(() => !Number(document.documentElement.dataset.bootVisualStarted), null, { timeout: 1000 });
+  await noVisualPage.waitForFunction(() => !document.documentElement.hasAttribute('data-boot'), { timeout: 22500 });
+  const noVisualElapsed = await noVisualPage.evaluate(start => performance.now() - start, noVisualStart);
+  assert(noVisualElapsed >= 20000 && noVisualElapsed < 22000, `The no-visual fallback releases within its bounded 20-second watchdog (${Math.round(noVisualElapsed)} ms)`);
+  assert.equal(await noVisualPage.locator('#site-content').evaluate(element => element.inert), false, 'The no-visual fallback always releases page inertness');
+  releaseNoVisualScripts();
+  await noVisualContext.close();
 
   // Repeat visits skip the first-visit boot screen, so the ticker layout must
   // already be in its enhanced state before hydration begins.
@@ -482,10 +559,11 @@ try {
   await revisitPage.getByRole('region', { name: 'IDEA Lab highlights' }).waitFor();
   await revisitPage.evaluate(() => document.fonts.ready);
   assert.equal(await revisitPage.locator('html').getAttribute('data-ticker-motion'), 'ready', 'Repeat visits prime ticker motion before hydration');
+  assert.equal(await revisitPage.locator('html').getAttribute('data-automatic-motion'), 'paused', 'Automatic ticker motion remains paused until its control hydrates');
   await revisitPage.locator('.maker-ticker-content').focus();
   assert.equal(await revisitPage.locator('.ticker-track').first().evaluate(element => getComputedStyle(element).animationPlayState), 'paused');
   await revisitPage.evaluate(() => (document.activeElement instanceof HTMLElement) && document.activeElement.blur());
-  assert.equal(await revisitPage.locator('.ticker-track').first().evaluate(element => getComputedStyle(element).animationPlayState), 'running', 'Ticker resumes after keyboard focus leaves');
+  assert.equal(await revisitPage.locator('.ticker-track').first().evaluate(element => getComputedStyle(element).animationPlayState), 'paused', 'Automatic ticker motion does not start before its pause control hydrates');
   const tickerGeometry = () => revisitPage.evaluate(() => [
     '.maker-ticker-region', '.hero',
   ].map(selector => {
@@ -494,6 +572,8 @@ try {
   }));
   const beforeTickerHydration = await tickerGeometry();
   releaseRevisitScripts();
+  await revisitPage.getByRole('button', { name: 'Pause automatic motion' }).waitFor();
+  assert.equal(await revisitPage.locator('.ticker-track').first().evaluate(element => getComputedStyle(element).animationPlayState), 'running', 'Ticker motion starts only after the pause control is ready');
   await revisitPage.waitForTimeout(300);
   await revisitPage.evaluate(() => document.fonts.ready);
   await revisitPage.evaluate(() => new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve))));
@@ -532,6 +612,9 @@ try {
     await page.goto(base);
     await page.getByRole('heading', { level: 1 }).waitFor();
     await page.waitForFunction(() => document.documentElement.dataset.tickerMotion === 'ready');
+    await page.getByRole('button', { name: /automatic motion/i }).waitFor();
+    const motionControlBox = await page.getByRole('button', { name: /automatic motion/i }).boundingBox();
+    assert(motionControlBox && motionControlBox.width >= 44 && motionControlBox.height >= 44, `Motion control meets the 44px touch target at ${width}px`);
     assert(await page.evaluate(() => getComputedStyle(document.body).backgroundColor !== 'rgba(0, 0, 0, 0)'), 'The global theme stylesheet must be applied');
     assert.match(await page.title(), /IDEALAB MEC/);
     assert.equal(await page.locator('main').count(), 1);
@@ -593,12 +676,23 @@ try {
     if (width === 1440) {
       await quoteTicker.scrollIntoViewIfNeeded();
       await page.mouse.move(0, 0);
+      const vectorOrbit = page.locator('.home-vector-orbits');
+      const vectorSun = page.locator('.home-vector-sun');
+      assert.equal(await vectorOrbit.evaluate(element => getComputedStyle(element).animationPlayState), 'running', 'Home vector orbit moves with automatic motion enabled');
+      assert.equal(await vectorSun.evaluate(element => getComputedStyle(element).animationPlayState), 'running', 'Home vector sun pulses with automatic motion enabled');
       const before = await quoteTicker.locator('.ticker-track').evaluate(element => getComputedStyle(element).transform);
       await page.waitForTimeout(160);
       assert.notEqual(await quoteTicker.locator('.ticker-track').evaluate(element => getComputedStyle(element).transform), before, 'The quote ribbon visibly advances over time');
       await quoteTicker.locator('.quote-ticker-content').focus();
       assert.equal(await quoteTicker.locator('.ticker-track').evaluate(element => getComputedStyle(element).animationPlayState), 'paused', 'Keyboard focus pauses the quote ribbon');
+      assert.equal(await vectorOrbit.evaluate(element => getComputedStyle(element).animationPlayState), 'paused', 'Keyboard focus pauses the home vector orbit');
+      assert.equal(await vectorSun.evaluate(element => getComputedStyle(element).animationPlayState), 'paused', 'Keyboard focus pauses the home vector sun');
       await page.evaluate(() => document.activeElement?.blur());
+      assert.equal(await quoteTicker.locator('.ticker-track').evaluate(element => getComputedStyle(element).animationPlayState), 'paused', 'The quote ribbon stays paused after keyboard focus leaves');
+      await page.getByRole('button', { name: 'Resume automatic motion' }).click();
+      assert.equal(await quoteTicker.locator('.ticker-track').evaluate(element => getComputedStyle(element).animationPlayState), 'running', 'A single header control explicitly resumes the quote ribbon');
+      assert.equal(await vectorOrbit.evaluate(element => getComputedStyle(element).animationPlayState), 'running', 'The header control resumes the home vector orbit');
+      assert.equal(await vectorSun.evaluate(element => getComputedStyle(element).animationPlayState), 'running', 'The header control resumes the home vector sun');
     }
     await page.evaluate(() => scrollTo({ top: 0, behavior: 'instant' }));
     assert.equal(await labTicker.count(), 1, 'Homepage has one labelled institutional highlights ticker');
@@ -613,7 +707,8 @@ try {
     const publicHeaderBox = await page.locator('.site-header').boundingBox();
     const topTickerBox = await labTicker.boundingBox();
     assert(publicHeaderBox && topTickerBox && topTickerBox.y >= publicHeaderBox.y + publicHeaderBox.height - 1, 'Top carousel appears after the public navigation/header');
-    assert.equal(await page.locator('.ticker-motion-control').count(), 0, 'The ticker has no unwanted pause button');
+    assert.equal(await page.getByRole('button', { name: /automatic motion/i }).count(), 1, 'A single accessible motion control is available in the public header');
+    assert.equal(await page.getByRole('button', { name: /automatic motion/i }).getAttribute('aria-controls'), 'maker-ticker past-events-carousel quote-ticker', 'The motion control identifies all automatic motion regions');
     assert.equal(await page.locator('.past-event-slide').count(), 4, 'The event carousel contains four archive cards');
     const eventWindow = await page.locator('.event-carousel-window').boundingBox();
     const activeEventImage = await page.locator('.past-event-slide[aria-hidden="false"] .event-slide-image').boundingBox();
@@ -622,7 +717,7 @@ try {
     assert.deepEqual(await page.locator('.past-event-slide .event-slide-date').allTextContents(), ['10 SEP 2025', '02 AUG 2025', '04 AUG 2024', '22 AUG 2023'], 'Carousel dates remain unchanged');
     const eventImageSources = await page.locator('.past-event-slide img').evaluateAll(images => images.map(image => new URL(image.getAttribute('src'), location.href).searchParams.get('url')));
     assert.deepEqual(eventImageSources, ['/events/triad.jpeg', '/events/arduignite.jpeg', '/events/robotics-training.jpg', '/events/raspberry-pi-workshop.jpg'], 'Only archive carousel images three and four use the clearer alternate photos');
-    assert.equal(await page.locator('.past-event-carousel button[aria-label*="Pause"]').count(), 0, 'The event carousel has no pause control');
+    assert.equal(await page.locator('.past-event-carousel button[aria-label*="Pause"]').count(), 0, 'The event carousel has no separate pause control');
     assert(await page.locator('.facility-headline').evaluate(element => getComputedStyle(element).fontFamily.toLowerCase().includes('editorial')), 'The sketch-to-object headline uses the new local Bricolage display face');
     assert(await page.locator('.playful-site').evaluate(element => getComputedStyle(element).backgroundImage.includes('linear-gradient') && !getComputedStyle(element).backgroundImage.includes('radial-gradient')), 'Notebook cross grid replaces dotted page background');
     await page.locator('.site-footer').scrollIntoViewIfNeeded();
@@ -644,8 +739,17 @@ try {
       const motionViewport = page.locator('.maker-ticker-content');
       await motionViewport.focus();
       assert.equal(await labTicker.locator('.ticker-track').first().evaluate(element => getComputedStyle(element).animationPlayState), 'paused');
+      assert.equal(await quoteTicker.locator('.ticker-track').evaluate(element => getComputedStyle(element).animationPlayState), 'paused', 'Keyboard focus on the top highlights pauses all home tickers');
       await page.evaluate(() => (document.activeElement instanceof HTMLElement) && document.activeElement.blur());
-      assert.equal(await labTicker.locator('.ticker-track').first().evaluate(element => getComputedStyle(element).animationPlayState), 'running', 'Ticker resumes after focus leaves');
+      assert.equal(await labTicker.locator('.ticker-track').first().evaluate(element => getComputedStyle(element).animationPlayState), 'paused', 'Keyboard focus latches motion off after focus leaves');
+      await page.getByRole('button', { name: 'Resume automatic motion' }).click();
+      assert.equal(await labTicker.locator('.ticker-track').first().evaluate(element => getComputedStyle(element).animationPlayState), 'running', 'The header motion control explicitly resumes highlights');
+      await page.getByRole('button', { name: 'Pause automatic motion' }).click();
+      assert.equal(await page.evaluate(() => localStorage.getItem('idealab-mec:automatic-motion:v1')), 'paused', 'A manual pause is remembered across page loads');
+      await page.reload();
+      await page.getByRole('button', { name: 'Resume automatic motion' }).waitFor();
+      assert.equal(await labTicker.locator('.ticker-track').first().evaluate(element => getComputedStyle(element).animationPlayState), 'paused', 'The remembered pause is applied before and after hydration');
+      await page.getByRole('button', { name: 'Resume automatic motion' }).click();
     }
   }
   await page.setViewportSize({ width: 1000, height: 900 });
@@ -660,10 +764,11 @@ try {
   assert.equal(await eventCarousel.locator('.event-carousel-status').textContent(), '02 / 04', 'Manual controls remain available while autoplay is paused');
   await page.mouse.move(0, 0);
   await page.waitForTimeout(7100);
-  assert.equal(await eventCarousel.locator('.event-carousel-status').textContent(), '02 / 04', 'Keyboard focus pauses event-carousel autoplay after the pointer leaves');
-  await nextEvent.evaluate(element => element.blur());
+  assert.equal(await eventCarousel.locator('.event-carousel-status').textContent(), '02 / 04', 'Keyboard focus latches event-carousel autoplay off after the pointer leaves');
+  await page.getByRole('button', { name: 'Resume automatic motion' }).click();
+  await eventCarousel.scrollIntoViewIfNeeded();
   await page.waitForFunction(() => document.querySelectorAll('.past-event-slide')[2]?.getAttribute('aria-hidden') === 'false', null, { timeout: 7600 });
-  assert.equal(await eventCarousel.locator('.event-carousel-status').textContent(), '03 / 04', 'Event autoplay resumes after hover and focus end');
+  assert.equal(await eventCarousel.locator('.event-carousel-status').textContent(), '03 / 04', 'Event autoplay resumes only when the user activates the global control');
   assert(await eventCarousel.locator('.event-carousel-track').evaluate(element => element.style.transform.startsWith('translate3d(200%,')), 'The row-reversed carousel moves the next event toward the right');
   await page.setViewportSize({ width: 320, height: 667 });
   await page.emulateMedia({ reducedMotion: 'reduce' });
@@ -807,7 +912,7 @@ try {
   await page.getByRole('button', { name: 'Create a new account' }).click();
   await page.getByRole('heading', { name: 'Create your account' }).waitFor();
   assert.equal(await page.locator('.auth-grid').getAttribute('data-auth-view'), 'create-account', 'The login card flips to account creation');
-  await page.getByRole('button', { name: 'Return to sign in' }).click();
+  await page.getByRole('button', { name: 'Back to sign in' }).click();
   await page.getByRole('heading', { name: 'Sign in' }).waitFor();
   assert.equal(await page.locator('.public-mobile-nav').count(), 0, 'Auth routes do not inherit the website bottom navigation');
   await page.screenshot({ path: 'artifacts/acceptance/sign-in-mobile.png', fullPage: true });
@@ -868,7 +973,7 @@ try {
   await page.getByRole('heading', { name: 'Create your account' }).waitFor();
   assert(await page.getByRole('button', { name: 'Create account', exact: true }).isDisabled(), 'Registration remains gated until the shared backend passes validation');
   assert.equal(await page.getByText(/contact the lab team/i).count(), 0, 'Signup does not redirect account creation to a contact link');
-  await page.getByRole('button', { name: 'Return to sign in' }).click();
+  await page.getByRole('button', { name: 'Back to sign in' }).click();
   await page.getByRole('heading', { name: 'Sign in' }).waitFor();
   await page.setViewportSize({ width: 390, height: 844 });
   await page.goto(base + '/design/onboarding');
@@ -1387,6 +1492,28 @@ try {
   await page.emulateMedia({ reducedMotion: 'reduce' });
   assert.equal(await page.locator('.staff-preview-heading').evaluate(element => getComputedStyle(element).animationName), 'none', 'Staff preview entrance respects reduced motion');
   await setTheme(page, 'light');
+  const accessibilityContext = await browser.newContext({ viewport: { width: 375, height: 900 } });
+  await accessibilityContext.addInitScript(() => sessionStorage.setItem('idealab-mec:loader-seen:v2', '1'));
+  const accessibilityPage = await accessibilityContext.newPage();
+  const accessibilityRoutes = ['/', '/explore', '/lab', '/projects', '/events', '/sign-in', '/sign-up', '/design/onboarding', '/design/student', '/design/workspace'];
+  for (const theme of ['light', 'dark']) {
+    await accessibilityPage.goto(base);
+    await setTheme(accessibilityPage, theme);
+    for (const route of accessibilityRoutes) {
+      if (route !== '/') await accessibilityPage.goto(base + route);
+      await accessibilityPage.locator('main').waitFor();
+      if (route === '/') await accessibilityPage.getByRole('button', { name: /automatic motion/i }).waitFor();
+      await auditAccessibility(accessibilityPage, `${route} (${theme}, 375px)`);
+    }
+  }
+  await accessibilityPage.setViewportSize({ width: 1440, height: 1000 });
+  for (const theme of ['light', 'dark']) {
+    await accessibilityPage.goto(base);
+    await setTheme(accessibilityPage, theme);
+    await accessibilityPage.getByRole('button', { name: /automatic motion/i }).waitFor();
+    await auditAccessibility(accessibilityPage, `/ (${theme}, 1440px)`);
+  }
+  await accessibilityContext.close();
   assert.deepEqual(errors, [], 'No browser runtime errors');
   assert.deepEqual(cspErrors, [], 'CSP allows the application scripts, styles and assets needed for the public journey');
   const offPort = await availablePort();
@@ -1467,7 +1594,7 @@ try {
   }
   await page.goto(`${recoveryBase}/sign-up?notice=signup-invalid`);
   assert(await page.getByText('Enter a valid email address and a password of at least 8 characters.').isVisible());
-  await page.getByRole('button', { name: 'Return to sign in' }).click();
+  await page.getByRole('button', { name: 'Back to sign in' }).click();
   await page.waitForURL('**/sign-in');
   await page.getByRole('button', { name: 'Create a new account' }).click();
   await page.waitForURL('**/sign-up');
@@ -1479,7 +1606,7 @@ try {
   const genericRecovery = await page.goto(`${recoveryBase}/forgot-password?notice=requested`);
   assert(genericRecovery?.ok(), 'Recovery request status page renders');
   assert(await page.getByText(/recovery is paused/i).isVisible(), 'Recovery remains visibly disabled until the security boundary is complete');
-  console.log('PASS: public journey, 5 widths in light/dark, login/signup and recovery layouts/themes, palette contrast, no-JavaScript content, scroll/card motion and live reduced-motion cancellation, assets, keyboard navigation, gated onboarding/staff previews, responsive member Home/Lab skeletons in both themes and reduced motion, student module layouts and feature contrast, request drafts, disabled recovery callback, security headers, PWA service-worker registration and offline fallback with member routes uncached.');
+  console.log('PASS: public journey, 5 widths in light/dark, login/signup and recovery layouts/themes, palette contrast, no-JavaScript content, scroll/card motion and live reduced-motion cancellation, loader timing including delayed styles, global motion pause/resume, keyboard focus latching, 44px motion control, manual pause persistence, axe WCAG 2.2 AA route snapshots for 10 routes in light/dark at 375px plus homepage at 1440px, assets, gated onboarding/staff previews, responsive member Home/Lab skeletons, request drafts, security headers, PWA service-worker registration and offline fallback with member routes uncached.');
   console.log('UNVERIFIED: live account creation, email delivery, email/Google sign-in, recovery-link exchange/password update, draft under a real member session, scoped permissions and operational backend workflows.');
 } catch (error) {
   const activePage = browser?.contexts()[0]?.pages()[0];

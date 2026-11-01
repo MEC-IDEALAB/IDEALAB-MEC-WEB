@@ -1,6 +1,7 @@
 'use client';
 
 import { Fragment } from 'react';
+import { useAutomaticMotion } from '@/components/automatic-motion';
 
 const highlights = [
   'AICTE × COGNICOR × MEC',
@@ -34,12 +35,13 @@ function MovingTrack({ items = highlights }: { items?: string[] }) {
 }
 
 export function HomeTickerBottom() {
+  const { pauseForKeyboard } = useAutomaticMotion();
   return (
-    <section className="ticker-region quote-ticker-region" aria-label="Ideas to keep you making">
+    <section id="quote-ticker" className="ticker-region quote-ticker-region" aria-label="Ideas to keep you making">
       <p className="sr-only" id="lab-quotes-copy">{quotes.join(' ')}</p>
       <div className="ticker-viewport quote-ticker-viewport">
         <div className="ticker-band quote-ticker-band">
-          <div className="quote-ticker-content" role="group" tabIndex={0} aria-label="Moving quotes pause while hovered or focused" aria-describedby="lab-quotes-copy"><MovingTrack items={quotes} /></div>
+          <div className="quote-ticker-content" role="group" tabIndex={0} aria-label="Moving quotes. Focusing this region pauses automatic motion until it is resumed in the header." aria-describedby="lab-quotes-copy" onFocusCapture={pauseForKeyboard}><MovingTrack items={quotes} /></div>
         </div>
       </div>
     </section>
@@ -47,15 +49,16 @@ export function HomeTickerBottom() {
 }
 
 export function HomeTickerTop() {
+  const { pauseForKeyboard } = useAutomaticMotion();
   return (
-    <section className="ticker-region maker-ticker-region" aria-label="IDEA Lab highlights">
+    <section id="maker-ticker" className="ticker-region maker-ticker-region" aria-label="IDEA Lab highlights">
       <p className="sr-only" id="lab-highlights-copy">
         IDEALAB MEC at Model Engineering College. Established in 2022 with AICTE and CogniCor,
         the lab supports workshops, training and multidisciplinary STEM.
       </p>
       <div className="ticker-viewport maker-ticker-viewport">
         <div className="ticker-band maker-ticker-band">
-          <div className="maker-ticker-content" role="group" tabIndex={0} aria-label="Moving highlights pause while hovered or focused" aria-describedby="lab-highlights-copy"><MovingTrack /></div>
+          <div className="maker-ticker-content" role="group" tabIndex={0} aria-label="Moving highlights. Focusing this region pauses automatic motion until it is resumed in the header." aria-describedby="lab-highlights-copy" onFocusCapture={pauseForKeyboard}><MovingTrack /></div>
         </div>
       </div>
     </section>

@@ -172,7 +172,7 @@ html[data-ticker-motion=ready] .quote-ticker-content .ticker-track {
   white-space: nowrap;
 }
 .quote-ticker-content .ticker-separator { color: var(--brand-cobalt); }
-html[data-ticker-motion=ready] .quote-ticker-viewport:is(:hover, :focus-within) .ticker-track { animation-play-state: paused; }
+html[data-ticker-motion=ready] .quote-ticker-viewport:focus-within .ticker-track { animation-play-state: paused; }
 html:not([data-ticker-motion=ready]) .quote-ticker-content .ticker-track { width: max-content; animation: none; }
 html:not([data-ticker-motion=ready]) .quote-ticker-content .ticker-run:not(:first-child) { display: none; }
 html:not([data-ticker-motion=ready]) .quote-ticker-content .ticker-item { max-width: none; }
@@ -188,8 +188,8 @@ html:not([data-ticker-motion=ready]) .quote-ticker-content .ticker-item { max-wi
 }
 .playful-site .path-card:nth-child(2) { --card-rest-y: 14px; --card-tilt: .6deg; }
 .playful-site .path-card:nth-child(3) { --card-tilt: -.5deg; }
-.playful-site .path-card:is(:hover, :focus-within),
-.playful-site .path-card:nth-child(2):is(:hover, :focus-within) {
+.playful-site .path-card:focus-within,
+.playful-site .path-card:nth-child(2):focus-within {
   background: var(--surface);
   color: var(--ink);
   transform: translate(-2px, calc(var(--card-rest-y) - 7px)) rotate(var(--card-tilt));
@@ -198,10 +198,10 @@ html:not([data-ticker-motion=ready]) .quote-ticker-content .ticker-item { max-wi
 .playful-site .path-card .card-link,
 .playful-site .path-card .card-link:hover { color: inherit; }
 .playful-site .path-card .card-link > svg { transition: transform 260ms cubic-bezier(.2,.7,.2,1); }
-.playful-site .path-card:is(:hover, :focus-within) .card-link > svg { transform: translateX(4px) rotate(-14deg); }
+.playful-site .path-card:focus-within .card-link > svg { transform: translateX(4px) rotate(-14deg); }
 .playful-site .path-card:active { translate: 1px 2px; }
 
-.playful-site .maker-ticker-viewport:is(:hover, :focus-within) .ticker-track { animation-play-state: paused; }
+.playful-site .maker-ticker-viewport:focus-within .ticker-track { animation-play-state: paused; }
 
 .playful-site .maker-ticker-content .ticker-run {
   display: flex;
@@ -563,8 +563,8 @@ html[data-theme=dark] .event-slide-note { color: #d0d0d0; }
   html[data-ticker-motion=ready] .quote-ticker-content .ticker-track { animation: none; transform: none; }
   .quote-ticker-content .ticker-run:not(:first-child) { display: none; }
   .playful-site .path-card,
-  .playful-site .path-card:is(:hover, :focus-within),
-  .playful-site .path-card:nth-child(2):is(:hover, :focus-within),
+  .playful-site .path-card:focus-within,
+  .playful-site .path-card:nth-child(2):focus-within,
   .playful-site .path-card .card-link > svg { transform: none; translate: none; transition: none; }
   .playful-site .journey-steps li[data-reveal] { transition: none; }
   .event-carousel-track,
@@ -652,7 +652,7 @@ html[data-theme=dark] .event-slide-note { color: #d0d0d0; }
   .past-event-carousel--editorial .event-carousel-footer { margin-top: 8px; }
 }
 
-/* The homepage ticker advances right; hover and keyboard focus pause the motion. */
+/* The homepage ticker advances right; keyboard focus pauses the motion. */
 .playful-site .maker-ticker-band { transform: rotate(-1.2deg); }
 .playful-site .maker-ticker-content .ticker-track { animation-direction: reverse; }
 .playful-site .path-card .card-topline > svg { transition: transform 180ms ease; }
@@ -691,3 +691,8 @@ html[data-theme=dark] .playful-site .maker-ticker-content .ticker-separator { co
   .public-mobile-nav a:focus-visible > svg { transform: none; }
   .playful-site .path-card .card-topline > svg { transform: none !important; }
 }
+
+/* Photo movement remains visible between archive slide changes. */
+.past-event-slide[aria-hidden="false"] .event-slide-image img { animation:event-archive-drift 6.5s ease-in-out both; }
+html[data-automatic-motion=paused] .past-event-slide .event-slide-image img { animation-play-state:paused!important; }
+@keyframes event-archive-drift { from { transform:scale(1.015) translateX(-.3%); } to { transform:scale(1.065) translateX(.3%); } }

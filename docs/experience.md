@@ -13,8 +13,7 @@ The requested homepage and visual-system pass is complete for this foundation sl
 The homepage places a tilted black/yellow moving highlights band just below the
 public header and a quieter grey activity/facility ticker near the footer. The
 top band does not repeat the header logo; it separates institutional highlights
-with a double-backslash mark. There are no visible pause controls. Hover and
-keyboard focus pause each ticker, and reduced-motion users receive still wrapped
+with a double-backslash mark. A textual Motion setting lives in the footer; keyboard focus pauses each ticker, and reduced-motion users receive still wrapped
 copy. A nonce-protected head script primes motion before paint for repeat visits,
 preventing the taller static fallback from reflowing during hydration or a
 return navigation. No-JavaScript visitors retain all copy in still wrapped rows.
@@ -389,7 +388,7 @@ Current implemented foundation: curated public homepage, a two-state Light/Dark 
 
 ## Branded loading state
 
-The first page boot uses repeated lowercase wordmarks, a drawn prototype mark, an orbiting blueprint marker and a three-beat typography settle. It appears once per browser-tab visit. The bundled stylesheet gives the first CSS-rendered frame a dim but readable maker scene; a nonce-protected layout fallback preserves matching geometry if the stylesheet fails. The ten-second intro timeline starts with the first frame and includes the scene assembly, then a 320 ms exit; page controls remain inert through that hand-off. Font/high-priority image readiness is bounded by 400 ms. A 12-second watchdog from initial boot releases the overlay if startup stalls and can shorten the hold on very slow starts. Reduced-motion users skip the animation; JavaScript-disabled browsers do not receive an overlay. The root route has no loading boundary, preserving ordinary 404 HTTP responses. Current browser acceptance and timing evidence are in [the loader record](quality/loader-visual-timing-2026-11-01.md); this animation does not imply live backend readiness.
+The first page boot uses repeated lowercase wordmarks, a drawn prototype mark, an orbiting blueprint marker and a three-beat typography settle. It appears once per browser-tab visit. The bundled stylesheet gives the first CSS-rendered frame a dim but readable maker scene; a nonce-protected layout fallback preserves matching geometry if the stylesheet fails. The ten-second intro timeline starts with the first frame and includes the scene assembly, then a 320 ms exit; page controls remain inert through that hand-off. Font/high-priority image readiness is bounded by 400 ms. A 20-second watchdog from initial boot releases the overlay if startup stalls and can shorten the hold on very slow starts. Reduced-motion users skip the animation; JavaScript-disabled browsers do not receive an overlay. The root route has no loading boundary, preserving ordinary 404 HTTP responses. Current browser acceptance and timing evidence are in [the loader record](quality/loader-visual-timing-2026-11-01.md); this animation does not imply live backend readiness.
 
 
 ## Account-state route — 22 October 2026
@@ -406,3 +405,5 @@ Google login and profile provisioning passed in isolation. Real personal-profile
 admission and email/password/recovery acceptance remain open; see [account
 delivery status](account-readiness.md). The design preview remains separate and
 cannot complete a real account.
+
+Current public navigation is a mobile top destination row under the header and above the moving ticker, replacing the fixed bottom bar. The hero carries the theme control beside its heading. Scroll reveals repeat on viewport re-entry. The loader includes original animated ASCII hands, a skip action and a footer replay link; see [the frontend refresh evidence](quality/frontend-motion-refresh-2026-11-01.md).

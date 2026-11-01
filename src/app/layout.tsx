@@ -15,6 +15,7 @@ import './auth-recovery.css';
 import './auth-flow.css';
 import './member-shell.css';
 import './account-setup.css';
+import './navigation-refresh.css';
 import { BrandLoading } from '@/components/brand-loading';
 import { BootReady } from '@/components/boot-ready';
 import { PwaServiceWorker } from '@/components/pwa-service-worker';
@@ -48,14 +49,32 @@ try {
 } catch {}
 try {
   var root = document.documentElement;
+  document.addEventListener('click', function (event) {
+    if (!(event.target instanceof Element) || !event.target.closest('.loader-skip') || !root.dataset.boot) return;
+    if (root.dataset.bootHydrated === '1') {
+      window.dispatchEvent(new Event('idealab-skip-intro'));
+      return;
+    }
+    root.removeAttribute('data-boot');
+    delete root.dataset.bootStarted;
+    delete root.dataset.bootVisualStarted;
+    delete root.dataset.bootMotion;
+    var content = document.getElementById('site-content');
+    if (content) content.inert = false;
+    var skip = document.querySelector('.skip-link');
+    if (skip) skip.focus({ preventScroll: true });
+  });
   var reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-  var loaderVisitKey = 'idealab-mec:loader-seen:v2';
+  var loaderVisitKey = 'idealab-mec:loader-seen:v3';
   var localLoaderPreview = (location.hostname === '127.0.0.1' || location.hostname === 'localhost')
     && new URLSearchParams(location.search).get('loader') === 'preview';
+  var replayIntro = new URLSearchParams(location.search).get('intro') === 'replay';
+  localLoaderPreview = localLoaderPreview || replayIntro;
+  if (localLoaderPreview) root.dataset.bootMotion = 'requested';
   if (localLoaderPreview) sessionStorage.removeItem(loaderVisitKey);
   if (localLoaderPreview || !sessionStorage.getItem(loaderVisitKey)) {
     sessionStorage.setItem(loaderVisitKey, '1');
-    if (!reducedMotion) {
+    if (!reducedMotion || localLoaderPreview) {
       root.dataset.boot = 'loading';
       root.dataset.bootStarted = String(performance.now());
       var releaseFallback = function () {
@@ -65,6 +84,7 @@ try {
           root.removeAttribute('data-boot');
           delete root.dataset.bootStarted;
           delete root.dataset.bootVisualStarted;
+          delete root.dataset.bootMotion;
           var content = document.getElementById('site-content');
           if (content) content.inert = false;
         }, ${BRAND_LOADING_EXIT_MS});
@@ -208,14 +228,8 @@ try {
         var geometryIsDrawn = shell && detail
           && Number.parseFloat(getComputedStyle(shell).strokeDashoffset) < .02
           && Number.parseFloat(getComputedStyle(detail).strokeDashoffset) < .02;
-        var progress = document.querySelector('.loader-progress');
-        var sweep = progress && progress.querySelector('span');
-        var progressIsMoving = false;
-        if (progress && sweep && Number(getComputedStyle(progress).opacity) >= .99) {
-          var trackBox = progress.getBoundingClientRect();
-          var sweepBox = sweep.getBoundingClientRect();
-          progressIsMoving = sweepBox.width > 0 && sweepBox.right > trackBox.left && sweepBox.left < trackBox.right;
-        }
+        var hands = document.querySelector('.loader-ascii');
+        var progressIsMoving = hands && hands.getBoundingClientRect().width > 0;
         var secondaryCopyIsReady = ['.loader-campus', '.loader-caption', '.loader-title-star'].every(function (selector) {
           var element = document.querySelector(selector);
           return element && Number(getComputedStyle(element).opacity) >= .99;

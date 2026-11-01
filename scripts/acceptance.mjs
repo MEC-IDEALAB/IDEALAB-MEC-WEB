@@ -229,7 +229,7 @@ try {
   // The dedicated loader contexts above measure the first visit. These public
   // content checks represent a repeat visit, so the ten-second splash should
   // not make unrelated page interactions start while content is inert.
-  await context.addInitScript(() => sessionStorage.setItem('idealab-mec:loader-seen:v2', '1'));
+  await context.addInitScript(() => sessionStorage.setItem('idealab-mec:loader-seen:v3', '1'));
   const page = await context.newPage();
   const errors = [];
   const cspErrors = [];
@@ -271,9 +271,7 @@ try {
       return text.width > 0 && text.height > 0 && visibleHeight > text.height * .98
         && Number(style.opacity) >= .99 && (!style.filter.startsWith('blur(') || style.filter === 'blur(0px)');
     });
-    const progress = document.querySelector('.loader-progress');
-    const track = progress?.getBoundingClientRect();
-    const sweep = progress?.querySelector('span')?.getBoundingClientRect();
+    const hands = document.querySelector('.loader-ascii')?.getBoundingClientRect();
     const geometryIsDrawn = [...document.querySelectorAll('.loader-build-shell, .loader-build-detail')]
       .every(path => Number.parseFloat(getComputedStyle(path).strokeDashoffset) < .02);
     return core && title && Number(getComputedStyle(core).opacity) >= .99
@@ -282,7 +280,7 @@ try {
       && title.getBoundingClientRect().width > 0 && visibleWords
       && Number(getComputedStyle(document.querySelector('.loader-caption')).opacity) >= .99
       && geometryIsDrawn
-      && track && sweep && sweep.width > 0 && sweep.right > track.left && sweep.left < track.right;
+      && hands && hands.width > 0 && hands.height > 0;
   }, null, { timeout: 800 });
   const criticalFrame = await loaderPage.locator('.loader-core').evaluate(element => {
     const rect = element.getBoundingClientRect();
@@ -305,25 +303,12 @@ try {
   const nextPosition = await loop.evaluate(element => element.getBoundingClientRect().x);
   assert.notEqual(nextPosition, firstPosition, 'Brand ribbons move while the first visit is loading');
   assert.deepEqual(await loaderPage.locator('.loader-title-chunk > span').evaluateAll(elements => elements.map(element => getComputedStyle(element).animationDelay)), ['0.18s', '0.27s', '0.36s'], 'The IDEALAB lockup reveals in a clear three-beat sequence');
-  assert.equal(await loaderPage.locator('.loader-progress > span').evaluate(element => getComputedStyle(element).animationName), 'loader-progress-sweep', 'The loader uses an indeterminate moving rail rather than implying measured completion');
-  assert.equal(await loaderPage.locator('.loader-progress').evaluate(element => getComputedStyle(element).animationDelay), '0.5s', 'The progress rail appears before its sweep begins');
-  assert.equal(await loaderPage.locator('.loader-progress > span').evaluate(element => getComputedStyle(element).animationDelay), '0.74s', 'The rail sweep starts after its track is visible');
-  assert.equal(await loaderPage.locator('.loader-progress > span').evaluate(element => getComputedStyle(element).animationDuration), '0.84s', 'The indeterminate rail uses a calmer sweep cycle');
-  await loaderPage.waitForFunction(() => Number(getComputedStyle(document.querySelector('.loader-progress')).opacity) > .85, null, { timeout: 1100 });
-  assert(await loaderPage.locator('.loader-progress').evaluate(element => Number(getComputedStyle(element).opacity) > .85), 'The rail is already visible before its sweep begins');
-  const firstRailPosition = await loaderPage.locator('.loader-progress > span').evaluate(element => element.getBoundingClientRect().x);
-  await loaderPage.waitForFunction(position => document.querySelector('.loader-progress > span')?.getBoundingClientRect().x !== position, firstRailPosition, { timeout: 400 });
-  const nextRailPosition = await loaderPage.locator('.loader-progress > span').evaluate(element => element.getBoundingClientRect().x);
-  assert.notEqual(nextRailPosition, firstRailPosition, 'The revealed rail visibly sweeps before the loader exits');
-  const railMetrics = await loaderPage.locator('.loader-progress').evaluate(element => {
-    const track = element.getBoundingClientRect();
-    const sweepElement = element.querySelector('span');
-    if (!sweepElement) return { track: { x: track.x, width: track.width, height: track.height }, sweep: null, transform: 'missing' };
-    const sweep = sweepElement.getBoundingClientRect();
-    const style = getComputedStyle(sweepElement);
-    return { track: { x: track.x, width: track.width, height: track.height }, sweep: { x: sweep.x, width: sweep.width, height: sweep.height }, transform: style.transform };
-  });
-  assert(railMetrics.track.width > 0 && railMetrics.sweep && railMetrics.sweep.width > 0 && railMetrics.sweep.x < railMetrics.track.x + railMetrics.track.width && railMetrics.sweep.x + railMetrics.sweep.width > railMetrics.track.x, `The moving lime sweep is visible within its track before the loader exits: ${JSON.stringify(railMetrics)}`);
+  assert.equal(await loaderPage.locator('.loader-progress').count(), 0, 'The old line progress indicator is removed');
+  const hand = loaderPage.locator('.ascii-hand--left');
+  const handPosition = await hand.evaluate(element => getComputedStyle(element).translate);
+  await loaderPage.waitForTimeout(200);
+  assert.notEqual(await hand.evaluate(element => getComputedStyle(element).translate), handPosition, 'Original ASCII hands visibly reach toward one another');
+  assert.equal(await loaderPage.locator('.loader-ascii pattern text').count(), 2, 'The hands are filled with code glyphs');
   const buildMarkerSizeDuringLoading = await loaderPage.locator('.loader-build').evaluate(element => {
     const rect = element.getBoundingClientRect();
     return { width: rect.width, height: rect.height };
@@ -354,7 +339,7 @@ try {
   assert.match(await loaderPage.locator('.boot-loader').evaluate(element => getComputedStyle(element).transitionDuration), /^0\.32s(?:,|$)/, 'Boot screen has a measured fade-out');
   await loaderPage.locator('.boot-loader').waitFor({ state: 'hidden' });
   assert.equal(await loaderPage.locator('#site-content').evaluate(element => element.inert), false, 'Page content becomes interactive after the loader exits');
-  await loaderPage.keyboard.press('Tab');
+  if (!await loaderPage.getByRole('link', { name: 'Skip to content' }).evaluate(element => element === document.activeElement)) await loaderPage.keyboard.press('Tab');
   assert(await loaderPage.getByRole('link', { name: 'Skip to content' }).evaluate(element => element === document.activeElement), 'Keyboard navigation resumes at the skip link after the loader exits');
   await loaderPage.getByRole('heading', { level: 1 }).waitFor();
   await loaderPage.waitForTimeout(100);
@@ -367,7 +352,36 @@ try {
   await loaderPage.waitForFunction(() => document.documentElement.dataset.boot === 'loading');
   await loaderPage.waitForFunction(() => Number(document.documentElement.dataset.bootVisualStarted) > 0);
   assert.notEqual(await loaderPage.locator('.loader-build-orbit').evaluate(element => getComputedStyle(element).transform), 'none', 'Local preview query replays the visible animated loader after its one-time visit');
+  await loaderPage.getByRole('button', { name: 'Skip intro' }).click();
+  await loaderPage.locator('.boot-loader').waitFor({ state: 'hidden' });
+  assert.equal(await loaderPage.locator('#site-content').evaluate(element => element.inert), false, 'Skipping the intro releases page interaction');
+  assert(await loaderPage.getByRole('link', { name: 'Skip to content' }).evaluate(element => element === document.activeElement), 'Skipping the intro hands keyboard focus to the skip link');
   await loaderContext.close();
+
+  const earlySkipContext = await browser.newContext();
+  const earlySkipPage = await earlySkipContext.newPage();
+  await earlySkipPage.route('**/_next/static/**/*.js', route => route.abort());
+  await earlySkipPage.goto(base, { waitUntil: 'domcontentloaded' });
+  await earlySkipPage.locator('.boot-loader').waitFor({ state: 'visible' });
+  await earlySkipPage.getByRole('button', { name: 'Skip intro' }).click();
+  await earlySkipPage.locator('.boot-loader').waitFor({ state: 'hidden' });
+  assert.equal(await earlySkipPage.locator('#site-content').evaluate(element => element.inert), false, 'Skip works with client chunks blocked');
+  assert(await earlySkipPage.locator('.skip-link').evaluate(element => element === document.activeElement), 'Early skip hands off keyboard focus');
+  await earlySkipContext.close();
+
+  const explicitReplayContext = await browser.newContext({ reducedMotion: 'reduce' });
+  const explicitReplayPage = await explicitReplayContext.newPage();
+  await explicitReplayPage.goto(base + '/?intro=replay');
+  await explicitReplayPage.waitForFunction(() => Number(document.documentElement.dataset.bootVisualStarted) > 0);
+  const explicitHand = explicitReplayPage.locator('.ascii-hand--left');
+  const explicitPosition = await explicitHand.evaluate(element => getComputedStyle(element).translate);
+  await explicitReplayPage.waitForTimeout(200);
+  assert.notEqual(await explicitHand.evaluate(element => getComputedStyle(element).translate), explicitPosition, 'Explicit replay opts into intro movement even with reduced motion');
+  assert.equal(await explicitReplayPage.locator('.ticker-track').first().evaluate(element => getComputedStyle(element).animationName), 'none', 'Explicit intro replay preserves the reduced-motion preference for the page');
+  const explicitVisualStart = await explicitReplayPage.evaluate(() => Number(document.documentElement.dataset.bootVisualStarted));
+  await explicitReplayPage.locator('.boot-loader').waitFor({ state: 'hidden' });
+  assert(await explicitReplayPage.evaluate(start => performance.now() - start, explicitVisualStart) >= 10000, 'Hydrated explicit replay holds for ten seconds under reduced motion');
+  await explicitReplayContext.close();
 
   const compactLoaderContext = await browser.newContext({ viewport: { width: 390, height: 844 } });
   await compactLoaderContext.addInitScript(() => sessionStorage.setItem('idealab-mec:visited', '1'));
@@ -551,7 +565,7 @@ try {
   // already be in its enhanced state before hydration begins.
   const revisitContext = await browser.newContext({ viewport: { width: 320, height: 667 } });
   const revisitPage = await revisitContext.newPage();
-  await revisitPage.addInitScript(() => sessionStorage.setItem('idealab-mec:loader-seen:v2', '1'));
+  await revisitPage.addInitScript(() => sessionStorage.setItem('idealab-mec:loader-seen:v3', '1'));
   let releaseRevisitScripts;
   const revisitScriptsReady = new Promise(resolve => { releaseRevisitScripts = resolve; });
   await revisitPage.route('**/_next/static/**/*.js', async route => { await revisitScriptsReady; await route.continue(); });
@@ -690,9 +704,9 @@ try {
       await page.evaluate(() => document.activeElement?.blur());
       assert.equal(await quoteTicker.locator('.ticker-track').evaluate(element => getComputedStyle(element).animationPlayState), 'paused', 'The quote ribbon stays paused after keyboard focus leaves');
       await page.getByRole('button', { name: 'Resume automatic motion' }).click();
-      assert.equal(await quoteTicker.locator('.ticker-track').evaluate(element => getComputedStyle(element).animationPlayState), 'running', 'A single header control explicitly resumes the quote ribbon');
-      assert.equal(await vectorOrbit.evaluate(element => getComputedStyle(element).animationPlayState), 'running', 'The header control resumes the home vector orbit');
-      assert.equal(await vectorSun.evaluate(element => getComputedStyle(element).animationPlayState), 'running', 'The header control resumes the home vector sun');
+      assert.equal(await quoteTicker.locator('.ticker-track').evaluate(element => getComputedStyle(element).animationPlayState), 'running', 'A single footer setting explicitly resumes the quote ribbon');
+      assert.equal(await vectorOrbit.evaluate(element => getComputedStyle(element).animationPlayState), 'running', 'The footer setting resumes the home vector orbit');
+      assert.equal(await vectorSun.evaluate(element => getComputedStyle(element).animationPlayState), 'running', 'The footer setting resumes the home vector sun');
     }
     await page.evaluate(() => scrollTo({ top: 0, behavior: 'instant' }));
     assert.equal(await labTicker.count(), 1, 'Homepage has one labelled institutional highlights ticker');
@@ -707,7 +721,7 @@ try {
     const publicHeaderBox = await page.locator('.site-header').boundingBox();
     const topTickerBox = await labTicker.boundingBox();
     assert(publicHeaderBox && topTickerBox && topTickerBox.y >= publicHeaderBox.y + publicHeaderBox.height - 1, 'Top carousel appears after the public navigation/header');
-    assert.equal(await page.getByRole('button', { name: /automatic motion/i }).count(), 1, 'A single accessible motion control is available in the public header');
+    assert.equal(await page.getByRole('button', { name: /automatic motion/i }).count(), 1, 'A single accessible motion control is available in the footer');
     assert.equal(await page.getByRole('button', { name: /automatic motion/i }).getAttribute('aria-controls'), 'maker-ticker past-events-carousel quote-ticker', 'The motion control identifies all automatic motion regions');
     assert.equal(await page.locator('.past-event-slide').count(), 4, 'The event carousel contains four archive cards');
     const eventWindow = await page.locator('.event-carousel-window').boundingBox();
@@ -743,7 +757,7 @@ try {
       await page.evaluate(() => (document.activeElement instanceof HTMLElement) && document.activeElement.blur());
       assert.equal(await labTicker.locator('.ticker-track').first().evaluate(element => getComputedStyle(element).animationPlayState), 'paused', 'Keyboard focus latches motion off after focus leaves');
       await page.getByRole('button', { name: 'Resume automatic motion' }).click();
-      assert.equal(await labTicker.locator('.ticker-track').first().evaluate(element => getComputedStyle(element).animationPlayState), 'running', 'The header motion control explicitly resumes highlights');
+      assert.equal(await labTicker.locator('.ticker-track').first().evaluate(element => getComputedStyle(element).animationPlayState), 'running', 'The footer motion setting explicitly resumes highlights');
       await page.getByRole('button', { name: 'Pause automatic motion' }).click();
       assert.equal(await page.evaluate(() => localStorage.getItem('idealab-mec:automatic-motion:v1')), 'paused', 'A manual pause is remembered across page loads');
       await page.reload();
@@ -759,17 +773,11 @@ try {
   const nextEvent = eventCarousel.getByRole('button', { name: 'Next event' });
   await eventCarousel.hover();
   await page.waitForTimeout(7100);
-  assert.equal(await eventCarousel.locator('.event-carousel-status').textContent(), '01 / 04', 'Hover pauses event-carousel autoplay');
+  assert.equal(await eventCarousel.locator('.event-carousel-status').textContent(), '02 / 04', 'Resting a desktop pointer over the image does not stop autoplay');
   await nextEvent.click();
-  assert.equal(await eventCarousel.locator('.event-carousel-status').textContent(), '02 / 04', 'Manual controls remain available while autoplay is paused');
-  await page.mouse.move(0, 0);
-  await page.waitForTimeout(7100);
-  assert.equal(await eventCarousel.locator('.event-carousel-status').textContent(), '02 / 04', 'Keyboard focus latches event-carousel autoplay off after the pointer leaves');
-  await page.getByRole('button', { name: 'Resume automatic motion' }).click();
-  await eventCarousel.scrollIntoViewIfNeeded();
-  await page.waitForFunction(() => document.querySelectorAll('.past-event-slide')[2]?.getAttribute('aria-hidden') === 'false', null, { timeout: 7600 });
-  assert.equal(await eventCarousel.locator('.event-carousel-status').textContent(), '03 / 04', 'Event autoplay resumes only when the user activates the global control');
-  assert(await eventCarousel.locator('.event-carousel-track').evaluate(element => element.style.transform.startsWith('translate3d(200%,')), 'The row-reversed carousel moves the next event toward the right');
+  assert.equal(await eventCarousel.locator('.event-carousel-status').textContent(), '03 / 04', 'Manual navigation works alongside autoplay');
+  await page.waitForFunction(() => document.querySelectorAll('.past-event-slide')[3]?.getAttribute('aria-hidden') === 'false', null, { timeout: 7600 });
+  assert(await eventCarousel.locator('.event-carousel-track').evaluate(element => element.style.transform.startsWith('translate3d(300%,')), 'The image carousel continues moving toward the right');
   await page.setViewportSize({ width: 320, height: 667 });
   await page.emulateMedia({ reducedMotion: 'reduce' });
   await page.reload();
@@ -882,31 +890,35 @@ try {
   await page.goto(base);
   await page.setViewportSize({ width: 375, height: 667 });
   const mobileNavigation = page.getByRole('navigation', { name: 'Mobile primary navigation' });
-  assert(await mobileNavigation.isVisible(), 'Mobile bottom navigation is visible on narrow screens');
-  assert.deepEqual(await mobileNavigation.locator('a span').allTextContents(), ['Home', 'Explore', 'Lab', 'Projects', 'Events'], 'Mobile bottom navigation mirrors the primary app destinations');
-  assert.equal(await mobileNavigation.evaluate(element => getComputedStyle(element).borderRadius), '28px', 'Mobile bottom navigation uses the rounded reference treatment');
+  assert(await mobileNavigation.isVisible(), 'Mobile top navigation is visible on narrow screens');
+  assert.deepEqual(await mobileNavigation.locator('a span').allTextContents(), ['Home', 'Explore', 'Lab', 'Projects', 'Events'], 'Mobile top navigation mirrors the primary app destinations');
+  assert.equal(await mobileNavigation.evaluate(element => getComputedStyle(element).position), 'static', 'Mobile destinations remain in document flow above the ticker');
+  assert.equal(await page.locator('.site-header .automatic-motion-control').count(), 0, 'Header has no play/pause control');
+  const mobileNavBox = await mobileNavigation.boundingBox();
+  const mobileTickerBox = await page.locator('#maker-ticker').boundingBox();
+  assert(mobileNavBox && mobileTickerBox && mobileNavBox.y < mobileTickerBox.y, 'Mobile destinations appear above the top ticker');
   assert.equal(await mobileNavigation.getByRole('link', { name: 'Home', exact: true }).getAttribute('aria-current'), 'page', 'Home is marked current on the homepage');
   await mobileNavigation.getByRole('link', { name: 'Lab', exact: true }).focus();
-  assert(await mobileNavigation.getByRole('link', { name: 'Lab', exact: true }).evaluate(node => node === document.activeElement), 'Bottom navigation remains keyboard accessible');
+  assert(await mobileNavigation.getByRole('link', { name: 'Lab', exact: true }).evaluate(node => node === document.activeElement), 'Top navigation remains keyboard accessible');
   await mobileNavigation.getByRole('link', { name: 'Lab', exact: true }).click();
   await page.waitForURL(`${base}/lab`);
-  assert.equal(await mobileNavigation.getByRole('link', { name: 'Lab', exact: true }).getAttribute('aria-current'), 'page', 'Bottom navigation identifies the selected route');
+  assert.equal(await mobileNavigation.getByRole('link', { name: 'Lab', exact: true }).getAttribute('aria-current'), 'page', 'Top navigation identifies the selected route');
   await page.setViewportSize({ width: 1024, height: 768 });
   const desktopNavigation = page.getByRole('navigation', { name: 'Main navigation' });
   await desktopNavigation.waitFor();
-  assert.equal(await mobileNavigation.isVisible(), false, 'Mobile bottom navigation hides at desktop widths');
+  assert.equal(await mobileNavigation.isVisible(), false, 'Mobile top navigation hides at desktop widths');
   assert.equal(await desktopNavigation.locator('a[aria-current="page"]').count(), 1, 'Exactly one desktop link identifies the current page');
   await page.setViewportSize({ width: 375, height: 667 });
   await page.setViewportSize({ width: 801, height: 768 });
   await page.setViewportSize({ width: 800, height: 667 });
-  assert(await mobileNavigation.isVisible(), 'Mobile bottom navigation remains available at its exact CSS breakpoint');
+  assert(await mobileNavigation.isVisible(), 'Mobile top navigation remains available at its exact CSS breakpoint');
   await page.setViewportSize({ width: 375, height: 667 });
   await page.screenshot({ path: 'artifacts/acceptance/navigation-mobile-closed.png' });
   await page.goto(base + '/sign-in');
   await page.getByRole('heading', { name: 'Sign in' }).waitFor();
   assert(await page.getByRole('button', { name: /Sign in/ }).isDisabled(), 'Missing config must disable sign-in');
   assert(await page.getByLabel('Email address').isDisabled());
-  assert(await page.getByText(/Student account access is being prepared/i).isVisible());
+  assert(await page.getByText(/Student account access is being prepared/i).filter({ visible: true }).isVisible());
   assert.equal(await page.getByText('Sign-in is unavailable in this release. Contact the lab team for account-access information.', { exact: true }).count(), 0, 'Stale sign-in warning is removed');
   assert(await page.getByRole('link', { name: 'Forgot password?' }).isVisible(), 'Sign-in offers a direct recovery path');
   await page.getByRole('button', { name: 'Create a new account' }).click();
@@ -914,7 +926,7 @@ try {
   assert.equal(await page.locator('.auth-grid').getAttribute('data-auth-view'), 'create-account', 'The login card flips to account creation');
   await page.getByRole('button', { name: 'Back to sign in' }).click();
   await page.getByRole('heading', { name: 'Sign in' }).waitFor();
-  assert.equal(await page.locator('.public-mobile-nav').count(), 0, 'Auth routes do not inherit the website bottom navigation');
+  assert.equal(await page.locator('.public-mobile-topnav').count(), 0, 'Auth routes do not inherit the website bottom navigation');
   await page.screenshot({ path: 'artifacts/acceptance/sign-in-mobile.png', fullPage: true });
   for (const route of ['sign-in', 'sign-up']) {
     for (const theme of ['light', 'dark']) {
@@ -1090,7 +1102,7 @@ try {
     if (/supabase\.co|\/rest\/v1(?:\/|\?|$)|\/api\//i.test(request.url())) studentDataRequests.push(request.url());
   });
   const skeletonContext = await browser.newContext({ viewport: { width: 320, height: 800 } });
-  await skeletonContext.addInitScript(() => sessionStorage.setItem('idealab-mec:loader-seen:v2', '1'));
+  await skeletonContext.addInitScript(() => sessionStorage.setItem('idealab-mec:loader-seen:v3', '1'));
   const skeletonPage = await skeletonContext.newPage();
   const skeletonDataRequests = [];
   skeletonPage.on('request', request => {
@@ -1493,7 +1505,7 @@ try {
   assert.equal(await page.locator('.staff-preview-heading').evaluate(element => getComputedStyle(element).animationName), 'none', 'Staff preview entrance respects reduced motion');
   await setTheme(page, 'light');
   const accessibilityContext = await browser.newContext({ viewport: { width: 375, height: 900 } });
-  await accessibilityContext.addInitScript(() => sessionStorage.setItem('idealab-mec:loader-seen:v2', '1'));
+  await accessibilityContext.addInitScript(() => sessionStorage.setItem('idealab-mec:loader-seen:v3', '1'));
   const accessibilityPage = await accessibilityContext.newPage();
   const accessibilityRoutes = ['/', '/explore', '/lab', '/projects', '/events', '/sign-in', '/sign-up', '/design/onboarding', '/design/student', '/design/workspace'];
   for (const theme of ['light', 'dark']) {

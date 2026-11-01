@@ -1,6 +1,5 @@
 'use client';
 
-import { Pause, Play } from 'lucide-react';
 import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 
 const MOTION_PREFERENCE_KEY = 'idealab-mec:automatic-motion:v1';
@@ -100,7 +99,7 @@ export function AutomaticMotionControl() {
       aria-describedby="automatic-motion-description"
       title={paused ? 'Resume automatic motion' : 'Pause automatic motion'}
     >
-      {paused ? <Play size={17} aria-hidden="true" /> : <Pause size={17} aria-hidden="true" />}
+      {paused ? 'Resume automatic motion' : 'Pause automatic motion'}
     </button>
   );
 }

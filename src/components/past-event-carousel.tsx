@@ -8,7 +8,6 @@ import { useAutomaticMotion } from '@/components/automatic-motion';
 
 export function PastEventCarousel({ variant = 'feature' }: { variant?: 'feature' | 'editorial' }) {
   const [active, setActive] = useState(0);
-  const [pointerInside, setPointerInside] = useState(false);
   const [isVisible, setIsVisible] = useState(false);
   const [pageVisible, setPageVisible] = useState(true);
   const { allowed, paused, pauseForKeyboard } = useAutomaticMotion();
@@ -35,12 +34,12 @@ export function PastEventCarousel({ variant = 'feature' }: { variant?: 'feature'
   }, []);
 
   useEffect(() => {
-    if (!allowed || paused || !isVisible || !pageVisible || pointerInside) return;
+    if (!allowed || paused || !isVisible || !pageVisible) return;
     const timer = window.setInterval(() => {
       setActive(current => (current + 1) % count);
     }, 6500);
     return () => window.clearInterval(timer);
-  }, [allowed, paused, count, isVisible, pageVisible, pointerInside]);
+  }, [allowed, paused, count, isVisible, pageVisible]);
 
   function moveBy(amount: number) {
     setActive(current => (current + amount + count) % count);
@@ -69,9 +68,7 @@ export function PastEventCarousel({ variant = 'feature' }: { variant?: 'feature'
       aria-roledescription="carousel"
       aria-label="Past IDEA Lab events"
       ref={carouselRef}
-      onPointerEnter={() => setPointerInside(true)}
-      onPointerLeave={() => setPointerInside(false)}
-      onFocusCapture={pauseForKeyboard}
+      onFocusCapture={event => { if (event.target.matches(':focus-visible')) pauseForKeyboard(); }}
     >
       <div className="event-carousel-topline">
         <span>ARCHIVE / 01—04</span>
@@ -140,7 +137,7 @@ export function PastEventCarousel({ variant = 'feature' }: { variant?: 'feature'
             />
           ))}
         </div>
-        <p className="event-carousel-status" aria-live={allowed && !paused && !pointerInside && isVisible && pageVisible ? 'off' : 'polite'} aria-atomic="true">{String(active + 1).padStart(2, '0')} / {String(count).padStart(2, '0')}</p>
+        <p className="event-carousel-status" aria-live={allowed && !paused && isVisible && pageVisible ? 'off' : 'polite'} aria-atomic="true">{String(active + 1).padStart(2, '0')} / {String(count).padStart(2, '0')}</p>
         <a href="https://idealab.mec.ac.in/events" target="_blank" rel="noreferrer">
           Official event archive <ArrowUpRight size={16} aria-hidden="true" />
         </a>

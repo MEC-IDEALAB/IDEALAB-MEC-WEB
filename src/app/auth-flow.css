@@ -1,4 +1,7 @@
 .reference-auth .auth-grid{flex:1;min-height:0}
+.reference-auth .auth-grid[data-auth-view]{--auth-accent:var(--accent-yellow)}
+.reference-auth .auth-grid[data-auth-view=create-account]{--auth-accent:var(--accent-pink)}
+.reference-auth .auth-grid[data-auth-view] .auth-story{background-color:var(--auth-accent)}
 .auth-card-stage{min-width:0;perspective:1200px;background:var(--surface)}
 .reference-auth .auth-card-stage>.auth-card{height:100%;min-height:0;display:flex;flex-direction:column;justify-content:center;overflow-wrap:anywhere}
 .reference-auth .auth-card-stage .auth-card h2{scroll-margin:0}
@@ -132,4 +135,81 @@ html[data-theme=dark] .reference-auth .auth-card-stage .auth-card .google-button
   html:not([data-theme=light]) .reference-auth .auth-card-stage .auth-card .form-stack .button:disabled{box-shadow:3px 4px 0 #353535}
   html:not([data-theme=light]) .reference-auth .auth-card-stage .auth-card .form-stack .button:disabled{background:#242424;color:#c9c9c5;border-color:#4b4b4b}
   html:not([data-theme=light]) .reference-auth .auth-card-stage .auth-card .google-button:disabled{background-color:#171717!important}
+}
+
+/* Fit the everyday account entry screens while letting enlarged text, notices,
+   and the software keyboard extend the document naturally. */
+.reference-auth:has(.auth-grid[data-auth-view]) {
+  height: auto;
+  min-height: 100svh;
+}
+.reference-auth .auth-grid[data-auth-view] .auth-card-stage .auth-card .form-stack .button:not(:disabled),
+.reference-auth .auth-grid[data-auth-view] .auth-account-switch button {
+  background: var(--auth-accent);
+  color: var(--accent-ink);
+  border-color: var(--accent-ink);
+}
+.reference-auth .auth-grid[data-auth-view] .auth-account-switch button:hover { filter: brightness(.96); }
+
+/* Short tablets and desktop windows use the same compact single-panel layout. */
+@media (max-width: 700px), (max-height: 720px) {
+  .reference-auth:has(.auth-grid[data-auth-view]) {
+    padding: 8px 14px max(10px, env(safe-area-inset-bottom));
+    gap: 6px;
+    justify-content: flex-start;
+  }
+  .reference-auth:has(.auth-grid[data-auth-view]) .auth-toolbar { width: 100%; max-width: 480px; min-height: 44px; margin: 0 auto; }
+  .reference-auth:has(.auth-grid[data-auth-view]) .auth-toolbar > .text-link { font-size: .75rem; }
+  .reference-auth .auth-grid[data-auth-view] {
+    display: block;
+    flex: 0 0 auto;
+    width: 100%;
+    max-width: 480px;
+    border: 0;
+    border-radius: 0;
+    box-shadow: none;
+    overflow: visible;
+    background: transparent;
+  }
+  .reference-auth .auth-grid[data-auth-view]::before { content: none; }
+  .reference-auth .auth-grid[data-auth-view] .auth-story { display: none; }
+  .reference-auth .auth-grid[data-auth-view] .auth-card-stage { width: 100%; background: transparent; }
+  .reference-auth .auth-grid[data-auth-view] .auth-card-stage > .auth-card {
+    height: auto;
+    min-height: 0;
+    padding: 14px 16px;
+    border: 2px solid var(--ink);
+    border-top: 5px solid var(--auth-accent);
+    border-radius: 15px;
+    box-shadow: 4px 4px 0 var(--outline);
+  }
+  .reference-auth .auth-grid[data-auth-view] .auth-card::before { content: none; }
+  .reference-auth .auth-grid[data-auth-view] .auth-card h2 { font-size: 1.4rem; line-height: 1.15; margin-top: 4px; }
+  .reference-auth .auth-grid[data-auth-view] .auth-card > p { font-size: .8rem; line-height: 1.4; margin: 5px 0 8px; }
+  .reference-auth .auth-grid[data-auth-view] .auth-card .notice { font-size: .75rem; line-height: 1.35; padding: 6px 8px; margin: 6px 0; }
+  .reference-auth .auth-grid[data-auth-view] .auth-card .form-stack,
+  .reference-auth .auth-grid[data-auth-view] .auth-signup-preview fieldset { gap: 3px; }
+  .reference-auth .auth-grid[data-auth-view] .auth-card .form-stack label { font-size: .7rem; }
+  .reference-auth .auth-grid[data-auth-view] .auth-card .form-stack input {
+    min-height: 44px;
+    padding: 7px 10px;
+    margin-bottom: 2px;
+    font-size: 1rem;
+  }
+  .reference-auth .auth-grid[data-auth-view] .auth-card .password-field button { top: 0; right: 0; width: 44px; height: 44px; }
+  .reference-auth .auth-grid[data-auth-view] .auth-card .button,
+  .reference-auth .auth-grid[data-auth-view] .auth-card .form-stack .button { min-height: 44px; padding: 7px 10px; margin-top: 2px; }
+  .reference-auth .auth-grid[data-auth-view] .auth-card .auth-divider { margin-block: 5px; }
+  .reference-auth .auth-grid[data-auth-view] .auth-card .google-button { gap: 6px; font-size: .75rem; flex-wrap: wrap; }
+  .reference-auth .auth-grid[data-auth-view] .google-status { font-size: .6rem; }
+  .reference-auth .auth-grid[data-auth-view] .auth-card .small-copy { margin: 5px 0 0; font-size: .75rem; line-height: 1.35; }
+  .reference-auth .auth-grid[data-auth-view] .auth-account-switch { gap: 4px; margin-top: 7px; padding-top: 5px; font-size: .75rem; }
+  .reference-auth .auth-grid[data-auth-view] .auth-account-switch button { min-height: 44px; padding: 5px 6px; }
+}
+
+@media (max-height: 680px) {
+  .reference-auth .auth-grid[data-auth-view] .auth-card-stage > .auth-card { padding: 10px 12px; }
+  .reference-auth .auth-grid[data-auth-view] .auth-card > .eyebrow,
+  .reference-auth .auth-grid[data-auth-view] .auth-card > h2 + p { display: none; }
+  .reference-auth .auth-grid[data-auth-view] .auth-card h2 { margin: 0 0 6px; }
 }

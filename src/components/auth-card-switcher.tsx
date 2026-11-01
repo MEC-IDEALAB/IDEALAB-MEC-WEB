@@ -66,7 +66,7 @@ export function AuthCardSwitcher({
           {isSignIn ? signInPanel : createPanel}
           <div className="auth-account-switch">
             <span>{isSignIn ? 'New here?' : 'Already have an account?'}</span>
-            <button type="button" onClick={switchView} aria-label={isSignIn ? 'Create a new account' : 'Return to sign in'}>
+            <button type="button" onClick={switchView}>
               {isSignIn ? <>Create a new account <ArrowUpRight size={16} aria-hidden="true" /></> : <><ArrowLeft size={16} aria-hidden="true" /> Back to sign in</>}
             </button>
           </div>

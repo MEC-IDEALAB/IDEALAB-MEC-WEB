@@ -125,12 +125,12 @@
 }
 
 html[data-theme=dark] .playful-site .hero-highlight {
-  color: var(--vector-paper);
+  color: var(--vector-black);
 }
 
 @media (prefers-color-scheme: dark) {
   html:not([data-theme=light]):not([data-theme=dark]) .playful-site .hero-highlight {
-    color: var(--vector-paper);
+    color: var(--vector-black);
   }
 }
 

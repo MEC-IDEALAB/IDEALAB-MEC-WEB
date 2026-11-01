@@ -44,7 +44,7 @@ export function MemberWorkspaceShell({ children, signOutControl, variant = 'memb
 
   return <div className={`member-shell member-shell--topnav${preview ? ' member-shell--preview' : ''}`}>
     <header className="member-topbar">
-      <Link className="member-brand" href={preview ? '/' : '/app'} aria-label={preview ? 'IDEALAB MEC public homepage' : 'IDEALAB MEC workspace home'}>
+      <Link className="member-brand" href={preview ? '/' : '/app'}>
         <span className="member-brand-mark" aria-hidden="true">IM</span>
         <span className="member-brand-name"><strong>IDEALAB</strong><small>MEC · MAKER SPACE</small></span>
       </Link>

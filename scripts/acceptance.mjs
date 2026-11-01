@@ -308,7 +308,8 @@ try {
   const handPosition = await hand.evaluate(element => getComputedStyle(element).translate);
   await loaderPage.waitForTimeout(200);
   assert.notEqual(await hand.evaluate(element => getComputedStyle(element).translate), handPosition, 'Original ASCII hands visibly reach toward one another');
-  assert.equal(await loaderPage.locator('.loader-ascii pattern text').count(), 2, 'The hands are filled with code glyphs');
+  assert.equal(await loaderPage.locator('.loader-ascii defs g text').count(), 56, 'The hands use a continuous shaded code field rather than a repeating tile');
+  assert.equal(await loaderPage.locator('.loader-ascii clipPath').count(), 2, 'Each hand has its own curved silhouette');
   const buildMarkerSizeDuringLoading = await loaderPage.locator('.loader-build').evaluate(element => {
     const rect = element.getBoundingClientRect();
     return { width: rect.width, height: rect.height };

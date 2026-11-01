@@ -247,10 +247,10 @@ Historical provenance in the parent Grow workspace includes `docs/00_Project/CUR
 
 The first visit in a tab shows a black motion-graphics canvas with drawn
 prototype geometry, three-beat wordmark reveals, staggered solid/outline
-IDEALAB rows and a narrow indeterminate rail. The full-scene timer begins after
-the lockup is crisp and the labels, prototype and moving rail are visible. That
-intro timeline runs for ten seconds from its first frame and includes scene
-assembly, then a 320 ms hand-off. Font and priority-image readiness are bounded
+IDEALAB rows and a narrow indeterminate rail. The intro timer starts at initial
+boot. The lockup settles in the first second while the rows, orbit and rail keep
+moving through the ten-second sequence, followed by a 320 ms hand-off. Scene
+assembly is included in the ten seconds. Font and priority-image readiness are bounded
 by 400 ms; a 12-second watchdog from
 initial boot releases content if startup stalls and can shorten the hold on
 very slow starts. Reduced-motion users skip the animation immediately.

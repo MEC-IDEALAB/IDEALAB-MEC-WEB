@@ -58,7 +58,7 @@ expansion and fade, without repeated flashes, audio, fake percentages or progres
 bars. All endpoints hold through the final fade. Phones first show the complete
 TV, then use a closer hand composition; short landscape screens use a compact
 identity. The TV frame and screen content share a single camera, preserving their
-relative positions throughout the push. Burst growth uses continuous velocity,
+relative positions throughout the push. Burst growth uses linear interpolation,
 and glyph blur was removed. The old wordmark wall and coordinate text are gone.
 
 Every element explicitly resets `--film-motion` to prevent inherited animation
@@ -83,8 +83,8 @@ clocks for inspection; separate real-time browser playback verifies the sequence
 Independent read-only review verified normal and requested reduced-motion replay,
 ordinary reduced-motion skipping, no external requests, and a constant 38 × 40
 landscape prototype mark. The live artwork uses four cached textures and small
-vector signal paths rather than repainting 511 SVG text nodes. There is no
-JavaScript animation frame loop in the application.
+vector signal paths rather than repainting 511 SVG text nodes. Motion is CSS-driven;
+`requestAnimationFrame` polls readiness without animating positions or opacity.
 
 An optimized local Chromium nine-second sample measured median frame spacing of
 16.7 ms at both 1440 × 900 and 390 × 844. The 95th percentile was 33.4 ms on

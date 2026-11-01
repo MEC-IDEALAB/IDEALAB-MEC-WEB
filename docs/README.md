@@ -28,6 +28,7 @@ These records describe product requirements, UX plans, integration boundaries an
 - [Security review and hardening evidence](security-review.md)
 - [Shared backend readiness and onboarding gate](backend-readiness.md)
 - [Isolated native database runtime preparation](database-validation.md)
+- [Applied validation patch archive and integrity checks](quality/applied-validation-archive-2026-11-01.md)
 - [Shared profile implementation proposal and rollout matrix](shared-profile-contract-proposal.md)
 - [Delivery plan](delivery-plan.md)
 - [Deployment plan](deployment.md)

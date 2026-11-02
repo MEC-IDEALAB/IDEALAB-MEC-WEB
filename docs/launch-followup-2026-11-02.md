@@ -65,10 +65,12 @@ the six validation-archive integrity tests also passed; these are not live
 member persistence or full shared-database security acceptance.
 
 At draft creation, independent review agents were unavailable because of their
-usage limit. Review subsequently completed on 2 November for PR #59 at
-`1aef259edee8b2985fed26143ac8a85918153090`, with no blocking finding.
-The final head still requires current hosted checks before merge; this record
-does not claim a merge or production deployment of the follow-up.
+usage limit. A fresh read-only review of PR #59's final head
+`7871a45d23a19e0bc8dbf1705943de38c91a3975` completed on 2 November and found
+no blocking code or workflow issue. Website CI, Documentation CI, the required
+gate and the Vercel preview checks passed on that exact head. The PR remains
+open and draft; this record does not claim a merge or production deployment of
+the follow-up, and the change does not enable production authentication.
 
 ## SDK and consent inventory: first pass
 

@@ -2,6 +2,8 @@
 
 These records describe product requirements, UX plans, integration boundaries and verified delivery evidence for the standalone Next.js website. They separate planned behavior from implemented or live-verified behavior.
 
+- [Current launch follow-up, public UI checks and privacy task list](launch-followup-2026-11-02.md)
+
 - [Requirements and open decisions](requirements.md)
 - [Current account implementation and acceptance status](account-readiness.md)
 - [Full-scope release audit and remaining dependencies](release-readiness-2026-10-23.md)

@@ -108,6 +108,7 @@ html[data-theme=dark] .reference-auth .auth-card-stage .auth-card .google-button
   .reference-auth .auth-story h1{font-size:clamp(2.6rem,4vw,3.7rem);margin-block:22px 14px}
   .reference-auth .auth-note{margin-top:auto;padding-top:16px}
   .reference-auth .auth-card-stage>.auth-card{padding:28px 26px}
+  .reference-auth .auth-grid[data-auth-view] .auth-card-stage>.auth-card{padding:24px 26px}
 }
 
 @media(max-width:600px) and (max-height:500px){

@@ -1027,6 +1027,7 @@ try {
         await setTheme(page, theme);
         assert(await page.evaluate(() => getComputedStyle(document.body).backgroundColor !== 'rgba(0, 0, 0, 0)'), route + ' must load the global theme stylesheet');
         assert(await page.evaluate(() => document.documentElement.scrollHeight <= window.innerHeight + 1), route + ' fits ' + viewport.width + 'x' + viewport.height + ' in ' + theme);
+        assert.equal(await page.locator('.auth-card').evaluate(card => getComputedStyle(card).flexDirection), 'column', 'Account form keeps its normal stacked layout');
         if (route === 'sign-in') {
           assert(await page.getByRole('button', {name:'Continue with Google'}).isDisabled(), 'Unverified Google activation stays disabled');
           assert(await contrastAgainst(page, '.auth-label-row a', '.auth-card') >= 4.5, 'The recovery link is readable against the sign-in card in both themes');
@@ -1658,6 +1659,10 @@ try {
         await setTheme(page, theme);
         assert.match(rendered.headers()['cache-control'] ?? '', /private, no-store/, 'Account entry is never publicly cached');
         assert(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth), `${route} enabled layout fits ${viewport.width}px`);
+        if (route !== 'confirm-email') {
+          assert(await page.evaluate(() => document.documentElement.scrollHeight <= innerHeight + 1), `${route} configured layout fits ${viewport.width}x${viewport.height}`);
+          assert.equal(await page.locator('.auth-card').evaluate(card => getComputedStyle(card).flexDirection), 'column', 'Configured account forms stay stacked');
+        }
         assert(await page.getByLabel('Email address', { exact: true }).isEnabled(), 'Real form enables only with configured origin and member gate');
         if (route === 'sign-up') {
           assert(await page.getByRole('button', { name: 'Create account', exact: true }).isEnabled());

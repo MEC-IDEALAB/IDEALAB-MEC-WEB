@@ -1,6 +1,23 @@
 # Current account delivery status
 
-## Current status — 31 October 2026
+## Current status — 2 November 2026
+
+The Next.js 16 auth proxy and server-side member guards are in place. The proxy
+refreshes Supabase cookies before protected-route checks; a new local validation
+E2E check covers public sign-in pass-through and unauthenticated member redirects
+with `no-store` responses, without an existing session or real credentials.
+Website TypeScript, 148 boundary tests, the optimized production build,
+and the public Chromium acceptance suite passed on the current source. This does
+not verify an existing-session token refresh or a live provider journey.
+
+Production email/password and Google access remain disabled in source until the
+shared Grow permissions and cross-client account contract pass review. Recovery
+is still disabled. Real confirmation delivery still needs an approved sender;
+the deployed Vercel auth journey was not rechecked because the connected Vercel
+tool could not access this project. Before a future enablement, verify both
+`/auth/callback` and `/auth/confirm` in the Supabase redirect allow-list for the
+canonical website origin, then run the genuine provider journeys. Do not use the
+isolated validation project as the production account store.
 
 Website foundation PR #19 merged into `main` at
 [`f0d8ab0`](https://github.com/MEC-IDEALAB/IDEALAB-MEC-WEB/commit/f0d8ab0ad3084f6cc4e8727d9e07686f9105faf0). Its exact-head and merged-main Website CI, required gate and Documentation CI passed. The local acceptance suite covers the public experience and gated previews; it does not establish production account access.

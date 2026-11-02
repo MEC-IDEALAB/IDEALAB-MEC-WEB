@@ -16,6 +16,7 @@
     "typecheck": "tsc --noEmit",
     "lint": "eslint .",
     "test:acceptance": "node scripts/acceptance.mjs",
+    "test:proxy": "node scripts/proxy-auth-e2e.mjs",
     "test:request-journal": "node scripts/pending-submission-browser.mjs",
     "test:project-journal": "node scripts/project-journal-browser.mjs",
     "test:db-runtime": "node scripts/db-runtime.mjs",

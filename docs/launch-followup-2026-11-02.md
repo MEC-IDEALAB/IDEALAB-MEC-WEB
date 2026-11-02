@@ -64,9 +64,11 @@ security headers and PWA boundaries. Request/project browser-storage checks and
 the six validation-archive integrity tests also passed; these are not live
 member persistence or full shared-database security acceptance.
 
-Independent review agents were unavailable because of their usage limit.
-Keep the follow-up PR draft until independent review and current hosted checks
-pass. No merge or production deployment of this follow-up is claimed here.
+At draft creation, independent review agents were unavailable because of their
+usage limit. Review subsequently completed on 2 November for PR #59 at
+`1aef259edee8b2985fed26143ac8a85918153090`, with no blocking finding.
+The final head still requires current hosted checks before merge; this record
+does not claim a merge or production deployment of the follow-up.
 
 ## SDK and consent inventory: first pass
 

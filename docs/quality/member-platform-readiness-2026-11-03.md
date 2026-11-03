@@ -200,3 +200,22 @@ current production acceptance.
 
 No production schema writes, client deployments, pushes, merges, or releases
 were performed for this checkpoint.
+
+## Follow-up — PR #67, 3 November 2026
+
+- The website work is now pushed on `codex/member-platform-readiness-20261103`
+  at `c2fa18ffcc57c1692d06585b223f78eb3f7970bf`. The change makes the ASCII
+  auth canvas cancel its animation frame as soon as the global motion control
+  is paused; the member browser suite covers pause behavior.
+- On Node.js 24.19.0, the exact source passed `npm run build`, `npm run lint`,
+  `npm run typecheck`, `npm run test:boundaries` (180/180),
+  `npm run test:acceptance`, and `npm run test:member-space` (42 responsive
+  layouts and 12 axe snapshots).
+- Hosted Documentation CI, Website CI and its required gate passed on PR #67's
+  exact head. The Vercel PR preview deployed and returned HTTP 200. This is a
+  preview deployment only; no production deployment or database write occurred.
+- PR #67 remains draft. Live Google/email confirmation/recovery, real signed-in
+  onboarding, the coordinated Grow Flutter permission cutover and operational
+  APIs remain unverified or uninstalled. The GitHub API reports `main` has no
+  server-enforced branch protection. Do not interpret preview CI as production
+  authorization or a full production-readiness pass.

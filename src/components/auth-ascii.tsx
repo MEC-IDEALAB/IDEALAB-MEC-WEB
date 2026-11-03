@@ -81,6 +81,10 @@ export function AuthAscii() {
     };
     const stop = () => { cancelAnimationFrame(frame); finished = true; paint(1.2); };
     const visibility = () => { if (document.hidden) stop(); };
+    const globalMotion = new MutationObserver(() => {
+      if (document.documentElement.dataset.automaticMotion === 'paused') stop();
+    });
+    globalMotion.observe(document.documentElement, { attributes: true, attributeFilter: ['data-automatic-motion'] });
     const observer = new ResizeObserver(() => paint(finished ? 1.2 : .5));
     observer.observe(canvas);
     const viewport = new IntersectionObserver(([entry]) => { if (!entry.isIntersecting) stop(); });
@@ -89,7 +93,7 @@ export function AuthAscii() {
     if (!finished && !document.hidden && canvas.clientWidth > 0) frame = requestAnimationFrame(tick);
     reduced.addEventListener('change', stop);
     document.addEventListener('visibilitychange', visibility);
-    return () => { cancelAnimationFrame(frame); observer.disconnect(); viewport.disconnect(); reduced.removeEventListener('change', stop); document.removeEventListener('visibilitychange', visibility); };
+    return () => { cancelAnimationFrame(frame); globalMotion.disconnect(); observer.disconnect(); viewport.disconnect(); reduced.removeEventListener('change', stop); document.removeEventListener('visibilitychange', visibility); };
   }, [ready, paused]);
   return <div className="auth-ascii" aria-hidden="true"><pre>{still}</pre><canvas ref={canvasRef} /><span className="ascii-coordinate">COORD / MEC</span><span className="ascii-signal">● SIGNAL FOUND</span></div>;
 }

@@ -62,7 +62,7 @@ export function ProjectJoinForm({accountId,initialCommandId}:{accountId:string;i
   const feedback=useFeedback(state);
   return <form action={formAction} className="project-form" aria-busy={pending}><input type="hidden" name="expected_account" value={accountId} /><input type="hidden" name="kind" value="join" /><input type="hidden" name="command_id" value={commandId} />
     <label htmlFor={id}>Project code</label><input id={id} name="code" required maxLength={80} autoComplete="off" autoCapitalize="characters" spellCheck={false} value={code} onChange={e=>setCode(e.target.value)} disabled={pending} aria-describedby={`${id}-hint`} />
-    <p className="small-copy" id={`${id}-hint`}>Ask the creator for their current code. In the isolated validation flow, private project details stay hidden until approval; shared Grow access rules are still unverified.</p>
+    <p className="small-copy" id={`${id}-hint`}>Ask the creator for their current code. In the isolated validation flow, private project details stay hidden until approval; shared IDEALAB MEC access rules are still unverified.</p>
     <button type="submit" className="button button-primary" disabled={pending}>{pending?'Sending…':'Request to join'}</button><Feedback state={state} elementRef={feedback} />
     {state.status==='saved'&&<Link className="text-link" href={state.projectId?`/app/projects/${state.projectId}`:'/app/projects?view=mine#your-project-requests'}>{state.projectId?'Open project':'View your requests'}</Link>}
   </form>;

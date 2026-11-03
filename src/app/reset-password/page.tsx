@@ -22,7 +22,7 @@ export default async function ResetPassword({ searchParams }: { searchParams: Pr
   return <main id="main-content" className="auth-page reference-auth recovery-page reset-page">
     <div className="auth-toolbar"><Link className="text-link" href="/forgot-password"><ArrowLeft size={18} aria-hidden="true" /> Request another link</Link><ThemePicker /></div>
     <div className="auth-grid">
-      <section className="auth-story" aria-label="IDEALAB MEC account recovery"><span className="eyebrow auth-pill">ONE LAST STEP</span><h1>NEW KEY.<br /><span>NEW START.</span></h1><p className="handwritten">Choose a strong password you haven’t used before.</p><div className="auth-note"><ShieldCheck aria-hidden="true" /><p>Your password is handled by the shared Grow account service.</p></div></section>
+      <section className="auth-story" aria-label="IDEALAB MEC account recovery"><span className="eyebrow auth-pill">ONE LAST STEP</span><h1>NEW KEY.<br /><span>NEW START.</span></h1><p className="handwritten">Choose a strong password you haven’t used before.</p><div className="auth-note"><ShieldCheck aria-hidden="true" /><p>Your password is handled by the shared IDEALAB MEC account service.</p></div></section>
       <section className="auth-card" aria-labelledby="reset-title"><span className="eyebrow">SECURE YOUR ACCOUNT</span><h2 id="reset-title">Choose a new password.</h2><p>Use at least 8 characters and a password you don’t use on another site.</p>
         {!configured && <AuthFeedback kind="status">Password updates are paused while the shared account platform is being secured.</AuthFeedback>}
         {message && <AuthFeedback>{message}</AuthFeedback>}

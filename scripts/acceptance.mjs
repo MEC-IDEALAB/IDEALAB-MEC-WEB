@@ -2,6 +2,7 @@ import assert from 'node:assert/strict';
 import { spawn } from 'node:child_process';
 import { once } from 'node:events';
 import { mkdir } from 'node:fs/promises';
+import { resolve, sep } from 'node:path';
 import { createServer } from 'node:net';
 import { chromium } from 'playwright';
 import AxeBuilder from '@axe-core/playwright';
@@ -18,6 +19,13 @@ async function availablePort() {
 }
 const port = await availablePort();
 const base = `http://127.0.0.1:${port}`;
+const workspaceRoot = resolve(process.cwd());
+const acceptanceArtifactDirectory = resolve(process.env.ACCEPTANCE_ARTIFACT_DIR ?? 'artifacts/acceptance');
+if (!acceptanceArtifactDirectory.startsWith(`${workspaceRoot}${sep}`)) {
+  throw new Error('ACCEPTANCE_ARTIFACT_DIR must stay inside the project checkout.');
+}
+const acceptanceArtifact = name => resolve(acceptanceArtifactDirectory, name);
+await mkdir(acceptanceArtifactDirectory, { recursive: true });
 function observeFilmExit(page) {
   return page.evaluate(() => new Promise(resolve => {
     const root = document.documentElement;
@@ -251,7 +259,7 @@ try {
   const cspErrors = [];
   page.on('pageerror', error => errors.push(error.message));
   page.on('console', message => { if (message.type() === 'error' && /content security policy|refused to/i.test(message.text())) cspErrors.push(message.text()); });
-  await mkdir('artifacts/acceptance', { recursive: true });
+  await mkdir(acceptanceArtifactDirectory, { recursive: true });
   const loaderContext = await browser.newContext();
   const loaderPage = await loaderContext.newPage();
   const loaderConsoleErrors = [];
@@ -310,17 +318,17 @@ try {
   const opacity = selector => loaderPage.locator(selector).evaluate(element => Number(getComputedStyle(element).opacity));
   await waitForFilmAge(1000);
   assert(await opacity('.loader-chapter--one') >= .99 && await opacity('.loader-core') === 0 && await opacity('.ascii-tv') >= .99, 'Act one tunes the ASCII television into the hands while the first caption is readable');
-  await loaderPage.screenshot({ path: 'artifacts/acceptance/intro-act-one.png' });
+  await loaderPage.screenshot({ path: acceptanceArtifact('intro-act-one.png') });
   await waitForFilmAge(3500);
   assert(await opacity('.loader-chapter--two') >= .99 && await opacity('.ascii-packet--left') >= .99, 'Act two sends blue signal packets toward the fingertips');
   const packetPosition = await loaderPage.locator('.ascii-packet--left').evaluate(element => getComputedStyle(element).translate);
   await loaderPage.waitForTimeout(150);
   assert.notEqual(await loaderPage.locator('.ascii-packet--left').evaluate(element => getComputedStyle(element).translate), packetPosition, 'The blue signal travels rather than remaining a static decoration');
-  await loaderPage.screenshot({ path: 'artifacts/acceptance/intro-act-two.png' });
+  await loaderPage.screenshot({ path: acceptanceArtifact('intro-act-two.png') });
   await waitForFilmAge(6000);
   assert(await opacity('.loader-chapter--three') >= .99 && await opacity('.ascii-connection') >= .99 && await opacity('.ascii-tv') === 0 && await opacity('.ascii-burst') > .7, 'Act three forms the fingertip connection and expands a single code burst after leaving the television');
   assert(await loaderPage.locator('.ascii-bridge').evaluate(element => Number.parseFloat(getComputedStyle(element).strokeDashoffset)) < .02, 'The connection bridge has drawn completely');
-  await loaderPage.screenshot({ path: 'artifacts/acceptance/intro-act-three.png' });
+  await loaderPage.screenshot({ path: acceptanceArtifact('intro-act-three.png') });
   await waitForFilmAge(8500);
   assert(await opacity('.loader-core') >= .99 && await opacity('.loader-chapter--four') >= .99 && await opacity('.loader-ascii') < .1, 'Act four hands focus from the artwork to the readable IDEALAB identity');
   assert(await opacity('.loader-caption') >= .99, 'The final brand caption is readable before exit');
@@ -329,7 +337,7 @@ try {
     return Number(getComputedStyle(word).opacity) >= .99 && box.top >= clip.top - 1 && box.bottom <= clip.bottom + 1;
   }));
   assert(settledWords, 'The staggered brand lettering has fully cleared its masks in the final act');
-  await loaderPage.screenshot({ path: 'artifacts/acceptance/wordmark-loading.png' });
+  await loaderPage.screenshot({ path: acceptanceArtifact('wordmark-loading.png') });
   releaseScripts();
   const exitState = await loaderExitState;
   assert.equal(exitState.inert, true, 'Page content stays inert at the instant the loader begins its exit');
@@ -407,7 +415,7 @@ try {
   assert.deepEqual(compactScene.markSize, { width: 66, height: 70 }, 'Compact loader uses its intended mobile prototype size');
   await compactLoaderPage.waitForFunction(() => performance.now() - Number(document.documentElement.dataset.bootVisualStarted) >= 8500);
   assert(await compactLoaderPage.locator('.loader-core').evaluate(element => Number(getComputedStyle(element).opacity)) >= .99, 'The final identity appears on phone screens before the film exits');
-  await compactLoaderPage.screenshot({ path: 'artifacts/acceptance/wordmark-loading-mobile.png' });
+  await compactLoaderPage.screenshot({ path: acceptanceArtifact('wordmark-loading-mobile.png') });
   const compactExit = await compactExitPromise;
   assert(compactExit.visualAge >= 10000, `Compact loader remains fully visible for a full 10 seconds after assembly (${Math.round(compactExit.visualAge)} ms)`);
   assert(compactExit.bootAge >= compactExit.visualAge && compactExit.bootAge < 15000, `Compact first visit completes within the loader's 15-second watchdog (${Math.round(compactExit.bootAge)} ms)`);
@@ -426,7 +434,7 @@ try {
   const landscapeLoadingSize = await landscapeSize();
   assert.deepEqual(landscapeLoadingSize, { width: 38, height: 40 }, 'Short landscape composition uses its compact brand mark while loading');
   await landscapePage.waitForFunction(() => performance.now() - Number(document.documentElement.dataset.bootVisualStarted) >= 8500);
-  await landscapePage.screenshot({ path: 'artifacts/acceptance/wordmark-loading-landscape.png' });
+  await landscapePage.screenshot({ path: acceptanceArtifact('wordmark-loading-landscape.png') });
   assert.deepEqual((await landscapeExit).markSize, landscapeLoadingSize, 'Short landscape brand mark does not resize when the intro begins to fade');
   await landscapeContext.close();
 
@@ -438,7 +446,10 @@ try {
   await texturePage.route('**/intro/*.png', async route => { textureRequests++; await texturesHeld; await route.continue(); });
   await texturePage.goto(`${base}/?intro=replay`, { waitUntil: 'domcontentloaded' });
   await texturePage.waitForFunction(() => document.querySelectorAll('.ascii-sprite').length === 4);
-  await texturePage.waitForTimeout(300);
+  // Wait for the observed requests rather than a fixed 300ms scheduling window.
+  // Slow CI/parallel local checks can delay CSS/layout and request interception.
+  const textureRequestDeadline = Date.now() + 5000;
+  while (textureRequests < 4 && Date.now() < textureRequestDeadline) await texturePage.waitForTimeout(25);
   assert(textureRequests >= 4, 'The real texture requests are held before decode');
   assert.equal(await texturePage.locator('html').getAttribute('data-boot-visual-started'), null, 'The film cannot consume its timeline while textures are unavailable');
   assert(await texturePage.locator('.boot-loader').evaluate(element => element.getAnimations({ subtree: true }).every(animation => animation.playState === 'paused')), 'Every film clock stays paused while textures load');
@@ -470,7 +481,7 @@ try {
   assert.equal(await reducedLoaderPage.locator('.boot-loader').evaluate(element => getComputedStyle(element).display), 'none', 'Reduced-motion users do not receive a static overlay delay');
   assert.equal(await reducedLoaderPage.locator('.loader-core').evaluate(element => getComputedStyle(element).borderStyle), 'none', 'The wordmark loader uses the official open composition without a framed card');
   assert(await reducedLoaderPage.evaluate(() => document.documentElement.scrollWidth <= innerWidth), 'Reduced-motion page has no horizontal overflow at 320px');
-  await reducedLoaderPage.screenshot({ path: 'artifacts/acceptance/reduced-motion-dark-mobile.png' });
+  await reducedLoaderPage.screenshot({ path: acceptanceArtifact('reduced-motion-dark-mobile.png') });
   releaseReducedScripts();
   await reducedLoaderPage.waitForLoadState('load');
   assert.equal(await reducedLoaderPage.locator('html').getAttribute('data-boot'), null, 'Hydrating later does not reintroduce the reduced-motion loader');
@@ -686,7 +697,7 @@ try {
   assert.equal(await noScriptPage.locator('.ticker-run').nth(1).evaluate(element => getComputedStyle(element).display), 'none', 'Static tickers hide the duplicated visual copy');
   await noScriptPage.setViewportSize({ width: 320, height: 667 });
   assert(await noScriptPage.evaluate(() => document.documentElement.scrollWidth <= innerWidth), 'Static no-JavaScript ticker rows have no horizontal overflow at 320px');
-  await noScriptPage.screenshot({ path: 'artifacts/acceptance/home-tickers-nojs-320.png' });
+  await noScriptPage.screenshot({ path: acceptanceArtifact('home-tickers-nojs-320.png') });
   await noScriptPage.setViewportSize({ width: 375, height: 667 });
   assert(await noScriptPage.getByRole('navigation', { name: 'Mobile primary navigation' }).isVisible(), 'Mobile destinations remain available without JavaScript');
   await noScriptPage.getByRole('navigation', { name: 'Mobile primary navigation' }).getByRole('link', { name: 'Lab', exact: true }).click();
@@ -817,10 +828,10 @@ try {
     await page.evaluate(() => window.scrollTo(0, 0));
     await page.locator('.hero-copy').evaluate(element => Promise.all(element.getAnimations().map(animation => animation.finished)));
     assert(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth), `No horizontal overflow at ${width}px`);
-    await page.screenshot({ path: `artifacts/acceptance/home-${width}.png`, fullPage: true });
-    await page.locator('.editorial-posters').screenshot({ path: `artifacts/acceptance/editorial-posters-${width}.png` });
-    await page.locator('.about-section').screenshot({ path: `artifacts/acceptance/about-lockup-${width}.png` });
-    if (width === 1440) await page.screenshot({ path: 'artifacts/acceptance/home-hero-1440.png' });
+    await page.screenshot({ path: acceptanceArtifact(`home-${width}.png`), fullPage: true });
+    await page.locator('.editorial-posters').screenshot({ path: acceptanceArtifact(`editorial-posters-${width}.png`) });
+    await page.locator('.about-section').screenshot({ path: acceptanceArtifact(`about-lockup-${width}.png`) });
+    if (width === 1440) await page.screenshot({ path: acceptanceArtifact('home-hero-1440.png') });
     if (width === 320) {
       const motionViewport = page.locator('.maker-ticker-content');
       await motionViewport.focus();
@@ -867,7 +878,7 @@ try {
   assert.equal(await eventCarousel.locator('.event-carousel-status').textContent(), reducedMotionEventStatus, 'Reduced-motion preference disables event-carousel autoplay');
   assert.deepEqual(await page.locator('.maker-ticker-content .ticker-run').first().locator('.ticker-item').allTextContents(), ['AICTE × COGNICOR × MEC', 'Established in 2022', 'Engage · Explore · Experience · Express · Excel', 'From idea to prototype', 'Workshops · Training · Multidisciplinary STEM'], 'Reduced-motion visitors can read every top ticker highlight');
   assert(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth), 'Reduced-motion ticker layout has no horizontal overflow');
-  await page.screenshot({ path: 'artifacts/acceptance/home-tickers-reduced-motion-320.png' });
+  await page.screenshot({ path: acceptanceArtifact('home-tickers-reduced-motion-320.png') });
   await page.emulateMedia({ reducedMotion: 'no-preference' });
   await page.setViewportSize({ width: 375, height: 900 });
   await page.goto(base);
@@ -894,8 +905,8 @@ try {
     assert.equal(await page.locator('.maker-ticker-band').evaluate(element => getComputedStyle(element).color), 'rgb(5, 5, 5)', 'Dark ticker keeps high-contrast black lettering');
     assert.equal(await page.locator('.principles-strip').evaluate(element => getComputedStyle(element).backgroundColor), 'rgb(11, 11, 11)', 'Dark section strip uses neutral black');
     assert(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth), `No dark-mode horizontal overflow at ${width}px`);
-    await page.screenshot({ path: `artifacts/acceptance/home-dark-${width}.png`, fullPage: true });
-    if (width === 1440) await page.screenshot({ path: 'artifacts/acceptance/home-dark-hero-1440.png' });
+    await page.screenshot({ path: acceptanceArtifact(`home-dark-${width}.png`), fullPage: true });
+    if (width === 1440) await page.screenshot({ path: acceptanceArtifact('home-dark-hero-1440.png') });
   }
   await page.evaluate(() => localStorage.removeItem('idealab-mec:theme'));
   await page.reload();
@@ -985,7 +996,7 @@ try {
   await page.setViewportSize({ width: 800, height: 667 });
   assert(await mobileNavigation.isVisible(), 'Mobile top navigation remains available at its exact CSS breakpoint');
   await page.setViewportSize({ width: 375, height: 667 });
-  await page.screenshot({ path: 'artifacts/acceptance/navigation-mobile-closed.png' });
+  await page.screenshot({ path: acceptanceArtifact('navigation-mobile-closed.png') });
   await page.goto(base + '/sign-in');
   await page.getByRole('heading', { name: 'Sign in' }).waitFor();
   assert(await page.getByRole('button', { name: /Sign in/ }).isDisabled(), 'Missing config must disable sign-in');
@@ -993,13 +1004,13 @@ try {
   assert(await page.getByText(/Student account access is being prepared/i).filter({ visible: true }).isVisible());
   assert.equal(await page.getByText('Sign-in is unavailable in this release. Contact the lab team for account-access information.', { exact: true }).count(), 0, 'Stale sign-in warning is removed');
   assert(await page.getByRole('link', { name: 'Forgot password?' }).isVisible(), 'Sign-in offers a direct recovery path');
-  await page.getByRole('button', { name: 'Create a new account' }).click();
+  await page.getByRole('link', { name: 'Create a new account' }).click();
   await page.getByRole('heading', { name: 'Create your account' }).waitFor();
   assert.equal(await page.locator('.auth-grid').getAttribute('data-auth-view'), 'create-account', 'The login card flips to account creation');
-  await page.getByRole('button', { name: 'Back to sign in' }).click();
+  await page.getByRole('link', { name: 'Back to sign in' }).click();
   await page.getByRole('heading', { name: 'Sign in' }).waitFor();
   assert.equal(await page.locator('.public-mobile-topnav').count(), 0, 'Auth routes do not inherit the website bottom navigation');
-  await page.screenshot({ path: 'artifacts/acceptance/sign-in-mobile.png', fullPage: true });
+  await page.screenshot({ path: acceptanceArtifact('sign-in-mobile.png'), fullPage: true });
   for (const route of ['sign-in', 'sign-up']) {
     for (const theme of ['light', 'dark']) {
       for (const width of [320, 768, 1440]) {
@@ -1008,7 +1019,7 @@ try {
         await setTheme(page, theme);
         assert.equal(await page.locator('html').getAttribute('data-theme'), theme);
         assert(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth), `${route} fits ${width}px in ${theme}`);
-        await page.screenshot({ path: `artifacts/acceptance/${route}-${theme}-${width}.png`, fullPage: true });
+        await page.screenshot({ path: acceptanceArtifact(`${route}-${theme}-${width}.png`), fullPage: true });
       }
     }
   }
@@ -1028,6 +1039,9 @@ try {
         assert(await page.evaluate(() => getComputedStyle(document.body).backgroundColor !== 'rgba(0, 0, 0, 0)'), route + ' must load the global theme stylesheet');
         assert(await page.evaluate(() => document.documentElement.scrollHeight <= window.innerHeight + 1), route + ' fits ' + viewport.width + 'x' + viewport.height + ' in ' + theme);
         assert.equal(await page.locator('.auth-card').evaluate(card => getComputedStyle(card).flexDirection), 'column', 'Account form keeps its normal stacked layout');
+        const authPhoto = route === 'sign-in' ? '/facilities/ultimaker.png' : '/events/raspberry-pi-workshop.jpg';
+        assert((await page.locator('.auth-story .auth-photo-cutout img').getAttribute('src')).includes(encodeURIComponent(authPhoto)), 'Auth poster uses its distinct lab or event photograph');
+        assert(await page.locator('.auth-poster-burst').count() >= 1, 'Auth artwork includes original decorative graphics');
         if (route === 'sign-in') {
           assert(await page.getByRole('button', {name:'Continue with Google'}).isDisabled(), 'Unverified Google activation stays disabled');
           assert(await contrastAgainst(page, '.auth-label-row a', '.auth-card') >= 4.5, 'The recovery link is readable against the sign-in card in both themes');
@@ -1050,7 +1064,7 @@ try {
         assert(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth), `${route} fits ${width}px in ${theme} mode`);
         assert(await page.locator('.theme-toggle').isVisible(), `${route} keeps the direct theme toggle visible`);
         assert.equal(await page.locator('meta[name="robots"]').getAttribute('content'), 'noindex, nofollow');
-        if (width === 320) await page.screenshot({ path: `artifacts/acceptance/${route}-${theme}-320.png`, fullPage: true });
+        if (width === 320) await page.screenshot({ path: acceptanceArtifact(`${route}-${theme}-320.png`), fullPage: true });
       }
     }
   }
@@ -1058,7 +1072,7 @@ try {
   await page.getByRole('heading', { name: 'Create your account' }).waitFor();
   assert(await page.getByRole('button', { name: 'Create account', exact: true }).isDisabled(), 'Registration remains gated until the shared backend passes validation');
   assert.equal(await page.getByText(/contact the lab team/i).count(), 0, 'Signup does not redirect account creation to a contact link');
-  await page.getByRole('button', { name: 'Back to sign in' }).click();
+  await page.getByRole('link', { name: 'Back to sign in' }).click();
   await page.getByRole('heading', { name: 'Sign in' }).waitFor();
   await page.setViewportSize({ width: 390, height: 844 });
   await page.goto(base + '/design/onboarding');
@@ -1109,7 +1123,7 @@ try {
     await setTheme(page, theme);
     await page.getByRole('heading', { name: 'Your details' }).waitFor();
     assert(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth), `Onboarding preview fits ${width}px in ${theme} mode`);
-    await page.screenshot({ path: `artifacts/acceptance/onboarding-preview-${width}-${theme}.png`, fullPage: true, animations: 'disabled' });
+    await page.screenshot({ path: acceptanceArtifact(`onboarding-preview-${width}-${theme}.png`), fullPage: true, animations: 'disabled' });
   }
   const noJsContext = await browser.newContext({ javaScriptEnabled: false });
   const noJsPage = await noJsContext.newPage();
@@ -1155,7 +1169,8 @@ try {
       assert.equal(await link.getAttribute('aria-current'), group === id ? screen === id ? 'page' : 'location' : null, `${screen} distinguishes the current page from its parent group`);
     }
     const contextual = group === 'lab' ? labDestinations : group === 'profile' ? profileDestinations : null;
-    assert.equal(await page.locator('.member-context-bar nav').count(), contextual ? 1 : 0, `${screen} exposes contextual navigation only for Lab or Profile`);
+    assert.equal(await page.locator('.member-context-bar nav').count(), group === 'profile' ? 1 : 0, `${screen} exposes the Profile links only in the Profile context`);
+    assert.equal(await page.locator('.member-lab-quick-access nav').count(), group === 'lab' ? 1 : 0, `${screen} keeps Lab links inside the Quick access card`);
     if (contextual) {
       const contextNav = page.getByRole('navigation', { name: `${group === 'lab' ? 'Lab' : 'Profile'} pages`, exact: true });
       assert.deepEqual(await contextNav.getByRole('link').allTextContents(), Object.keys(contextual), `${screen} exposes the complete contextual hierarchy`);
@@ -1212,7 +1227,7 @@ try {
       }
     }
     await skeletonPage.setViewportSize({ width: theme === 'light' ? 390 : 1440, height: 900 });
-    await skeletonPage.screenshot({ path: `artifacts/acceptance/member-skeletons-${theme}-${theme === 'light' ? 'mobile' : 'desktop'}.png`, fullPage: true, animations: 'disabled' });
+    await skeletonPage.screenshot({ path: acceptanceArtifact(`member-skeletons-${theme}-${theme === 'light' ? 'mobile' : 'desktop'}.png`), fullPage: true, animations: 'disabled' });
   }
   await skeletonPage.emulateMedia({ reducedMotion: 'reduce' });
   assert(await skeletonPage.locator('.member-loading__line').evaluateAll(elements => elements.every(element => getComputedStyle(element).animationName === 'none')), 'Skeleton shimmer is disabled for reduced-motion users');
@@ -1245,7 +1260,7 @@ try {
   await setTheme(page, 'light');
   await page.evaluate(() => window.scrollTo(0, 0));
   await page.waitForTimeout(50);
-  await page.screenshot({ path: 'artifacts/acceptance/student-workspace-home-desktop.png', fullPage: true, animations: 'disabled' });
+  await page.screenshot({ path: acceptanceArtifact('student-workspace-home-desktop.png'), fullPage: true, animations: 'disabled' });
   await page.locator('.member-notifications').click();
   await page.getByRole('heading', { name: studentScreens.notifications, exact: true }).waitFor();
   assert.match(page.url(), /screen=notifications$/, 'Top-right notifications shortcut opens the notification destination');
@@ -1289,7 +1304,7 @@ try {
       assert(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth), `${screen} fits ${width}px without horizontal scrolling`);
       await assertStudentNavigation(screen);
       assert(await page.locator('.member-notifications').isVisible(), `${screen} retains top-right notifications at ${width}px`);
-      assert(await page.locator('.member-primary-nav a, .member-context-bar a').evaluateAll(links => links.every(link => { const rect = link.getBoundingClientRect(); return rect.width >= 44 && rect.height >= 44 && rect.left >= 0 && rect.right <= innerWidth + 1; })), `${screen} navigation retains visible 44px touch targets at ${width}px`);
+      assert(await page.locator('.member-primary-nav a, .member-context-bar a, .member-lab-quick-access a').evaluateAll(links => links.every(link => { const rect = link.getBoundingClientRect(); return rect.width >= 44 && rect.height >= 44 && rect.left >= 0 && rect.right <= innerWidth + 1; })), `${screen} navigation retains visible 44px touch targets at ${width}px`);
       if (width > 760 && width <= 980) {
         const detailGrid = page.locator('.student-preview-detail-grid').first();
         if (await detailGrid.count()) assert.equal(await detailGrid.evaluate(element => getComputedStyle(element).gridTemplateColumns.split(' ').length), 1, `Detail cards use a readable single column at ${width}px`);
@@ -1373,7 +1388,7 @@ try {
     const minimum = selector === '.theme-toggle' ? 48 : 44;
     assert(bounds && bounds.width >= minimum && bounds.height >= minimum, `${selector} meets its ${minimum}px mobile touch-target goal`);
   }
-  await page.screenshot({ path: 'artifacts/acceptance/student-workspace-home-mobile.png', fullPage: false, animations: 'disabled' });
+  await page.screenshot({ path: acceptanceArtifact('student-workspace-home-mobile.png'), fullPage: false, animations: 'disabled' });
   const mobileLabLink = page.getByRole('navigation', { name: 'Primary workspace navigation', exact: true }).getByRole('link', { name: 'Lab', exact: true });
   await mobileLabLink.focus();
   assert(await mobileLabLink.evaluate(element => element === document.activeElement), 'Keyboard users can focus the top-level Lab link');
@@ -1386,7 +1401,7 @@ try {
   await page.keyboard.press('Enter');
   await page.getByRole('heading', { name: studentScreens.borrowing, exact: true }).waitFor();
   await assertStudentNavigation('borrowing');
-  await page.screenshot({ path: 'artifacts/acceptance/student-workspace-lab-borrowing-mobile.png', fullPage: false, animations: 'disabled' });
+  await page.screenshot({ path: acceptanceArtifact('student-workspace-lab-borrowing-mobile.png'), fullPage: false, animations: 'disabled' });
   await page.goBack();
   await page.getByRole('heading', { name: studentScreens.lab, exact: true }).waitFor();
   await assertStudentNavigation('lab');
@@ -1414,7 +1429,7 @@ try {
   await page.getByRole('heading', { name: studentScreens.profile, exact: true }).waitFor();
   await setTheme(page, 'dark');
   assert.equal(await page.evaluate(() => getComputedStyle(document.body).backgroundColor), 'rgb(0, 0, 0)', 'Student preview keeps the jet-black dark canvas');
-  await page.screenshot({ path: 'artifacts/acceptance/student-workspace-profile-dark-mobile.png', fullPage: true, animations: 'disabled' });
+  await page.screenshot({ path: acceptanceArtifact('student-workspace-profile-dark-mobile.png'), fullPage: true, animations: 'disabled' });
   await page.goto(base + '/design/student?screen=home');
   await page.getByRole('heading', { name: studentScreens.home, exact: true }).waitFor();
   await page.locator('.student-preview-module').last().scrollIntoViewIfNeeded();
@@ -1439,7 +1454,7 @@ try {
       assert(await page.getByRole('heading', { name: 'SolidWorks software', exact: true }).isVisible());
       assert(await page.getByText('This directory does not show live availability or reserve equipment.', { exact: false }).isVisible());
       assert(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth), `${theme} facility directory fits ${width}px`);
-      await page.screenshot({ path: `artifacts/acceptance/lab-${theme.toLowerCase()}-${width}.png`, fullPage: true });
+      await page.screenshot({ path: acceptanceArtifact(`lab-${theme.toLowerCase()}-${width}.png`), fullPage: true });
     }
   }
   await page.goto(base + '/explore');
@@ -1474,7 +1489,7 @@ try {
   await page.getByRole('heading', { name: 'Sample prototype fixture', exact: true }).waitFor();
   assert(await page.getByText('BROWSER DRAFT', { exact: true }).isVisible());
   assert(await page.getByText('We can’t check your submitted requests here yet.', { exact: false }).isVisible());
-  await page.screenshot({ path: 'artifacts/acceptance/request-workspace-mobile.png', fullPage: true });
+  await page.screenshot({ path: acceptanceArtifact('request-workspace-mobile.png'), fullPage: true });
   await page.getByRole('button', { name: 'Delete browser draft' }).click();
   assert(await page.getByRole('button', { name: 'Keep draft' }).evaluate(element => element === document.activeElement), 'Delete confirmation focuses safe action');
   await page.getByRole('button', { name: 'Keep draft' }).click();
@@ -1504,7 +1519,7 @@ try {
   await page.getByRole('heading', { name: 'Start with what you have.' }).waitFor();
   assert.equal(await page.evaluate(key => localStorage.getItem(key), originalAccountKey), null, 'Leaving and re-entering the preview clears in-memory drafts');
   assert(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth), 'Draft preview must fit on mobile');
-  await page.screenshot({ path: 'artifacts/acceptance/request-preview-mobile.png', fullPage: true });
+  await page.screenshot({ path: acceptanceArtifact('request-preview-mobile.png'), fullPage: true });
   await page.goto(base + '/design/request');
   await page.getByRole('button', { name: 'Continue', exact: true }).click();
   await page.getByLabel('Request title').fill('Reference validation fixture');
@@ -1565,15 +1580,15 @@ try {
   for (const width of [320, 375, 768, 1024, 1440]) {
     await page.setViewportSize({ width, height: 1000 });
     assert(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth), `Staff preview fits ${width}px without horizontal scrolling`);
-    if (width === 375) await page.screenshot({ path: 'artifacts/acceptance/staff-workspace-mobile.png', fullPage: true });
+    if (width === 375) await page.screenshot({ path: acceptanceArtifact('staff-workspace-mobile.png'), fullPage: true });
   }
   await setTheme(page, 'dark');
   assert.equal(await page.evaluate(() => getComputedStyle(document.body).backgroundColor), 'rgb(0, 0, 0)', 'Staff preview keeps the jet-black dark canvas');
   assert(await elementContrast(page, '.staff-preview-state') >= 4.5, 'Not-connected status meets text contrast in dark mode');
-  await page.screenshot({ path: 'artifacts/acceptance/staff-workspace-dark.png', fullPage: true });
+  await page.screenshot({ path: acceptanceArtifact('staff-workspace-dark.png'), fullPage: true });
   await page.setViewportSize({ width: 375, height: 1000 });
   assert(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth), 'Dark staff preview fits mobile width');
-  await page.screenshot({ path: 'artifacts/acceptance/staff-workspace-dark-mobile.png', fullPage: true });
+  await page.screenshot({ path: acceptanceArtifact('staff-workspace-dark-mobile.png'), fullPage: true });
   await page.emulateMedia({ reducedMotion: 'reduce' });
   assert.equal(await page.locator('.staff-preview-heading').evaluate(element => getComputedStyle(element).animationName), 'none', 'Staff preview entrance respects reduced motion');
   await setTheme(page, 'light');
@@ -1669,7 +1684,7 @@ try {
           assert.equal(await page.locator('#signup-password').getAttribute('minlength'), '8');
           assert(await page.getByRole('button', { name: 'Continue with Google' }).isDisabled(), 'Email signup does not require Google');
         }
-        if (viewport.width === 320) await page.screenshot({ path: `artifacts/acceptance/auth-enabled-${route}-${theme}-320.png`, fullPage: true });
+        if (viewport.width === 320) await page.screenshot({ path: acceptanceArtifact(`auth-enabled-${route}-${theme}-320.png`), fullPage: true });
       }
     }
   }
@@ -1683,9 +1698,9 @@ try {
   }
   await page.goto(`${recoveryBase}/sign-up?notice=signup-invalid`);
   assert(await page.getByText('Enter a valid email address and a password of at least 8 characters.').isVisible());
-  await page.getByRole('button', { name: 'Back to sign in' }).click();
+  await page.getByRole('link', { name: 'Back to sign in' }).click();
   await page.waitForURL('**/sign-in');
-  await page.getByRole('button', { name: 'Create a new account' }).click();
+  await page.getByRole('link', { name: 'Create a new account' }).click();
   await page.waitForURL('**/sign-up');
   await page.reload();
   assert(await page.getByRole('heading', { name: 'Create your account' }).isVisible(), 'Refresh preserves the selected signup card');
@@ -1700,8 +1715,8 @@ try {
 } catch (error) {
   const activePage = browser?.contexts()[0]?.pages()[0];
   if (activePage) {
-    await mkdir('artifacts/acceptance', { recursive: true });
-    await activePage.screenshot({ path: 'artifacts/acceptance/failure.png', fullPage: true }).catch(() => {});
+    await mkdir(acceptanceArtifactDirectory, { recursive: true });
+    await activePage.screenshot({ path: acceptanceArtifact('failure.png'), fullPage: true }).catch(() => {});
     console.error('Public/sample image diagnostics:', await activePage.locator('img').evaluateAll(images => images.map(image => { const rect = image.getBoundingClientRect(); return { src: image.getAttribute('src'), complete: image.complete, width: image.naturalWidth, height: image.naturalHeight, display: getComputedStyle(image).display, visibility: getComputedStyle(image).visibility, loading: image.loading, rect: { x: rect.x, y: rect.y, width: rect.width, height: rect.height }, scrollY: window.scrollY }; })));
     for (const asset of ['/brand/mec.png', '/_next/image?url=%2Fbrand%2Fmec.png&w=256&q=75']) {
       try { const response = await fetch(base + asset, { signal: AbortSignal.timeout(10000) }); console.error('Asset response:', asset, response.status, response.headers.get('content-type')); }

@@ -23,7 +23,7 @@ export default async function ForgotPassword({ searchParams }: { searchParams: P
     <div className="auth-toolbar"><Link className="text-link" href="/sign-in"><ArrowLeft size={18} aria-hidden="true" /> Back to sign in</Link><ThemePicker /></div>
     <div className="auth-grid">
       <section className="auth-story" aria-label="IDEALAB MEC account recovery"><span className="eyebrow auth-pill">ACCOUNT SUPPORT</span><h1>LET’S GET<br /><span>YOU BACK.</span></h1><p className="handwritten">A fresh start is one email away.</p><div className="auth-note"><ShieldCheck aria-hidden="true" /><p>Your lab account stays yours. We’ll never confirm whether an email is registered.</p></div></section>
-      <section className="auth-card" aria-labelledby="recovery-title"><span className="eyebrow">PASSWORD RECOVERY</span><h2 id="recovery-title">Reset your password.</h2><p>Enter the email address you use for Grow or IDEALAB MEC.</p>
+      <section className="auth-card" aria-labelledby="recovery-title"><span className="eyebrow">PASSWORD RECOVERY</span><h2 id="recovery-title">Reset your password.</h2><p>Enter the email address you use for IDEALAB MEC (formerly Grow).</p>
         {!configured && <AuthFeedback kind="status">Account recovery is paused while the shared account platform is being secured.</AuthFeedback>}
         {message && <AuthFeedback kind={message.kind}>{message.text}</AuthFeedback>}
         <form action={requestPasswordReset} className="form-stack">

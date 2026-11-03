@@ -4,6 +4,48 @@ Current checkpoint: [account delivery status](account-readiness.md). Older accou
 implementation-status paragraphs below are historical; release criteria and the
 remaining full-V1 scope still apply.
 
+## Current source and release check — 3 November 2026
+
+The standalone `idealab-mec-web` repository is public in `MEC-IDEALAB`.
+The local worktree is on `main` at `ea3dfc919ddf0d5236d831e3f857020aa3617998`,
+which matches `origin/main`; it contains uncommitted application and documentation
+changes. GitHub reports no open pull request. Current-source checks passed with
+Node 24.19.0: `npm run lint`, `npm run typecheck`, `npm run test:boundaries`
+(168/168), `npm run test:member-space` (42 layouts and 12 accessibility
+snapshots), and `npm run test:acceptance`. The acceptance run covers public and
+gated-preview behavior only; it explicitly does not establish real signup,
+email delivery, email/Google login, password recovery, member-session
+persistence, scoped permissions or operational backend acceptance.
+
+The read-only Supabase recheck confirms Grow is active with four recorded
+migrations, including the approved shared-access and profile-contract changes.
+Account activation remains source-disabled until the coordinated Flutter
+profile-writer cutover and real provider/client acceptance pass. Storage remains
+a blocker: the four existing buckets are public, while the recorded policies
+target an absent bucket. Fresh evidence and no-write limits are in
+[account readiness](account-readiness.md) and the
+[shared-backend record](shared-backend-configuration-2026-11-02.md).
+
+The 3 November update was added to GitHub issues [#4](https://github.com/MEC-IDEALAB/IDEALAB-MEC-WEB/issues/4)
+and [#15](https://github.com/MEC-IDEALAB/IDEALAB-MEC-WEB/issues/15), and their
+project-board next actions were refreshed. These are tracking updates only; no
+application push, PR, merge, database write or deployment occurred. Hosted CI
+for these uncommitted changes is therefore not available.
+
+Follow-up read-only catalog and cross-client review on 3 November confirmed
+that the shared database has only the installed account-profile APIs needed for
+the current account contract. The Lab and public-profile operations shown in
+the member UI are not deployed in Grow; hosted member access remains disabled.
+The optional public-profile environment flag can no longer enable unsupported
+RPC calls. See [member platform readiness](quality/member-platform-readiness-2026-11-03.md)
+and the corrected [public-profile candidate review](shared-public-profile-proposal.md#candidate-cutover-review--3-november-2026).
+This follow-up source change still needs local checks; the previous check list
+above applies to the earlier source revision, not this uncommitted patch. On
+the current local tree, the isolated member build/browser suite, lint,
+TypeScript, focused feature-gate test, docs validation and whitespace check have
+passed under Node 20.19.0; the full Node 24 boundary/acceptance gate must be
+rerun before any push. See the [verification record](quality/member-platform-readiness-2026-11-03.md).
+
 ## Latest delivery state — 31 October 2026
 
 Website foundation PR #19 merged into `main` at

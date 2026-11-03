@@ -1,6 +1,7 @@
 export const product = { name: 'IDEALAB MEC', institution: 'Model Engineering College', subtitle: 'IDEA Lab / Fab Lab' } as const;
 
 const validationProjectRef = 'gvvqlfachzbufstzoiwi';
+const sharedProjectRef = 'huftzhfqnnslvnfzvbex';
 const supabaseDomain = '.supabase.co';
 const validationFeatureFlags = {
   labOpening: 'ENABLE_LAB_OPENING_VALIDATION',
@@ -27,13 +28,18 @@ export function backendConfig() {
     && !process.env.VERCEL
     && !process.env.VERCEL_ENV
     && process.env.RENDER !== 'true';
-  // The shared Grow schema still permits authenticated reads of all user rows
-  // and updates to authority fields. Do not issue website-created Grow sessions
-  // until the reviewed shared migration and both-client acceptance are complete.
-  // Production requires a deliberate source change after that release gate; no
-  // environment variable can currently turn it on.
+  // Shared profile v1 is installed, but both-client/provider acceptance remains
+  // incomplete. Hosted account activation still requires its separate release
+  // gate; only the explicit developer cutover below may use this contract.
+  // Shared-local is an explicit developer cutover path after the shared v1
+  // migration is installed and verified. It cannot run on a hosted deployment.
+  // Production requires a deliberate source change after real acceptance; no
+  // environment variable can currently turn hosted member access on.
   const targetAllowed = environment === 'validation'
     ? projectRef === validationProjectRef && localValidationRuntime
+    : environment === 'shared-local'
+      ? projectRef === sharedProjectRef && localValidationRuntime
+        && process.env.ENABLE_SHARED_ACCOUNT_CONTRACT_V1 === 'true'
     : environment === 'test'
       ? hostname.endsWith('.invalid') && process.env.ENABLE_MEMBER_PLATFORM_TEST === 'true'
       : false;

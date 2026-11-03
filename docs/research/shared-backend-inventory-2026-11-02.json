@@ -1,0 +1,276 @@
+{
+  "checkedAt": "2026-11-02",
+  "project": "grow-idealab",
+  "projectRef": "huftzhfqnnslvnfzvbex",
+  "status": "ACTIVE_HEALTHY",
+  "validationProject": "paused by owner authorization",
+  "migrationVersions": [
+    "20260503073726",
+    "20260503073744"
+  ],
+  "authUserCount": 7,
+  "profileColumns": [
+    {
+      "name": "id",
+      "type": "uuid",
+      "default": null,
+      "nullable": "NO"
+    },
+    {
+      "name": "name",
+      "type": "text",
+      "default": null,
+      "nullable": "NO"
+    },
+    {
+      "name": "email",
+      "type": "text",
+      "default": null,
+      "nullable": "NO"
+    },
+    {
+      "name": "phone",
+      "type": "text",
+      "default": null,
+      "nullable": "YES"
+    },
+    {
+      "name": "college_roll",
+      "type": "text",
+      "default": null,
+      "nullable": "YES"
+    },
+    {
+      "name": "role",
+      "type": "text",
+      "default": "'student'::text",
+      "nullable": "NO"
+    },
+    {
+      "name": "club_id",
+      "type": "uuid",
+      "default": null,
+      "nullable": "YES"
+    },
+    {
+      "name": "xp",
+      "type": "integer",
+      "default": "0",
+      "nullable": "YES"
+    },
+    {
+      "name": "level",
+      "type": "integer",
+      "default": "1",
+      "nullable": "YES"
+    },
+    {
+      "name": "reputation_score",
+      "type": "integer",
+      "default": "100",
+      "nullable": "YES"
+    },
+    {
+      "name": "qr_code_data",
+      "type": "text",
+      "default": null,
+      "nullable": "YES"
+    },
+    {
+      "name": "fcm_token",
+      "type": "text",
+      "default": null,
+      "nullable": "YES"
+    },
+    {
+      "name": "created_at",
+      "type": "timestamp with time zone",
+      "default": "now()",
+      "nullable": "YES"
+    },
+    {
+      "name": "updated_at",
+      "type": "timestamp with time zone",
+      "default": "now()",
+      "nullable": "YES"
+    },
+    {
+      "name": "profile_completed",
+      "type": "boolean",
+      "default": "false",
+      "nullable": "YES"
+    },
+    {
+      "name": "avatar_url",
+      "type": "text",
+      "default": null,
+      "nullable": "YES"
+    },
+    {
+      "name": "is_active",
+      "type": "boolean",
+      "default": "true",
+      "nullable": "YES"
+    },
+    {
+      "name": "ban_reason",
+      "type": "text",
+      "default": null,
+      "nullable": "YES"
+    },
+    {
+      "name": "banned_at",
+      "type": "timestamp with time zone",
+      "default": null,
+      "nullable": "YES"
+    }
+  ],
+  "buckets": [
+    {
+      "id": "profiles",
+      "public": true,
+      "object_count": 0,
+      "file_size_limit": 5242880,
+      "allowed_mime_types": [
+        "image/png",
+        "image/jpeg",
+        "image/webp"
+      ]
+    },
+    {
+      "id": "projects",
+      "public": true,
+      "object_count": 0,
+      "file_size_limit": 10485760,
+      "allowed_mime_types": [
+        "image/png",
+        "image/jpeg",
+        "image/webp"
+      ]
+    },
+    {
+      "id": "events",
+      "public": true,
+      "object_count": 0,
+      "file_size_limit": 5242880,
+      "allowed_mime_types": [
+        "image/png",
+        "image/jpeg",
+        "image/webp"
+      ]
+    },
+    {
+      "id": "inventory",
+      "public": true,
+      "object_count": 1,
+      "file_size_limit": 10485760,
+      "allowed_mime_types": [
+        "image/png",
+        "image/jpeg",
+        "image/webp"
+      ]
+    }
+  ],
+  "userPolicies": [
+    {
+      "cmd": "SELECT",
+      "qual": "(auth.uid() = id)",
+      "roles": [
+        "public"
+      ],
+      "tablename": "users",
+      "permissive": "PERMISSIVE",
+      "policyname": "users_select_own",
+      "schemaname": "public",
+      "with_check": null
+    },
+    {
+      "cmd": "UPDATE",
+      "qual": "(auth.uid() = id)",
+      "roles": [
+        "public"
+      ],
+      "tablename": "users",
+      "permissive": "PERMISSIVE",
+      "policyname": "users_update_own",
+      "schemaname": "public",
+      "with_check": null
+    },
+    {
+      "cmd": "INSERT",
+      "qual": null,
+      "roles": [
+        "public"
+      ],
+      "tablename": "users",
+      "permissive": "PERMISSIVE",
+      "policyname": "users_insert_own",
+      "schemaname": "public",
+      "with_check": "(auth.uid() = id)"
+    },
+    {
+      "cmd": "SELECT",
+      "qual": "true",
+      "roles": [
+        "authenticated"
+      ],
+      "tablename": "users",
+      "permissive": "PERMISSIVE",
+      "policyname": "users_read_all",
+      "schemaname": "public",
+      "with_check": null
+    }
+  ],
+  "storagePolicies": [
+    {
+      "cmd": "SELECT",
+      "qual": "(bucket_id = 'avatars'::text)",
+      "roles": [
+        "public"
+      ],
+      "tablename": "objects",
+      "permissive": "PERMISSIVE",
+      "policyname": "Avatar Read",
+      "schemaname": "storage",
+      "with_check": null
+    },
+    {
+      "cmd": "INSERT",
+      "qual": null,
+      "roles": [
+        "authenticated"
+      ],
+      "tablename": "objects",
+      "permissive": "PERMISSIVE",
+      "policyname": "Avatar Upload",
+      "schemaname": "storage",
+      "with_check": "(bucket_id = 'avatars'::text)"
+    },
+    {
+      "cmd": "UPDATE",
+      "qual": "(bucket_id = 'avatars'::text)",
+      "roles": [
+        "authenticated"
+      ],
+      "tablename": "objects",
+      "permissive": "PERMISSIVE",
+      "policyname": "Avatar Update",
+      "schemaname": "storage",
+      "with_check": null
+    },
+    {
+      "cmd": "DELETE",
+      "qual": "(bucket_id = 'avatars'::text)",
+      "roles": [
+        "authenticated"
+      ],
+      "tablename": "objects",
+      "permissive": "PERMISSIVE",
+      "policyname": "Avatar Delete",
+      "schemaname": "storage",
+      "with_check": null
+    }
+  ],
+  "dangerousTableGrantCount": 114,
+  "scope": "Catalog and aggregate counts only; no account field values, file contents or credentials collected. No live schema/policy changes applied."
+}

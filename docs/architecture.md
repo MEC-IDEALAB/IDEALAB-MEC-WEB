@@ -1,5 +1,15 @@
 # Web and shared backend architecture
 
+Latest shared-backend checkpoint (2 November 2026): the owner-approved
+`20261102130200_shared_profile_contract_v1` is now installed and its preservation,
+permissions, RLS and anonymous-denial checks pass. Legacy clients remain offline
+for the coordinated cutover. The website shared-local developer configuration is
+available, while hosted production accounts remain source-disabled. Real provider,
+email delivery, onboarding/cross-client and storage acceptance remain incomplete.
+See [installation evidence and limits](quality/shared-profile-installation-2026-11-02.md).
+This supersedes older uninstalled-profile statements below; historical checkpoints
+remain scoped to their original dates.
+
 Current implementation evidence: [account delivery status](account-readiness.md).
 The [Events programme/detail read contract](events-contract.md) is implemented
 and installed only in isolated validation, with no retained programme fixtures.

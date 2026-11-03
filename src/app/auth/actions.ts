@@ -7,11 +7,21 @@ import { googleAuthConfig, passwordRecoveryConfig, signupAuthConfig } from '@/li
 import { exitLocalAuthSession } from '@/lib/local-auth-exit';
 import { attemptSignupAndClearSession } from '@/lib/signup-cleanup';
 import { matchesFormAccount } from '@/lib/form-account';
+import { backendConfig } from '@/lib/config';
+import { confirmedSignupProviderAvailable } from '@/lib/signup-provider-policy';
+import { inspectAuthEntry, type AuthEntryClient } from '@/lib/auth-entry';
+
+async function requireSignedOutEntry(client: AuthEntryClient, connectionPath = '/sign-in?notice=connection') {
+  const entry = await inspectAuthEntry(client);
+  if (entry.state === 'signed-in') redirect('/app');
+  if (entry.state === 'unavailable') redirect(connectionPath);
+}
 
 export async function signInWithGoogle() {
   const config = googleAuthConfig();
   const client = await serverClient({ writable: true });
   if (!config || !client) redirect('/sign-in?notice=configuration');
+  await requireSignedOutEntry(client);
   let destination: string | undefined;
   try {
     const { data, error } = await client.auth.signInWithOAuth({ provider: 'google', options: { redirectTo: config.callback } });
@@ -30,6 +40,7 @@ export async function signIn(form: FormData) {
   const { email, password } = credentials;
   const client = await serverClient({ writable: true });
   if (!client) redirect('/sign-in?notice=configuration');
+  await requireSignedOutEntry(client);
   try {
     const { error } = await client.auth.signInWithPassword({ email, password });
     if (error) redirect('/sign-in?notice=invalid');
@@ -48,6 +59,7 @@ export async function requestPasswordReset(form: FormData) {
   if (!email) redirect('/forgot-password?notice=invalid');
   const client = await serverClient({ writable: true });
   if (!client) redirect('/forgot-password?notice=configuration');
+  await requireSignedOutEntry(client, '/forgot-password?notice=callback');
 
   // Supabase deliberately does not disclose whether an address has an account.
   // Keep the same response for unknown addresses and provider-side errors.
@@ -95,12 +107,15 @@ export async function signOut(form: FormData) {
   redirect('/sign-in');
 }
 
-/** Recovery-only retry: never take a failed cleanup back into the workspace. */
+/** A stale recovery-cleanup page cannot implicitly sign out the current account. */
 export async function finishPasswordResetSignOut() {
   const client = await serverClient({ writable: true });
   if (!client) redirect('/sign-in?notice=password-updated-cleanup');
-  const exit = await exitLocalAuthSession(() => client.auth.signOut({ scope: 'local' }), clearLocalAuthSession);
-  redirect(exit === 'cleared' ? '/sign-in?notice=password-updated' : '/sign-in?notice=password-updated-cleanup');
+  // A stale cleanup page has no authority to sign out whichever account is now
+  // active. The verified account-bound signOut action handles intentional exit.
+  await requireSignedOutEntry(client);
+  try { await clearLocalAuthSession(); } catch { redirect('/sign-in?notice=password-updated-cleanup'); }
+  redirect('/sign-in?notice=password-updated');
 }
 
 /** Supabase Auth owns identity creation; never insert profiles from client metadata. */
@@ -111,6 +126,9 @@ export async function signUp(form: FormData) {
   if (!credentials) redirect('/sign-up?notice=signup-invalid');
   const client = await serverClient({ writable: true });
   if (!client) redirect('/sign-up?notice=configuration');
+  await requireSignedOutEntry(client, '/sign-up?notice=connection');
+  const backend = backendConfig();
+  if (!backend || !await confirmedSignupProviderAvailable(backend)) redirect('/sign-up?notice=configuration');
   // Clear session cookies for every outcome, including a lost response. Do not use
   // SDK signOut here: it also removes the PKCE verifier for email confirmation.
   const cleanup = await attemptSignupAndClearSession(
@@ -122,6 +140,9 @@ export async function signUp(form: FormData) {
 }
 
 export async function retrySignupCleanup() {
+  const client = await serverClient({ writable: true });
+  if (!client) redirect('/confirm-email?notice=configuration');
+  await requireSignedOutEntry(client);
   try { await clearLocalAuthSession(); } catch { redirect('/confirm-email?notice=cleanup'); }
   redirect('/confirm-email?notice=requested');
 }

@@ -1,7 +1,10 @@
 'use client';
 
 import { useEffect, useRef, useState, type ReactNode } from 'react';
+import Link from 'next/link';
+import { usePathname } from 'next/navigation';
 import { ArrowLeft, ArrowUpRight } from 'lucide-react';
+import { AuthLoadingSkeleton } from './auth-loading-skeleton';
 
 export type AuthView = 'sign-in' | 'create-account';
 
@@ -20,55 +23,38 @@ export function AuthCardSwitcher({
   signInPanel,
   createPanel,
 }: AuthCardSwitcherProps) {
-  const [view, setView] = useState<AuthView>(initialView);
-  const [hasSwitched, setHasSwitched] = useState(false);
+  const pathname = usePathname();
+  const view: AuthView = pathname === '/sign-up' ? 'create-account' : pathname === '/sign-in' ? 'sign-in' : initialView;
   const stageRef = useRef<HTMLDivElement>(null);
-  const nextFocus = useRef(false);
+  const [pending, setPending] = useState(false);
 
   useEffect(() => {
-    if (!nextFocus.current) return;
     stageRef.current?.querySelector<HTMLElement>('h2')?.focus({ preventScroll: true });
-    nextFocus.current = false;
   }, [view]);
-
-  useEffect(() => {
-    const restoreView = () => {
-      setView(window.location.pathname === '/sign-up' ? 'create-account' : 'sign-in');
-      setHasSwitched(true);
-    };
-    window.addEventListener('popstate', restoreView);
-    return () => window.removeEventListener('popstate', restoreView);
-  }, []);
-
-  function switchView() {
-    nextFocus.current = true;
-    setHasSwitched(true);
-    const next = view === 'sign-in' ? 'create-account' : 'sign-in';
-    window.history.pushState(null, '', next === 'sign-in' ? '/sign-in' : '/sign-up');
-    setView(next);
-  }
 
   const isSignIn = view === 'sign-in';
   const titleId = isSignIn ? 'sign-in-title' : 'create-account-title';
 
+  if (pending) return <AuthLoadingSkeleton signup={isSignIn} />;
+
   return (
     <div className="auth-grid" data-auth-view={view}>
-      <section className={`auth-story${hasSwitched ? ' auth-story-arrive' : ''}`} key={`story-${view}`} aria-label={isSignIn ? 'Welcome back' : 'New maker account'}>
+      <section className="auth-story auth-story-arrive" key={`story-${view}`} aria-label={isSignIn ? 'Welcome back' : 'New maker account'}>
         {isSignIn ? signInStory : createStory}
       </section>
       <div className="auth-card-stage" ref={stageRef}>
         <section
-          className={`auth-card${hasSwitched ? ' auth-card-arrive' : ''}`}
+          className="auth-card auth-card-arrive"
           key={view}
           aria-labelledby={titleId}
           aria-live="polite"
         >
           {isSignIn ? signInPanel : createPanel}
           <div className="auth-account-switch">
-            <span>{isSignIn ? 'New here?' : 'Already have an account?'}</span>
-            <button type="button" onClick={switchView}>
+            <span>{isSignIn ? 'New here?' : 'Have an account?'}</span>
+            <Link href={isSignIn ? '/sign-up' : '/sign-in'} prefetch={false} onNavigate={() => setPending(true)}>
               {isSignIn ? <>Create a new account <ArrowUpRight size={16} aria-hidden="true" /></> : <><ArrowLeft size={16} aria-hidden="true" /> Back to sign in</>}
-            </button>
+            </Link>
           </div>
         </section>
       </div>

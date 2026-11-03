@@ -268,7 +268,7 @@ layouts and 12 axe snapshots, including QR generation, focus transfer, touch
 targets and 200% text. The disposable PostgreSQL 17.6 rehearsal passed forward,
 behavior and rollback checks, including controlled concurrent first-save and
 privacy-change/stale-save races. Evidence is
-[`runtime-1793651658862-4794e84c.json`](../artifacts/database-runtime/runtime-1793651658862-4794e84c.json).
+[`shared-profile-local-pg17-2026-11-02.json`](research/shared-profile-local-pg17-2026-11-02.json).
 No member rows or live database writes were used.
 
 The member preview test is now a self-contained `test:member-space` command:

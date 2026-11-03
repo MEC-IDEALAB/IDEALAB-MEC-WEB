@@ -1,6 +1,81 @@
 # Current account delivery status
 
+## Read-only backend recheck — 3 November 2026
+
+The connected Supabase read-only tools report the shared project `huftzhfqnnslvnfzvbex`
+as `ACTIVE_HEALTHY` on PostgreSQL 17.6.1.166 in Mumbai. Its display name is
+`IDEALAB MEC,` (including a trailing comma); the managed PostgreSQL database
+itself is still named `postgres`. The live migration ledger contains the two
+initial-schema migrations plus `20261102083307_shared_access_hardening_v1` and
+`20261102130200_shared_profile_contract_v1`. No schema writes were made in this
+recheck. The live catalog still contains legacy Grow tables, including `users`,
+`user_profiles` and the richer profile tables; the optional public-profile and
+operational module migrations are not in the ledger. A read-only function-name
+check found no shared `get_lab_opening_v1`, `set_lab_opening_v1`,
+`get_own_lab_visits_v1`, `check_in_lab_v1`, `check_out_lab_v1`,
+`set_lab_utility_v1`, `get_lab_presence_v1`, or `submit_work_request_v1` APIs.
+The matching website operations are therefore not live on the shared database.
+
+The live Supabase advisor currently reports 7 security findings (3 informational
+private-table RLS notices and 4 warnings covering a public extension, callable
+security-definer functions, and leaked-password protection) and 90 performance
+findings (8 unindexed foreign keys, 59 RLS init-plan notices, 21 unused indexes,
+and 2 multiple-permissive-policy notices). These require scoped review; this
+metadata check did not change them. The same read-only check confirms the four
+Storage buckets (`profiles`, `projects`, `events`, `inventory`) are public and
+all four current Storage policies target the absent `avatars` bucket. An
+aggregate count found one object in `inventory`; no object identifiers or file
+contents were read. Storage authorization behavior remains unverified. Email/
+Google account journeys, confirmation delivery, Flutter compatibility on a real
+device and operational member flows also remain unverified. Production member
+features stay disabled.
+
+Latest shared-backend checkpoint (2 November 2026): the owner-approved
+`20261102130200_shared_profile_contract_v1` is now installed and its preservation,
+permissions, RLS and anonymous-denial checks pass. Legacy clients remain offline
+for the coordinated cutover. The website shared-local developer configuration is
+available, while hosted production accounts remain source-disabled. Real provider,
+email delivery, onboarding/cross-client and storage acceptance remain incomplete.
+See [installation evidence and limits](quality/shared-profile-installation-2026-11-02.md).
+This supersedes older uninstalled-profile statements below; historical checkpoints
+remain scoped to their original dates.
+
 ## Current status — 2 November 2026
+
+The owner now approves one shared Grow/IDEALAB backend and the project switch.
+Validation has been paused and `grow-idealab` restored to ACTIVE_HEALTHY.
+Fresh catalog checks confirm the earlier account privacy/authority gaps and the
+missing shared onboarding APIs; production access remains gated. The dated
+31 October project-state paragraph below is historical. See the
+[shared configuration plan and delivery ledger](shared-backend-configuration-2026-11-02.md)
+for live inventory and current rollout dependencies. The owner-approved first
+permissions patch is installed as `20261102083307_shared_access_hardening_v1`;
+its scoped checks passed. This supersedes older statements that no shared-project
+change has occurred. Profile APIs, production auth activation and bucket changes
+are still pending; see [installation evidence](research/shared-access-installed-2026-11-02.json).
+
+The revised shared-profile candidate now preserves both legacy registration
+reservations with normalized uniqueness and no automatic admission. Its
+disposable PostgreSQL17.6 suite passes save/readback, repair, declaration/retry,
+normalized collisions, privilege denials, provisioning fixture behavior and
+duplicate-migration rejection. Source hashes and limits are recorded in the
+[SQL verification report](quality/shared-profile-sql-2026-11-02.md). This is not
+an installed shared-profile migration or real Google/email/client acceptance.
+
+Fresh read-only public Auth settings initially reported Google and email signup
+enabled with email autoconfirm enabled. The owner has since enabled Confirm email;
+an independent 2 November read verifies `mailer_autoconfirm=false`. Both client signup
+paths now preflight the provider settings and reject unsafe configuration;
+this safeguard does not replace correct provider configuration. The connected
+browser requires Supabase login and this chat lacks local computer-use runtime.
+The owner changed the setting privately; the agent verified it without reading
+credentials. See [boolean-only settings evidence](research/shared-auth-public-settings-2026-11-02.json).
+
+The website has an explicit development-only `shared-local` target for the
+reviewed shared contract, requiring its own operator flag, exact Grow pin and
+local runtime. It has not been enabled here; hosted production remains blocked.
+Flutter now has its separate default-off shared account gateway/route; it does
+not open the legacy operational shell or use legacy provisioning in that mode.
 
 The Next.js 16 auth proxy and server-side member guards are in place. The proxy
 refreshes Supabase cookies before protected-route checks; a new local validation
@@ -39,14 +114,18 @@ Full requested user/staff release: see the [current requirement-by-requirement
 audit](release-readiness-2026-10-23.md). Scoped implementation/checks below do
 not establish production completion.
 
-29 October Grow follow-up: the sibling mobile checkout now contains a default-off,
+Historical 29 October Grow follow-up: the sibling mobile checkout contained a default-off,
 validation-only profile writer for the shared save RPC. It binds requests to a
 verified account token, limits its payload to the six profile fields, closes its
 transport on timeout, and treats lost responses or session changes as uncertain.
 Seven focused reader/writer Flutter tests and scoped analysis passed, including a
-mocked request through the installed Supabase SDK. The writer is not wired into
-onboarding or tested with real Auth/database access; the legacy Grow routing and
-writers remain, so this does not establish cross-client or production readiness.
+mocked request through the installed Supabase SDK. Since then, the validation
+account adapter has been wired into its gated onboarding path, still default-off
+and pinned to the isolated project. Fresh 2 November review confirms the default
+Grow route still stores the entered draft locally and directly sets
+`profile_completed`. Replace that legacy path with the shared server API before
+activation; neither isolated wiring nor those mocked checks establish production
+or cross-client acceptance.
 
 Profile-save and MEC declaration forms now compare their rendered account ID
 with the freshly verified session before making profile RPCs. Helper tests cover

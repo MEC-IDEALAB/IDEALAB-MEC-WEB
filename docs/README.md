@@ -3,7 +3,15 @@
 These records describe product requirements, UX plans, integration boundaries and verified delivery evidence for the standalone Next.js website. They separate planned behavior from implemented or live-verified behavior.
 
 - [Current launch follow-up, public UI checks and privacy task list](launch-followup-2026-11-02.md)
+- [Member platform readiness, carousel checks and live backend gates — 3 November](quality/member-platform-readiness-2026-11-03.md)
+- [Performance and scalability backlog — 31 requested tasks](performance-backlog-2026-11-02.md)
 
+- [IDEALAB MEC identity and compatibility boundaries](product-identity-2026-11-02.md)
+- [Installed shared profile migration and verification](quality/shared-profile-installation-2026-11-02.md)
+- [Shared auth client checks and native pilot limits](quality/shared-auth-client-2026-11-02.md)
+- [Retro auth visuals, navigation and verification](quality/retro-auth-experience-2026-11-02.md)
+- [Home, Lab and Profile redesign proposal and pending decisions](member-workspace-redesign-2026-11-02.md)
+- [Optional public profile, QR and lab signals contract proposal](shared-public-profile-proposal.md)
 - [Requirements and open decisions](requirements.md)
 - [Current account implementation and acceptance status](account-readiness.md)
 - [Full-scope release audit and remaining dependencies](release-readiness-2026-10-23.md)
@@ -30,6 +38,8 @@ These records describe product requirements, UX plans, integration boundaries an
 - [Current website task list](task-list-2026-10-21.md)
 - [Security review and hardening evidence](security-review.md)
 - [Shared backend readiness and onboarding gate](backend-readiness.md)
+- [Shared IDEALAB backend configuration and live audit — 2 November](shared-backend-configuration-2026-11-02.md)
+- [Shared profile PostgreSQL17 SQL verification and remaining auth gates](quality/shared-profile-sql-2026-11-02.md)
 - [Isolated native database runtime preparation](database-validation.md)
 - [Applied validation patch archive and integrity checks](quality/applied-validation-archive-2026-11-01.md)
 - [Shared profile implementation proposal and rollout matrix](shared-profile-contract-proposal.md)

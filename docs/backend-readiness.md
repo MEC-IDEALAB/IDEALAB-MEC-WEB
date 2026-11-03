@@ -1,8 +1,25 @@
 # Shared backend readiness and onboarding gate
 
+Latest shared-backend checkpoint (2 November 2026): the owner-approved
+`20261102130200_shared_profile_contract_v1` is now installed and its preservation,
+permissions, RLS and anonymous-denial checks pass. Legacy clients remain offline
+for the coordinated cutover. The website shared-local developer configuration is
+available, while hosted production accounts remain source-disabled. Real provider,
+email delivery, onboarding/cross-client and storage acceptance remain incomplete.
+See [installation evidence and limits](quality/shared-profile-installation-2026-11-02.md).
+This supersedes older uninstalled-profile statements below; historical checkpoints
+remain scoped to their original dates.
+
 Current checkpoint: [account delivery status](account-readiness.md) supersedes
 historical statements below that signup/save/claim controls are absent. Genuine
 isolated Google login/provisioning passed; shared production activation is not cleared.
+
+2 November update: Grow is active and the owner-approved first scoped permissions
+patch is installed as migration `20261102083307_shared_access_hardening_v1`.
+The [installation report](quality/shared-access-installation-2026-11-02.md)
+supersedes earlier no-shared-change statements for that patch only. Shared
+profile/privacy/authority APIs, storage policies and production Auth acceptance
+remain separate release blockers.
 
 Latest isolated account-test state (22 October 2026): the reviewed identity,
 profile/provisioning, admission, save and claim candidates are now installed

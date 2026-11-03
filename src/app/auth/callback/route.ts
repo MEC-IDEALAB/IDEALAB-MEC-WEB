@@ -2,6 +2,7 @@ import { readAuthCode } from '@/lib/auth-input';
 import { NextResponse, type NextRequest } from 'next/server';
 import { serverClient } from '@/lib/supabase';
 import { googleAuthConfig } from '@/lib/auth-config';
+import { inspectAuthEntry } from '@/lib/auth-entry';
 
 export async function GET(request: NextRequest) {
   const config = googleAuthConfig();
@@ -19,6 +20,9 @@ export async function GET(request: NextRequest) {
   try {
     const client = await serverClient({ writable: true });
     if (client) {
+      const entry = await inspectAuthEntry(client);
+      if (entry.state === 'signed-in') return response('/app');
+      if (entry.state === 'unavailable') return response('/sign-in?notice=connection');
       const { error } = await client.auth.exchangeCodeForSession(input.code, input.options);
       if (!error) return response('/app');
     }

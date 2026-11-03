@@ -1,0 +1,101 @@
+{
+  "installedAt": "2026-11-02T13:02:00Z",
+  "projectRef": "huftzhfqnnslvnfzvbex",
+  "migrationVersion": "20261102130200",
+  "migrationName": "shared_profile_contract_v1",
+  "candidateSha256": "ed013ced6cb7ba8f77a9b341814f3ad533d85db338afb24e57e268a5334cdaad",
+  "canonicalSha256": "492fbccba41ac6db03836b2ab62b1a5e9d7349a278d0670f032e8b2daad297b0",
+  "approval": "Owner explicitly approved installation during maintenance; legacy clients kept offline until updated flow verified.",
+  "canonicalExactSubmittedQueryAndLedgerParity": true,
+  "before": {
+    "current_user": "postgres",
+    "version": "170006",
+    "auth_count": 7,
+    "profile_count": 6,
+    "object_count": 1,
+    "bucket_count": 4,
+    "users_columns": 19,
+    "private_absent": true,
+    "profile_fingerprint": "111062e1d8aee07198b37b2aed6991dd",
+    "auth_identity_fingerprint": "af74d7121d9f60c18f67fc5ce5d3950b",
+    "role_counts": {
+      "student": 4,
+      "lab_admin": 1,
+      "super_admin": 1
+    }
+  },
+  "after": {
+    "auth_count": 7,
+    "profile_count": 6,
+    "object_count": 1,
+    "bucket_count": 4,
+    "users_columns": 24,
+    "original_profile_fingerprint": "111062e1d8aee07198b37b2aed6991dd",
+    "auth_identity_fingerprint": "af74d7121d9f60c18f67fc5ce5d3950b",
+    "role_counts": {
+      "student": 4,
+      "lab_admin": 1,
+      "super_admin": 1
+    },
+    "private_baseline_count": 1,
+    "activated_profile_count": 0,
+    "api_boundary": [
+      {
+        "role": "anon",
+        "table_insert": false,
+        "table_select": false,
+        "table_update": false,
+        "own_getter_execute": false,
+        "private_baseline_select": false
+      },
+      {
+        "role": "authenticated",
+        "table_insert": false,
+        "table_select": false,
+        "table_update": false,
+        "own_getter_execute": true,
+        "private_baseline_select": false
+      },
+      {
+        "role": "service_role",
+        "table_insert": true,
+        "table_select": true,
+        "table_update": true,
+        "own_getter_execute": false,
+        "private_baseline_select": false
+      }
+    ]
+  },
+  "checks": {
+    "originalProfileValuesPreserved": true,
+    "selectedAuthIdentityPreserved": true,
+    "countsPreserved": true,
+    "catalogAndMissingIdentityChecks": true
+  },
+  "apiProbes": [
+    {
+      "name": "private_schema",
+      "status": 406,
+      "code": "PGRST106"
+    },
+    {
+      "name": "anonymous_getter",
+      "status": 401,
+      "code": "42501"
+    },
+    {
+      "name": "anonymous_profile_columns",
+      "status": 401,
+      "code": "42501"
+    }
+  ],
+  "independentReview": "Catalog/ACL/RLS/functions/triggers/index scope reviewed without user-row reads, identity spoofing or writes.",
+  "unverified": [
+    "Real Google/email/password journeys",
+    "SMTP delivery",
+    "Native device callbacks/persistence/restart",
+    "Cross-client onboarding",
+    "Storage privacy and operational workflows",
+    "Hosted production account activation"
+  ]
+}

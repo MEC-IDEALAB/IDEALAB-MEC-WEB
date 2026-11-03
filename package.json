@@ -16,11 +16,13 @@
     "typecheck": "tsc --noEmit",
     "lint": "eslint .",
     "test:acceptance": "node scripts/acceptance.mjs",
+    "test:member-space": "node scripts/member-space-acceptance.mjs",
     "test:proxy": "node scripts/proxy-auth-e2e.mjs",
     "test:request-journal": "node scripts/pending-submission-browser.mjs",
     "test:project-journal": "node scripts/project-journal-browser.mjs",
     "test:db-runtime": "node scripts/db-runtime.mjs",
-    "test:boundaries": "node --test scripts/config.test.mjs scripts/draft-storage.test.mjs scripts/draft-workspace-copy.test.mjs scripts/auth-config.test.mjs scripts/auth-input.test.mjs scripts/form-account.test.mjs scripts/security-headers.test.mjs scripts/vercel-preview-env.test.mjs scripts/vercel-config.test.mjs scripts/vercel-telemetry.test.mjs scripts/member-access.test.mjs scripts/member-profile.test.mjs scripts/profile-save.test.mjs scripts/registration-claim.test.mjs scripts/own-visits.test.mjs scripts/lab-opening.test.mjs scripts/visit-command.test.mjs scripts/projects.test.mjs scripts/work-request.test.mjs scripts/events.test.mjs scripts/local-auth-exit.test.mjs scripts/signup-cleanup.test.mjs scripts/cookie-write.test.mjs"
+    "test:shared-profile-sql": "node scripts/shared-profile-db-validation.mjs",
+    "test:boundaries": "node --test scripts/auth-entry.test.mjs scripts/config.test.mjs scripts/shared-local-config.test.mjs scripts/draft-storage.test.mjs scripts/draft-workspace-copy.test.mjs scripts/auth-config.test.mjs scripts/auth-input.test.mjs scripts/form-account.test.mjs scripts/security-headers.test.mjs scripts/vercel-preview-env.test.mjs scripts/vercel-config.test.mjs scripts/vercel-telemetry.test.mjs scripts/member-access.test.mjs scripts/member-profile.test.mjs scripts/profile-save.test.mjs scripts/public-profile-contract.test.mjs scripts/public-profile-config.test.mjs scripts/registration-claim.test.mjs scripts/own-visits.test.mjs scripts/lab-opening.test.mjs scripts/visit-command.test.mjs scripts/projects.test.mjs scripts/project-rpc-contract.test.mjs scripts/check-validation-ledger.test.mjs scripts/work-request.test.mjs scripts/events.test.mjs scripts/local-auth-exit.test.mjs scripts/signup-cleanup.test.mjs scripts/signup-provider-policy.test.mjs scripts/cookie-write.test.mjs"
   },
   "dependencies": {
     "@supabase/ssr": "0.12.7",
@@ -29,6 +31,7 @@
     "@vercel/speed-insights": "2.0.0",
     "lucide-react": "1.60.0",
     "next": "16.4.2",
+    "qrcode": "1.5.4",
     "react": "19.3.1",
     "react-dom": "19.3.1"
   },
@@ -37,6 +40,7 @@
     "@eslint/js": "10.0.1",
     "@playwright/cli": "0.1.22",
     "@types/node": "22.20.5",
+    "@types/qrcode": "1.5.6",
     "@types/react": "19.3.0",
     "@types/react-dom": "19.3.0",
     "eslint": "10.13.0",

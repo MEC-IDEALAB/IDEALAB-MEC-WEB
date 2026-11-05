@@ -1,4 +1,6 @@
 import Image from "next/image";
+import { redirect } from 'next/navigation';
+import { authFailureNotice } from '@/lib/auth-input';
 import Link from "next/link";
 import { ArrowRight, ArrowUpRight, CalendarDays, CircleArrowRight, Layers3, Wrench } from "lucide-react";
 import { Brand } from "@/components/brand";
@@ -19,7 +21,10 @@ const paths = [
   { n: "03", title: "Learn by showing up.", text: "Find lab events and opportunities to learn, experiment, and meet people who like making things too.", href: "/events", label: "Explore events", icon: CalendarDays, tone: "coral" },
 ];
 
-export default function Home() {
+export default async function Home({ searchParams }: { searchParams: Promise<{ error?: string | string[]; error_code?: string | string[] }> }) {
+  const params = await searchParams;
+  const failure = authFailureNotice(params.error, params.error_code);
+  if (failure) redirect(`/sign-in?notice=${failure}`);
   return <div className="playful-site"><PublicHeader /><p className="sr-only" id="automatic-motion-description">This control pauses or resumes the moving home highlights, event archive, and quote strip. Keyboard focus on a moving region pauses it until you resume it using the Motion setting in the footer.</p><HomeTickerTop /><HomeMotion /><main id="main-content">
     <section className="hero container" aria-labelledby="hero-title">
       <div className="hero-copy"><ThemePicker className="hero-theme-toggle" />

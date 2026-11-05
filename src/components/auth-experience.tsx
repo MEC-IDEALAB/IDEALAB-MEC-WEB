@@ -14,6 +14,7 @@ import { AuthPixelBackground, AuthPixelMotionControl } from './auth-pixel-backgr
 const notices: Record<string, string> = {
   invalid: 'We couldn’t sign you in. Check your email and password, and make sure your email is verified.',
   oauth: 'Google sign-in couldn’t be completed. Try again, or create an account using email.',
+  'oauth-expired': 'This Google sign-in attempt expired. Start again with Continue with Google; don’t reuse the previous Google tab.',
   connection: 'We couldn’t reach the account service. Please try again shortly.',
   session: 'Please sign in to continue to your workspace.',
   configuration: 'Student account access is being prepared.',
@@ -49,7 +50,7 @@ export function AuthExperience({ initialView, notice }: { initialView: AuthView;
     <span className="eyebrow">WELCOME BACK</span>
     <h2 id="sign-in-title" tabIndex={-1}>Sign in</h2>
     <p>Pick up where your next idea left off.</p>
-    {(!configured || activeNotice || validation) && <div className="notice" role="status">{!configured ? notices.configuration : activeNotice || 'Test environment. Create a separate IDEALAB test account first.'}{configured && (notice === 'invalid' || notice === 'oauth' || validation) && <> <Link href="/sign-up">Create account</Link></>}</div>}
+    {(!configured || activeNotice || validation) && <div className="notice" role="status">{activeNotice || (!configured ? notices.configuration : 'Test environment. Create a separate IDEALAB test account first.')}{configured && (notice === 'invalid' || notice === 'oauth' || validation) && <> <Link href="/sign-up">Create account</Link></>}</div>}
     {configured && notice === 'password-updated-cleanup' && <form action={finishPasswordResetSignOut}><SubmitButton pendingText="Signing out…">Finish signing out</SubmitButton></form>}
     <form action={signIn} className="form-stack">
       <label htmlFor="email">Email address</label>

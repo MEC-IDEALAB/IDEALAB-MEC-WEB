@@ -9,6 +9,7 @@ import { PasswordField } from '@/components/password-field';
 import { SubmitButton } from '@/components/submit-button';
 import { ThemePicker } from '@/components/theme-picker';
 import { DoodleStar } from '@/components/doodles';
+import { AuthPixelBackground, AuthPixelMotionControl } from './auth-pixel-background';
 
 const notices: Record<string, string> = {
   invalid: 'We couldn’t sign you in. Check your email and password, and make sure your email is verified.',
@@ -82,9 +83,10 @@ export function AuthExperience({ initialView, notice }: { initialView: AuthView;
   </>;
 
   return <main id="main-content" className="auth-page reference-auth">
+    <AuthPixelBackground />
     <div className="auth-toolbar">
       <Link className="text-link" href="/"><ArrowUpRight className="auth-back-icon" size={18} aria-hidden="true" /> Back to IDEALAB MEC</Link>
-      <ThemePicker />
+      <div className="auth-toolbar-controls"><AuthPixelMotionControl /><ThemePicker /></div>
     </div>
     <AuthCardSwitcher initialView={initialView} signInStory={signInStory} createStory={createStory} signInPanel={signInPanel} createPanel={createPanel} />
   </main>;

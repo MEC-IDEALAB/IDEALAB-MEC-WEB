@@ -988,6 +988,24 @@ try {
   await page.screenshot({ path: 'artifacts/acceptance/navigation-mobile-closed.png' });
   await page.goto(base + '/sign-in');
   await page.getByRole('heading', { name: 'Sign in' }).waitFor();
+  await page.locator('#auth-pixel-background[data-drawn="true"]').waitFor();
+  await page.emulateMedia({ reducedMotion: 'no-preference' });
+  await page.getByRole('button', { name: /(?:Pause|Resume) background motion/ }).waitFor();
+  const resumeBackground = page.getByRole('button', { name: 'Resume background motion', exact: true });
+  if (await resumeBackground.count()) await resumeBackground.click();
+  const backgroundFrame = () => page.locator('#auth-pixel-background').evaluate(canvas => canvas.toDataURL());
+  const movingFrame = await backgroundFrame();
+  await page.waitForFunction(before => document.querySelector('#auth-pixel-background').toDataURL() !== before, movingFrame);
+  await page.getByRole('button', { name: 'Pause background motion', exact: true }).click();
+  const pausedFrame = await backgroundFrame();
+  await page.waitForTimeout(180);
+  assert.equal(await backgroundFrame(), pausedFrame, 'auth dot field pauses with the site motion preference');
+  await page.emulateMedia({ reducedMotion: 'reduce' });
+  await page.getByRole('button', { name: /background motion/ }).waitFor({ state: 'hidden' });
+  assert.equal(await page.getByRole('button', { name: /background motion/ }).count(), 0, 'reduced motion leaves a static pixel field');
+  await page.emulateMedia({ reducedMotion: 'no-preference' });
+  await page.getByRole('button', { name: 'Resume background motion', exact: true }).click();
+
   assert(await page.getByRole('button', { name: /Sign in/ }).isDisabled(), 'Missing config must disable sign-in');
   assert(await page.getByLabel('Email address').isDisabled());
   assert(await page.getByText(/Student account access is being prepared/i).filter({ visible: true }).isVisible());

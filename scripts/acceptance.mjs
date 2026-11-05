@@ -988,6 +988,43 @@ try {
   await page.screenshot({ path: 'artifacts/acceptance/navigation-mobile-closed.png' });
   await page.goto(base + '/sign-in');
   await page.getByRole('heading', { name: 'Sign in' }).waitFor();
+  await page.locator('#auth-pixel-background[data-drawn="true"]').waitFor();
+  await page.emulateMedia({ reducedMotion: 'no-preference' });
+  await page.getByRole('button', { name: /(?:Pause|Resume) background motion/ }).waitFor();
+  const resumeBackground = page.getByRole('button', { name: 'Resume background motion', exact: true });
+  if (await resumeBackground.count()) await resumeBackground.click();
+  assert.equal(await page.locator('#auth-pixel-background').getAttribute('data-renderer'), 'webgl', 'reference dot field uses the real GPU shader');
+  const backgroundFrame = async () => (await page.screenshot({ clip: { x: 0, y: 0, width: 64, height: 64 } })).toString('base64');
+  const movingFrame = await backgroundFrame();
+  await page.waitForTimeout(250);
+  assert.notEqual(await backgroundFrame(), movingFrame, 'visible shader particles change between rendered frames');
+  await page.getByRole('button', { name: 'Pause background motion', exact: true }).click();
+  const pausedFrame = await backgroundFrame();
+  await page.waitForTimeout(180);
+  assert.equal(await backgroundFrame(), pausedFrame, 'auth dot field pauses with the site motion preference');
+  await page.emulateMedia({ reducedMotion: 'reduce' });
+  await page.getByRole('button', { name: /background motion/ }).waitFor({ state: 'hidden' });
+  assert.equal(await page.getByRole('button', { name: /background motion/ }).count(), 0, 'reduced motion leaves a static pixel field');
+  await page.emulateMedia({ reducedMotion: 'no-preference' });
+  await page.getByRole('button', { name: 'Resume background motion', exact: true }).click();
+  const shaderFailurePage = await context.newPage();
+  await shaderFailurePage.addInitScript(() => {
+    const NativeObserver = window.ResizeObserver;
+    window.__shaderObserverDisconnects = 0;
+    window.ResizeObserver = class extends NativeObserver {
+      observe(target, options) {
+        if (target.id === 'auth-pixel-background') throw new Error('Fixture resize initialization failure');
+        return super.observe(target, options);
+      }
+      disconnect() { window.__shaderObserverDisconnects++; super.disconnect(); }
+    };
+  });
+  await shaderFailurePage.goto(base + '/sign-in');
+  await shaderFailurePage.locator('#auth-pixel-background[data-renderer="fallback"]').waitFor();
+  assert.equal(await shaderFailurePage.evaluate(() => window.__shaderObserverDisconnects > 0), true, 'shader initialization failure releases its resize observer');
+  assert(await shaderFailurePage.getByRole('heading', { name: 'Sign in', exact: true }).isVisible(), 'shader failure preserves the sign-in form');
+  await shaderFailurePage.close();
+
   assert(await page.getByRole('button', { name: /Sign in/ }).isDisabled(), 'Missing config must disable sign-in');
   assert(await page.getByLabel('Email address').isDisabled());
   assert(await page.getByText(/Student account access is being prepared/i).filter({ visible: true }).isVisible());

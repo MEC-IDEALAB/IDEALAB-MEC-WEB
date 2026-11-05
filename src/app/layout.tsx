@@ -13,6 +13,7 @@ import './onboarding-preview.css';
 import './staff-preview.css';
 import './auth-recovery.css';
 import './auth-flow.css';
+import './auth-pixels.css';
 import './member-shell.css';
 import './account-setup.css';
 import './navigation-refresh.css';

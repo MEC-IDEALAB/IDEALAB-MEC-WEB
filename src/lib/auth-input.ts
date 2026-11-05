@@ -35,3 +35,9 @@ export function readNewPassword(form: FormData): string | null {
   const confirmation = single(form, 'confirm_password');
   return password !== null && password.length >= 8 && password.length <= 1024 && password === confirmation ? password : null;
 }
+
+/** Provider errors may choose a fixed message, never a destination or raw copy. */
+export function authFailureNotice(error: unknown, code: unknown): 'oauth' | 'oauth-expired' | null {
+  if (typeof error !== 'string' || !error) return null;
+  return error === 'invalid_request' && code === 'bad_oauth_state' ? 'oauth-expired' : 'oauth';
+}

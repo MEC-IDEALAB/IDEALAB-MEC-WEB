@@ -986,6 +986,10 @@ try {
   assert(await mobileNavigation.isVisible(), 'Mobile top navigation remains available at its exact CSS breakpoint');
   await page.setViewportSize({ width: 375, height: 667 });
   await page.screenshot({ path: 'artifacts/acceptance/navigation-mobile-closed.png' });
+  await page.goto(base + '/?error=invalid_request&error_code=bad_oauth_state&error_description=external-copy-must-not-render');
+  await page.waitForURL(base + '/sign-in?notice=oauth-expired');
+  assert(await page.getByRole('status').getByText(/This Google sign-in attempt expired/).isVisible(), 'expired provider state offers a fresh sign-in instead of silently landing on Home');
+  assert.equal((await page.locator('main').innerText()).includes('external-copy-must-not-render'), false, 'external error descriptions are not reflected');
   await page.goto(base + '/sign-in');
   await page.getByRole('heading', { name: 'Sign in' }).waitFor();
   await page.locator('#auth-pixel-background[data-drawn="true"]').waitFor();

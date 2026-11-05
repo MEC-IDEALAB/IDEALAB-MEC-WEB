@@ -22,23 +22,27 @@ const fragmentShader = `
   uniform float u_time;
   uniform vec2 u_resolution;
   uniform vec3 u_colors[3];
+  uniform vec3 u_background;
   uniform float u_ratio;
   float random(vec2 p) {
     return fract(sin(dot(p, vec2(12.9898, 78.233))) * 43758.5453);
   }
   void main() {
-    float spacing = 22.0 * u_ratio;
+    float spacing = 18.0 * u_ratio;
     vec2 cell = floor(fragCoord / spacing);
     vec2 local = fract(fragCoord / spacing);
     float seed = random(cell);
-    float size = mix(0.12, 0.34, step(0.82, seed));
-    float dotMask = (1.0 - step(size, local.x)) * (1.0 - step(size, local.y));
     float distanceFromCenter = distance(cell, u_resolution / spacing * 0.5);
-    float wave = 0.5 + 0.5 * sin(distanceFromCenter * 0.32 - u_time * 2.0 + seed * 2.0);
-    float drift = 0.5 + 0.5 * sin(cell.x * 0.19 + cell.y * 0.24 - u_time * 1.1);
-    float opacity = mix(0.12, 0.78, wave * drift);
-    vec3 color = u_colors[int(floor(seed * 3.0))];
-    fragColor = vec4(color, dotMask * opacity);
+    float wave = 0.5 + 0.5 * sin(distanceFromCenter * 0.24 - u_time * 1.05);
+    float drift = 0.5 + 0.5 * sin(cell.x * 0.12 + cell.y * 0.16 - u_time * 0.65);
+    float flow = wave * drift;
+    float size = mix(0.10, 0.56, flow) * mix(0.5, 1.0, seed);
+    vec2 square = abs(local - 0.5);
+    float dotMask = (1.0 - step(size * 0.5, square.x)) * (1.0 - step(size * 0.5, square.y));
+    vec3 gradient = mix(u_colors[1], u_colors[2], drift);
+    vec3 color = mix(u_colors[0], gradient, smoothstep(0.1, 0.85, flow));
+    vec3 backdrop = mix(u_background, gradient, flow * 0.065);
+    fragColor = vec4(mix(backdrop, color, dotMask * mix(0.25, 0.85, flow)), 1.0);
   }
 `;
 
@@ -73,7 +77,8 @@ export function AuthPixelBackground() {
         u_time: { value: 0 },
         u_resolution: { value: new THREE.Vector2() },
         u_ratio: { value: 1 },
-        u_colors: { value: (signup ? ['#ff3994', '#b49aff', '#315dff'] : ['#ffe029', '#315dff', '#7aafff']).map(color => new THREE.Color(color)) },
+        u_background: { value: new THREE.Color() },
+        u_colors: { value: (signup ? ['#ffffff', '#f447a3', '#b49aff'] : ['#ffffff', '#527cff', '#ffe15a']).map(color => new THREE.Color(color)) },
       };
       const material = new THREE.ShaderMaterial({ vertexShader, fragmentShader, uniforms, glslVersion: THREE.GLSL3, transparent: true, depthTest: false, depthWrite: false });
       const geometry = new THREE.PlaneGeometry(2, 2);
@@ -98,6 +103,10 @@ export function AuthPixelBackground() {
         renderer.getDrawingBufferSize(uniforms.u_resolution.value);
         draw();
       }
+      function updateTheme() {
+        uniforms.u_background.value.set(getComputedStyle(element!.parentElement!).backgroundColor);
+        draw();
+      }
       function animate(time: number) {
         frame = 0;
         uniforms.u_time.value += Math.min(time - previousTime, 100) / 1000;
@@ -117,9 +126,13 @@ export function AuthPixelBackground() {
         }
       }
       const observer = new ResizeObserver(resize);
+      const themeObserver = new MutationObserver(updateTheme);
+      const themePreference = window.matchMedia('(prefers-color-scheme: dark)');
       dispose = () => {
         cancelAnimationFrame(frame);
         observer.disconnect();
+        themeObserver.disconnect();
+        themePreference.removeEventListener('change', updateTheme);
         document.removeEventListener('visibilitychange', sync);
         syncMotion.current = null;
         geometry.dispose();
@@ -127,9 +140,12 @@ export function AuthPixelBackground() {
         renderer.dispose();
       };
       observer.observe(element);
+      themeObserver.observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] });
+      themePreference.addEventListener('change', updateTheme);
       document.addEventListener('visibilitychange', sync);
       syncMotion.current = sync;
       resize();
+      updateTheme();
       sync();
     }).catch(() => {
       dispose?.();

@@ -1001,6 +1001,7 @@ try {
   await page.waitForURL(base + '/sign-in?notice=oauth-expired');
   assert(await page.getByRole('status').getByText(/This Google sign-in attempt expired/).isVisible(), 'expired provider state offers a fresh sign-in instead of silently landing on Home');
   assert.equal((await page.locator('main').innerText()).includes('external-copy-must-not-render'), false, 'external error descriptions are not reflected');
+  assert(await page.getByRole('button', { name: 'Sign in', exact: true }).isDisabled(), 'expired sign-in feedback preserves the hosted gate');
   await page.goto(base + '/sign-in');
   await page.getByRole('heading', { name: 'Sign in' }).waitFor();
   await page.locator('#auth-pixel-background[data-drawn="true"]').waitFor();
@@ -1009,11 +1010,17 @@ try {
   const resumeBackground = page.getByRole('button', { name: 'Resume background motion', exact: true });
   if (await resumeBackground.count()) await resumeBackground.click();
   assert.equal(await page.locator('#auth-pixel-background').getAttribute('data-renderer'), 'webgl', 'reference dot field uses the real GPU shader');
-  const backgroundFrame = async () => (await page.screenshot({ clip: { x: 0, y: 0, width: 64, height: 64 } })).toString('base64');
+  const backgroundFrame = async () => (await page.screenshot({ clip: { x: 0, y: 170, width: 14, height: 400 } })).toString('base64');
   const movingFrame = await backgroundFrame();
-  await page.waitForTimeout(250);
-  assert.notEqual(await backgroundFrame(), movingFrame, 'visible shader particles change between rendered frames');
+  let changed = false;
+  const motionDeadline = Date.now() + 3000;
+  while (!changed && Date.now() < motionDeadline) {
+    await page.waitForTimeout(150);
+    changed = await backgroundFrame() !== movingFrame;
+  }
+  assert(changed, 'visible shader particles change between rendered frames');
   await page.getByRole('button', { name: 'Pause background motion', exact: true }).click();
+  await page.evaluate(() => new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve))));
   const pausedFrame = await backgroundFrame();
   await page.waitForTimeout(180);
   assert.equal(await backgroundFrame(), pausedFrame, 'auth dot field pauses with the site motion preference');

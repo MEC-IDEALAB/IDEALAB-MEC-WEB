@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { readAuthCredentials, readAuthEmail, readAuthCode, readNewPassword } from '../src/lib/auth-input.ts';
+import { readAuthCredentials, readAuthEmail, readAuthCode, readNewPassword, authFailureNotice } from '../src/lib/auth-input.ts';
 const form = (email='maker@example.invalid', password='test-only-password') => { const f=new FormData(); f.set('email',email); f.set('password',password); return f; };
 test('credentials preserve passwords and forward only email/password',()=>{const f=form(' maker@example.invalid ','  test pass  ');f.set('role','super_admin'); assert.deepEqual(readAuthCredentials(f,true),{email:'maker@example.invalid',password:'  test pass  '});});
 test('duplicate, missing, file and malformed email inputs fail closed',()=>{ for(const value of ['no-address','a@b','a\n@b.invalid','maker\u0085@example.invalid','maker@example\u0085.invalid']) assert.equal(readAuthEmail(form(value)),null); const f=form();f.append('email','other@example.invalid');assert.equal(readAuthCredentials(f),null); const g=form();g.set('password',new Blob(['not-a-password']),'input.txt');assert.equal(readAuthCredentials(g),null);assert.equal(readAuthEmail(null),null); });
@@ -9,3 +9,13 @@ test('PKCE callback selects the specific flow and ignores return destinations',(
 test('PKCE callback rejects ambiguous, invalid and provider-rejected parameters',()=>{for(const q of ['','code=','code=a&code=b','code=a&error=denied','code=a&sb_flow_id=x','code=a&sb_flow_id=flow_test123&sb_flow_id=flow_test456','code=a%0ab'])assert.equal(readAuthCode(new URLSearchParams(q)),null);});
 
 test('password updates reject short, mismatched, duplicate and file values',()=>{const f=new FormData();f.set('new_password','new-test-password');f.set('confirm_password','new-test-password');assert.equal(readNewPassword(f),'new-test-password');f.append('new_password','extra');assert.equal(readNewPassword(f),null);f.set('new_password','short');f.set('confirm_password','short');assert.equal(readNewPassword(f),null);assert.equal(readNewPassword(null),null);});
+
+test('provider failures choose fixed notices without reflecting external copy or destinations', () => {
+  assert.equal(authFailureNotice('invalid_request', 'bad_oauth_state'), 'oauth-expired');
+  for (const [error, code] of [['access_denied', 'bad_oauth_state'], ['untrusted external copy', 'https://outside.invalid'], ['invalid_request', ['bad_oauth_state']]]) {
+    assert.equal(authFailureNotice(error, code), 'oauth');
+  }
+  for (const error of [undefined, null, '', ['invalid_request'], { error: 'invalid_request' }]) {
+    assert.equal(authFailureNotice(error, 'bad_oauth_state'), null);
+  }
+});

@@ -11,10 +11,12 @@ import { ThemePicker } from '@/components/theme-picker';
 import { AuthPoster } from '@/components/auth-poster';
 import { serverClient } from '@/lib/supabase';
 import { inspectAuthEntry } from '@/lib/auth-entry';
+import { AuthPixelBackground, AuthPixelMotionControl } from './auth-pixel-background';
 
 const notices: Record<string, string> = {
   invalid: 'We couldn’t sign you in. Check your email and password, and make sure your email is verified.',
   oauth: 'Google sign-in couldn’t be completed. Try again, or create an account using email.',
+  'oauth-expired': 'This Google sign-in attempt expired. Start again with Continue with Google; don’t reuse the previous Google tab.',
   connection: 'We couldn’t reach the account service. Please try again shortly.',
   session: 'Please sign in to continue to your workspace.',
   configuration: 'Student account access is being prepared.',
@@ -34,7 +36,8 @@ export async function AuthExperience({ initialView, notice }: { initialView: Aut
   const configured = backendAvailable && entry.state !== 'unavailable';
   const validation = process.env.ACCOUNT_ENVIRONMENT === 'validation';
   const signupConfigured = !!signupAuthConfig() && entry.state !== 'unavailable';
-  const activeNotice = entry.state === 'unavailable' ? notices.connection : notice ? notices[notice] : undefined;
+  const requestedNotice = notice && Object.hasOwn(notices, notice) ? notices[notice] : undefined;
+  const activeNotice = entry.state === 'unavailable' ? notices.connection : requestedNotice;
   const signInStory = <>
     <div className="auth-poster-topline"><span>IDEALAB / MEC</span><span>01 — RETURN</span></div>
     <h1>YOUR NEXT<br /><span>LEVEL.</span></h1>
@@ -64,7 +67,7 @@ export async function AuthExperience({ initialView, notice }: { initialView: Aut
   const signInPanel = <>
     <div className="auth-mini-art"><AuthPoster mini /></div>
     <h2 id="sign-in-title" tabIndex={-1}>Sign in</h2>
-    {(!configured || activeNotice || validation) && <div className="notice" role="status">{!backendAvailable ? notices.configuration : activeNotice || 'Test environment. Create a separate IDEALAB test account first.'}{configured && (notice === 'invalid' || notice === 'oauth' || validation) && <> <Link href="/sign-up">Create account</Link></>}</div>}
+    {(!configured || activeNotice || validation) && <div className="notice" role="status">{activeNotice || (!backendAvailable ? notices.configuration : 'Test environment. Create a separate IDEALAB test account first.')}{configured && (notice === 'invalid' || notice === 'oauth' || validation) && <> <Link href="/sign-up">Create account</Link></>}</div>}
     {configured && notice === 'password-updated-cleanup' && <form action={finishPasswordResetSignOut}><SubmitButton pendingText="Signing out…">Finish signing out</SubmitButton></form>}
     <form action={signIn} className="form-stack">
       <label htmlFor="email">Email address</label>
@@ -97,9 +100,10 @@ export async function AuthExperience({ initialView, notice }: { initialView: Aut
   </>;
 
   return <main id="main-content" className="auth-page reference-auth poster-auth arcade-auth">
+    <AuthPixelBackground />
     <div className="auth-toolbar">
       <Link className="text-link" href="/"><ArrowUpRight className="auth-back-icon" size={18} aria-hidden="true" /> Back to IDEALAB MEC</Link>
-      <ThemePicker />
+      <div className="auth-toolbar-controls"><AuthPixelMotionControl /><ThemePicker /></div>
     </div>
     <AuthCardSwitcher initialView={initialView} signInStory={signInStory} createStory={createStory} signInPanel={signInPanel} createPanel={createPanel} />
   </main>;

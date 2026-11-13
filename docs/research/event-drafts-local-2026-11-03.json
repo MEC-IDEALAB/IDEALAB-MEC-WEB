@@ -1,0 +1,201 @@
+{
+  "capturedAt": "2026-11-03T14:26:10.5531773Z",
+  "scope": "Local disposable PostgreSQL only; no live database, Auth, API, browser, Flutter, push or deployment verification",
+  "sources": [
+    {
+      "path": "supabase/validation/mec_event_drafts_candidate.sql",
+      "sha256": "693c7bbe228990fa209af9edb7137d911147a18d5b869b78defda44efaee77f7"
+    },
+    {
+      "path": "supabase/validation/mec_event_management_reads_candidate.sql",
+      "sha256": "a9b3f9460dd3c112346a9d98248b36294b8c2c6555e64308afbbc2d24c4503db"
+    },
+    {
+      "path": "supabase/validation/mec_event_drafts_rollback.sql",
+      "sha256": "05d0a84f1f4d5d2a7fa84a120e9792042d0d24b65fc5f50cd5627227ef2854bd"
+    },
+    {
+      "path": "supabase/tests/database/mec_event_drafts_fixture.sql",
+      "sha256": "8672ceffd53df5d7758a718f9b7a7ee8a26999370f810d39e459f9f55d7cda7b"
+    },
+    {
+      "path": "supabase/tests/database/mec_event_drafts.test.sql",
+      "sha256": "874abf010fb4f05b643f0f0e02ae90789c0db158f484d9ccb8479a2d81c82dad"
+    },
+    {
+      "path": "supabase/tests/database/mec_event_management_reads.test.sql",
+      "sha256": "3ea5c40f7fb3f1d68d19a049e5176b329fcabd38fa295008308585f7b486162d"
+    },
+    {
+      "path": "scripts/event-drafts-concurrency.mjs",
+      "sha256": "b71769b17d2a62637d09a5921d31a57444ef61dc6f9707b723ceb7652e49039c"
+    },
+    {
+      "path": "scripts/db-runtime.mjs",
+      "sha256": "a3194f6e39cfaf7f04038f3860e086e2a0b0622433c81169029c5abf8a84b458"
+    },
+    {
+      "path": "src/features/events/management-contract.ts",
+      "sha256": "828584bfe5c5b3cb97ee2ca7b54774b00c6a0e3a29545b92acd4c783508cfeb3"
+    },
+    {
+      "path": "src/features/events/pending-event.ts",
+      "sha256": "bccaacd3656df7736abd4f4fb4aa7e33886e1afcc1ed65a4011a53f3a353d778"
+    },
+    {
+      "path": "src/features/events/event-draft-editor.tsx",
+      "sha256": "44b69c32bc0f3994ca434078dded29ed7d82de511e05bd7bbf94314048e02f54"
+    },
+    {
+      "path": "src/features/events/management-data.ts",
+      "sha256": "463c108a26cd2962520a65a9b0765359f70ab7d08e8fa92b63463666bd24c073"
+    },
+    {
+      "path": "src/app/app/events/manage/actions.ts",
+      "sha256": "0fef18b035c51bd1846e5c9573d8b9a25427704c7a09be833479b47d29578e0f"
+    }
+  ],
+  "runs": [
+    {
+      "artifact": "artifacts/database-runtime/runtime-1793715754003-ab446d20.json",
+      "result": {
+        "capturedAt": "2026-11-03T14:22:02.546Z",
+        "nodeVersion": "v24.22.1",
+        "version": "postgres (PostgreSQL) 16.1",
+        "scope": "Disposable PostgreSQL with synthetic event draft/publication checks. No live Supabase services accessed.",
+        "checks": {
+          "privateScratchDirectory": true,
+          "isolatedIdentity": true,
+          "wrongCredentialDenied": true,
+          "transactionRollback": true,
+          "eventDrafts": true,
+          "eventDraftsRolledBack": true,
+          "legacyEventWritersRefused": true,
+          "eventDraftConcurrency": true,
+          "eventDraftPreUseRollback": true,
+          "eventManagementReads": true,
+          "clusterStoppedAndRemoved": true
+        },
+        "database": {
+          "version": "16.1",
+          "encoding": "UTF8",
+          "locale": "C"
+        },
+        "result": "passed",
+        "started": true
+      }
+    },
+    {
+      "artifact": "artifacts/database-runtime/runtime-1793715839180-e9b0815d.json",
+      "result": {
+        "capturedAt": "2026-11-03T14:23:29.657Z",
+        "nodeVersion": "v24.22.1",
+        "version": "postgres (PostgreSQL) 17.6",
+        "scope": "Disposable PostgreSQL with synthetic event draft/publication checks. No live Supabase services accessed.",
+        "checks": {
+          "privateScratchDirectory": true,
+          "isolatedIdentity": true,
+          "wrongCredentialDenied": true,
+          "transactionRollback": true,
+          "eventDrafts": true,
+          "eventDraftsRolledBack": true,
+          "legacyEventWritersRefused": true,
+          "eventDraftConcurrency": true,
+          "eventDraftPreUseRollback": true,
+          "eventManagementReads": true,
+          "clusterStoppedAndRemoved": true
+        },
+        "database": {
+          "version": "17.6",
+          "encoding": "UTF8",
+          "locale": "C"
+        },
+        "result": "passed",
+        "started": true
+      }
+    }
+  ],
+  "independentReview": "Legacy RSVP bypass and both browser recovery blockers corrected; no remaining authorization or unsafe-discard blocker found. Final reload/copy UX correction implemented. Event concurrency verifies submitted outcomes without an observed lock-wait barrier.",
+  "remaining": [
+    "Shared writer/trigger audit and Flutter cutover",
+    "Specific shared migration approval",
+    "Live Supabase Auth/PostgREST save-edit-publish E2E",
+    "Authenticated terminal-rejection and delayed-account-switch browser tests",
+    "RSVP/cancellation/attendee visibility contract",
+    "Approved paid workflow"
+  ],
+  "browserEvidence": {
+    "artifact": "artifacts/event-manager/summary.json",
+    "scope": "Visual preview only; final rejected-copy-area/link correction not exercised in a browser",
+    "result": {
+      "scope": "Current-source visual preview and configuration gate only; no live Auth, API or persistence E2E.",
+      "results": [
+        {
+          "width": 320,
+          "theme": "light",
+          "overflow": false,
+          "axeViolations": 0,
+          "keyboard": "passed",
+          "previewSend": "blocked"
+        },
+        {
+          "width": 320,
+          "theme": "dark",
+          "overflow": false,
+          "axeViolations": 0,
+          "keyboard": "passed",
+          "previewSend": "blocked"
+        },
+        {
+          "width": 390,
+          "theme": "light",
+          "overflow": false,
+          "axeViolations": 0,
+          "keyboard": "passed",
+          "previewSend": "blocked"
+        },
+        {
+          "width": 390,
+          "theme": "dark",
+          "overflow": false,
+          "axeViolations": 0,
+          "keyboard": "passed",
+          "previewSend": "blocked"
+        },
+        {
+          "width": 768,
+          "theme": "light",
+          "overflow": false,
+          "axeViolations": 0,
+          "keyboard": "passed",
+          "previewSend": "blocked"
+        },
+        {
+          "width": 768,
+          "theme": "dark",
+          "overflow": false,
+          "axeViolations": 0,
+          "keyboard": "passed",
+          "previewSend": "blocked"
+        },
+        {
+          "width": 1440,
+          "theme": "light",
+          "overflow": false,
+          "axeViolations": 0,
+          "keyboard": "passed",
+          "previewSend": "blocked"
+        },
+        {
+          "width": 1440,
+          "theme": "dark",
+          "overflow": false,
+          "axeViolations": 0,
+          "keyboard": "passed",
+          "previewSend": "blocked"
+        }
+      ],
+      "protectedRoute": "redirected"
+    }
+  }
+}

@@ -6,6 +6,7 @@ const supabaseDomain = '.supabase.co';
 const validationFeatureFlags = {
   labOpening: 'ENABLE_LAB_OPENING_VALIDATION',
   ownVisits: 'ENABLE_OWN_VISITS_VALIDATION',
+  passwordRecovery: 'ENABLE_RECOVERY_VALIDATION',
 } as const;
 export type ValidationFeature = keyof typeof validationFeatureFlags;
 

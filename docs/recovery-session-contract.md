@@ -1,7 +1,9 @@
-# Password recovery session contract — candidate
+# Password recovery session contract — validation implementation
 
-Website password recovery is disabled. This document is a design candidate, not
-an implemented or production-approved security boundary.
+Website password recovery is default-off. The local reader/callback/form/action
+boundary is implemented and the consumption API is installed only in isolated
+validation. See [current implementation and evidence](quality/recovery-integration-2026-11-05.md).
+Real provider acceptance and shared production approval remain outstanding.
 
 ## Evidence
 
@@ -54,3 +56,63 @@ must not be assumed to cover a method until it is verified.
   compatible Grow release and rollback before any production activation.
 
 No candidate migration or Auth configuration change is implied by this record.
+
+## Disposable validation evidence — 5 November 2026
+
+The [consumption SQL candidate](../supabase/validation/mec_recovery_consumption_candidate.sql)
+checks the synthetic recovery claim against the current account, session and
+database authentication method. Run `node scripts/db-runtime.mjs --recovery-consumption`
+with the configured PostgreSQL 17 binary directory. The PG17.11 run
+`runtime-1793833554150-972399c6.json` passed malformed, expired, switched and
+replayed claim checks, receipt access checks and a two-connection race with
+exactly one successful consumption. The scratch cluster was removed.
+
+The provider's actual claim and revocation behavior, receipt retention,
+independent review and browser integration remain open. Recovery stays disabled.
+
+## Upstream provider cross-check — 5 November 2026
+
+At Supabase Auth commit `d7955e9eb54003c4abbd7808e774c810d5d3e6cc`,
+verification carries the authentication method into the PKCE flow, token
+issuance records it on the session, and JWT AMR timestamps come from the
+claim row's update timestamp. The website candidate checks the signed AMR
+timestamp and the database claim's creation time separately. This prevents a
+refreshed claim from extending the original database recovery window.
+[Verification source](https://github.com/supabase/auth/blob/d7955e9eb54003c4abbd7808e774c810d5d3e6cc/internal/api/verify.go)
+· [Session source](https://github.com/supabase/auth/blob/d7955e9eb54003c4abbd7808e774c810d5d3e6cc/internal/models/sessions.go)
+
+The same upstream revision has a current-password requirement that exempts
+recovery sessions. A receipt in the website database does not change that Auth
+session classification. Check the deployed version and settings, then test
+direct provider updates with ordinary and consumed recovery sessions before
+release. Treat an unexpected successful direct update as a release blocker
+until the actual session lifecycle and provider controls are reviewed.
+[Password update source](https://github.com/supabase/auth/blob/d7955e9eb54003c4abbd7808e774c810d5d3e6cc/internal/api/user.go)
+
+## Function owner and lock-wait verification
+
+Read-only catalog inspection on 5 November found that the shared project's
+`postgres` role is a nonsuperuser with BYPASSRLS and table SELECT and UPDATE on
+the three required Auth relations. The inactive validation project still needs
+its own catalog check before any installation.
+
+PG17.11 artifact `runtime-1793837623647-70134fac.json` records a passing
+rehearsal with a nonsuperuser function owner, the captured privilege shape and
+Auth table RLS enabled. The harness observed a recovery request waiting on a
+session lock until expiry, then verified denial and no receipt. The candidate
+rechecks freshness after obtaining Auth locks and after inserting the receipt.
+Provider behavior and browser acceptance remain open.
+
+The candidate now checks the function owner's Auth privileges before creating
+its objects. PG17.11 artifact `runtime-1793838478149-7f59d2fe.json` verifies that
+installation fails when the fixture owner lacks the grant needed to lock
+`auth.sessions`. The same run passed replay and lock-wait expiry checks with
+the expected grants. Read-only inspection also confirmed the shared project's
+required Auth column types.
+
+The [pre-use rollback](../supabase/validation/mec_recovery_consumption_rollback.sql)
+locks the receipt table before checking whether removal is safe. PG17.11
+artifact `runtime-1793839080864-9475102e.json` verifies that rollback removes
+the candidate before first use and refuses once a receipt exists. After use,
+turn off recovery entry points and retain receipts pending a reviewed retention
+and recovery plan.

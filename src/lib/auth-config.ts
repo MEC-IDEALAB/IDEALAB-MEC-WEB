@@ -1,4 +1,4 @@
-import { backendConfig } from './config.ts';
+import { backendConfig, validationFeatureEnabled } from './config.ts';
 
 function canonicalAuthOrigin() {
   if (!backendConfig()) return null;
@@ -17,9 +17,12 @@ export function googleAuthConfig() {
 }
 
 export function passwordRecoveryConfig() {
-  // Recovery remains disabled until a verified recovery-session boundary and
-  // atomic replay protection are implemented and tested end to end.
-  return null as { callback: string } | null;
+  // This opt-in can only use the isolated development project. Shared and
+  // hosted recovery await real provider/session acceptance and rollout review.
+  if (!validationFeatureEnabled('passwordRecovery')) return null;
+  const origin = canonicalAuthOrigin();
+  if (!origin || origin.protocol !== 'http:' || !['localhost', '127.0.0.1'].includes(origin.hostname)) return null;
+  return { callback: new URL('/auth/recovery/callback', origin).href };
 }
 
 /** Email confirmation stays available independently of the Google provider. */

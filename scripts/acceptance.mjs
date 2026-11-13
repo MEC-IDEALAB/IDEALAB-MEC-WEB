@@ -91,6 +91,25 @@ async function contrastAgainst(page, textSelector, backgroundSelector) {
     return (Math.max(foreground, background) + .05) / (Math.min(foreground, background) + .05);
   }, backgroundSelector);
 }
+async function contrastEachAgainst(page, textSelector, backgroundSelector) {
+  return page.locator(textSelector).evaluateAll((elements, selector) => {
+    const luminance = color => {
+      const channels = color.match(/[\d.]+/g).slice(0, 3).map(Number);
+      const rgb = color.startsWith('color(srgb ') ? channels.map(channel => channel * 255) : channels;
+      return rgb.map(channel => {
+        const value = channel / 255;
+        return value <= .04045 ? value / 12.92 : ((value + .055) / 1.055) ** 2.4;
+      }).reduce((sum, value, index) => sum + value * [.2126, .7152, .0722][index], 0);
+    };
+    return elements.map(element => {
+      const surface = element.closest(selector);
+      if (!surface) return null;
+      const foreground = luminance(getComputedStyle(element).color);
+      const background = luminance(getComputedStyle(surface).backgroundColor);
+      return (Math.max(foreground, background) + .05) / (Math.min(foreground, background) + .05);
+    });
+  }, backgroundSelector);
+}
 async function loadPageImages(page) {
   for (const image of await page.locator('img:not(.ticker-track img)').all()) await image.scrollIntoViewIfNeeded();
   await page.waitForFunction(() => [...document.images].every(image => image.complete && image.naturalWidth > 0));
@@ -807,6 +826,7 @@ try {
     assert.equal(await page.getByRole('button', { name: /automatic motion/i }).count(), 1, 'A single accessible motion control is available in the footer');
     assert.equal(await page.getByRole('button', { name: /automatic motion/i }).getAttribute('aria-controls'), 'maker-ticker past-events-carousel quote-ticker', 'The motion control identifies all automatic motion regions');
     assert.equal(await page.locator('.past-event-slide').count(), 4, 'The event carousel contains four archive cards');
+    assert.equal(await page.locator('.past-event-slide[aria-hidden="true"] img[loading="lazy"]').count(), 3, 'Inactive archive photos use browser lazy loading');
     const eventWindow = await page.locator('.event-carousel-window').boundingBox();
     const activeEventImage = await page.locator('.past-event-slide[aria-hidden="false"] .event-slide-image').boundingBox();
     assert(eventWindow && activeEventImage && activeEventImage.x < eventWindow.x + eventWindow.width && activeEventImage.x + activeEventImage.width > eventWindow.x, 'The active event image remains inside the visible carousel window');
@@ -999,9 +1019,9 @@ try {
   await page.screenshot({ path: acceptanceArtifact('navigation-mobile-closed.png') });
   await page.goto(base + '/?error=invalid_request&error_code=bad_oauth_state&error_description=external-copy-must-not-render');
   await page.waitForURL(base + '/sign-in?notice=oauth-expired');
-  assert(await page.getByRole('status').getByText(/This Google sign-in attempt expired/).isVisible(), 'expired provider state offers a fresh sign-in instead of silently landing on Home');
-  assert.equal((await page.locator('main').innerText()).includes('external-copy-must-not-render'), false, 'external error descriptions are not reflected');
-  assert(await page.getByRole('button', { name: 'Sign in', exact: true }).isDisabled(), 'expired sign-in feedback preserves the hosted gate');
+  await page.getByRole('status').getByText(/This Google sign-in attempt expired/).waitFor();
+  assert.equal((await page.locator('main').innerText()).includes('external-copy-must-not-render'), false, 'External error descriptions are omitted');
+  assert(await page.getByRole('button', { name: 'Sign in', exact: true }).isDisabled(), 'Expired-attempt feedback does not enable gated sign-in');
   await page.goto(base + '/sign-in');
   await page.getByRole('heading', { name: 'Sign in' }).waitFor();
   await page.locator('#auth-pixel-background[data-drawn="true"]').waitFor();
@@ -1195,6 +1215,7 @@ try {
     home: 'A home base for your next idea.',
     lab: 'Find your way around the lab.',
     profile: 'Your details, in your control.',
+    'make-borrow': 'Make something. Borrow what helps.',
     projects: 'Projects take shape together.',
     events: 'Make room for what is next.',
     requests: 'Turn an idea into a work request.',
@@ -1203,35 +1224,40 @@ try {
     borrowing: 'Keep shared tools moving.',
     settings: 'Make this space work for you.',
   };
-  const labDestinations = { Overview: 'lab', Requests: 'requests', Borrowing: 'borrowing', Events: 'events', Visits: 'visits', Projects: 'projects' };
+  const labDestinations = { 'Make & borrow': 'make-borrow', Events: 'events', Projects: 'projects' };
   const profileDestinations = { 'Your details': 'profile', Settings: 'settings' };
   async function assertStudentNavigation(screen) {
-    const primary = page.getByRole('navigation', { name: 'Primary workspace navigation', exact: true });
+    const mobile = (page.viewportSize()?.width ?? 1440) <= 850;
+    const primary = page.getByRole('navigation', { name: mobile ? 'Mobile workspace navigation' : 'Primary workspace navigation', exact: true });
     assert(await primary.isVisible(), `${screen} keeps primary navigation visible`);
     assert.deepEqual(await primary.getByRole('link').allTextContents(), ['Home', 'Lab', 'Profile'], 'The workspace has exactly three primary destinations');
-    const group = Object.values(labDestinations).includes(screen) ? 'lab' : Object.values(profileDestinations).includes(screen) ? 'profile' : 'home';
+    const group = ['lab', 'make-borrow', 'requests', 'borrowing', 'visits', 'events', 'projects'].includes(screen) ? 'lab' : Object.values(profileDestinations).includes(screen) ? 'profile' : 'home';
     assert.equal(await primary.locator('a[aria-current]').count(), 1, `${screen} identifies one primary group`);
     for (const id of ['home', 'lab', 'profile']) {
       const link = primary.getByRole('link', { name: id[0].toUpperCase() + id.slice(1), exact: true });
       assert.equal(await link.getAttribute('href'), `/design/student?screen=${id}`);
       assert.equal(await link.getAttribute('aria-current'), group === id ? screen === id ? 'page' : 'location' : null, `${screen} distinguishes the current page from its parent group`);
     }
-    const contextual = group === 'lab' ? labDestinations : group === 'profile' ? profileDestinations : null;
-    assert.equal(await page.locator('.member-context-bar nav').count(), group === 'profile' ? 1 : 0, `${screen} exposes the Profile links only in the Profile context`);
+    const contextual = group === 'lab' ? labDestinations : null;
+    const contextualScreen = screen === 'requests' || screen === 'borrowing' ? 'make-borrow' : screen;
+    assert.equal(await page.locator('.member-context-bar nav').count(), 0, `${screen} keeps the Profile pages free of a redundant context strip`);
+    if (screen === 'profile') assert(await page.getByRole('link', { name: 'Workspace settings' }).isVisible(), 'Profile keeps Settings directly reachable');
     assert.equal(await page.locator('.member-lab-quick-access nav').count(), group === 'lab' ? 1 : 0, `${screen} keeps Lab links inside the Quick access card`);
     if (contextual) {
       const contextNav = page.getByRole('navigation', { name: `${group === 'lab' ? 'Lab' : 'Profile'} pages`, exact: true });
       assert.deepEqual(await contextNav.getByRole('link').allTextContents(), Object.keys(contextual), `${screen} exposes the complete contextual hierarchy`);
-      assert.equal(await contextNav.locator('a[aria-current="page"]').count(), 1, `${screen} marks its exact contextual destination`);
+      assert.equal(await contextNav.locator('a[aria-current="page"]').count(), screen === 'lab' || screen === 'visits' ? 0 : 1, `${screen} marks its exact contextual destination when it has a direct quick link`);
       for (const [label, id] of Object.entries(contextual)) {
         const link = contextNav.getByRole('link', { name: label, exact: true });
         assert(await link.isVisible(), `${label} remains directly reachable without a menu`);
         assert.equal(await link.getAttribute('href'), `/design/student?screen=${id}`);
-        assert.equal(await link.getAttribute('aria-current'), screen === id ? 'page' : null);
+        assert.equal(await link.getAttribute('aria-current'), contextualScreen === id ? 'page' : null);
       }
     }
     assert.equal(await page.locator('.member-notifications').getAttribute('aria-current'), screen === 'notifications' ? 'page' : null, 'Notifications has its own exact selected state');
-    assert.equal(await page.locator('.member-sidebar, .student-preview-sidebar, .student-preview-sidebar-toggle, .student-preview-mobile-nav, .member-mobile-more, .member-mobile-more-links').count(), 0, 'No sidebar, bottom rail or More menu remains');
+    assert.equal(await page.locator('.member-sidebar, .student-preview-sidebar, .student-preview-sidebar-toggle, .student-preview-mobile-nav, .member-mobile-more, .member-mobile-more-links').count(), 0, 'No sidebar or More menu remains');
+    assert.equal(await page.locator('.member-bottom-nav').isVisible(), mobile, 'Mobile workspaces use the bottom navigation and hide it on desktop');
+    assert.equal(await page.locator('.member-primary-nav').isVisible(), !mobile, 'Desktop top-level navigation is hidden on mobile');
   }
   const studentDataRequests = [];
   page.on('request', request => {
@@ -1352,7 +1378,7 @@ try {
       assert(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth), `${screen} fits ${width}px without horizontal scrolling`);
       await assertStudentNavigation(screen);
       assert(await page.locator('.member-notifications').isVisible(), `${screen} retains top-right notifications at ${width}px`);
-      assert(await page.locator('.member-primary-nav a, .member-context-bar a, .member-lab-quick-access a').evaluateAll(links => links.every(link => { const rect = link.getBoundingClientRect(); return rect.width >= 44 && rect.height >= 44 && rect.left >= 0 && rect.right <= innerWidth + 1; })), `${screen} navigation retains visible 44px touch targets at ${width}px`);
+      assert(await page.locator('.member-bottom-nav a:visible, .member-primary-nav a:visible, .member-context-bar a:visible, .member-lab-quick-access a:visible').evaluateAll(links => links.every(link => { const rect = link.getBoundingClientRect(); return rect.width >= 44 && rect.height >= 44 && rect.left >= 0 && rect.right <= innerWidth + 1; })), `${screen} navigation retains visible 44px touch targets at ${width}px`);
       if (width > 760 && width <= 980) {
         const detailGrid = page.locator('.student-preview-detail-grid').first();
         if (await detailGrid.count()) assert.equal(await detailGrid.evaluate(element => getComputedStyle(element).gridTemplateColumns.split(' ').length), 1, `Detail cards use a readable single column at ${width}px`);
@@ -1377,7 +1403,8 @@ try {
         const actionColors = await page.locator('.student-preview-outline-link').evaluate(element => ({ theme: document.documentElement.dataset.theme, color: getComputedStyle(element).color, background: getComputedStyle(element).backgroundColor }));
         assert(actionContrast >= 4.5, `${screen} dark feature action remains readable: ${actionContrast}:1 ${JSON.stringify(actionColors)}`);
       }
-      if (await page.locator('.student-preview-text-link').count()) assert(await contrastAgainst(page, '.student-preview-text-link', '.student-preview-content-card') >= 4.5, `${screen} dark inline action remains readable`);
+      const previewTextLinks = await contrastEachAgainst(page, '.student-preview-text-link', '.student-preview-content-card');
+      assert(previewTextLinks.every(ratio => ratio !== null && ratio >= 4.5), `${screen} dark inline actions remain readable: ${JSON.stringify(previewTextLinks)}`);
     }
     if (screen === 'home') {
       await setTheme(page, 'dark');
@@ -1419,16 +1446,25 @@ try {
       assert(await contrastAgainst(page, '.student-preview-field-plan .student-preview-privacy-copy', '.student-preview-field-plan .student-preview-privacy-copy') >= 4.5, 'System-dark admission reminder remains readable');
     }
     await page.setViewportSize({ width: 375, height: 667 });
-    await page.evaluate(() => window.scrollTo(0, document.documentElement.scrollHeight));
+    await page.locator('.member-main-column').evaluate(element => { element.scrollTop = element.scrollHeight; });
+    await page.waitForFunction(() => {
+      const column = document.querySelector('.member-main-column');
+      return column && column.scrollTop >= column.scrollHeight - column.clientHeight - 1;
+    });
     const studentFooter = await page.locator('.student-preview-footer').boundingBox();
-    assert(studentFooter && studentFooter.y >= 0 && studentFooter.y + studentFooter.height <= page.viewportSize().height + 1, `${screen} footer remains visible at the document end without a bottom-navigation overlay`);
+    const memberColumn = await page.locator('.member-main-column').boundingBox();
+    const mobileNavigation = await page.locator('.member-bottom-nav').boundingBox();
+    assert(studentFooter && memberColumn && mobileNavigation && studentFooter.y >= memberColumn.y - 1
+      && studentFooter.y + studentFooter.height <= memberColumn.y + memberColumn.height + 1
+      && studentFooter.y + studentFooter.height <= mobileNavigation.y + 1,
+    `${screen} footer remains visible above the bottom navigation after the content column scrolls to its end`);
   }
   await page.setViewportSize({ width: 375, height: 844 });
   await page.goto(base + '/design/student?screen=home');
   await page.getByRole('heading', { name: studentScreens.home, exact: true }).waitFor();
   await setTheme(page, 'light');
   await assertStudentNavigation('home');
-  const homeNav = page.locator('.member-primary-nav > a[aria-current="page"]');
+  const homeNav = page.locator('.member-bottom-nav > a[aria-current="page"]');
   assert.equal(await homeNav.innerText(), 'Home', 'Mobile navigation marks its current anchor');
   assert(await homeNav.evaluate(element => element.getBoundingClientRect().height >= 44), 'Mobile navigation links meet minimum touch height');
   for (const selector of ['.theme-toggle', '.member-notifications']) {
@@ -1437,19 +1473,26 @@ try {
     assert(bounds && bounds.width >= minimum && bounds.height >= minimum, `${selector} meets its ${minimum}px mobile touch-target goal`);
   }
   await page.screenshot({ path: acceptanceArtifact('student-workspace-home-mobile.png'), fullPage: false, animations: 'disabled' });
-  const mobileLabLink = page.getByRole('navigation', { name: 'Primary workspace navigation', exact: true }).getByRole('link', { name: 'Lab', exact: true });
+  const mobileLabLink = page.getByRole('navigation', { name: 'Mobile workspace navigation', exact: true }).getByRole('link', { name: 'Lab', exact: true });
   await mobileLabLink.focus();
   assert(await mobileLabLink.evaluate(element => element === document.activeElement), 'Keyboard users can focus the top-level Lab link');
   await page.keyboard.press('Enter');
   await page.getByRole('heading', { name: studentScreens.lab, exact: true }).waitFor();
   await assertStudentNavigation('lab');
-  const borrowingLink = page.getByRole('navigation', { name: 'Lab pages', exact: true }).getByRole('link', { name: 'Borrowing', exact: true });
-  await borrowingLink.focus();
-  assert(await borrowingLink.evaluate(element => element === document.activeElement), 'Keyboard users can focus contextual destinations directly');
+  const makeBorrowLink = page.getByRole('navigation', { name: 'Lab pages', exact: true }).getByRole('link', { name: 'Make & borrow', exact: true });
+  await makeBorrowLink.focus();
+  assert(await makeBorrowLink.evaluate(element => element === document.activeElement), 'Keyboard users can focus contextual destinations directly');
   await page.keyboard.press('Enter');
+  await page.getByRole('heading', { name: studentScreens['make-borrow'], exact: true }).waitFor();
+  await assertStudentNavigation('make-borrow');
+  await page.screenshot({ path: acceptanceArtifact('student-workspace-lab-make-borrow-mobile.png'), fullPage: false, animations: 'disabled' });
+  await page.getByRole('link', { name: 'Borrowing flow preview', exact: true }).click();
   await page.getByRole('heading', { name: studentScreens.borrowing, exact: true }).waitFor();
   await assertStudentNavigation('borrowing');
   await page.screenshot({ path: acceptanceArtifact('student-workspace-lab-borrowing-mobile.png'), fullPage: false, animations: 'disabled' });
+  await page.goBack();
+  await page.getByRole('heading', { name: studentScreens['make-borrow'], exact: true }).waitFor();
+  await assertStudentNavigation('make-borrow');
   await page.goBack();
   await page.getByRole('heading', { name: studentScreens.lab, exact: true }).waitFor();
   await assertStudentNavigation('lab');
@@ -1466,7 +1509,7 @@ try {
   await page.getByRole('link', { name: 'Workspace settings' }).click();
   await page.getByRole('heading', { name: studentScreens.settings, exact: true }).waitFor();
   await assertStudentNavigation('settings');
-  await page.getByRole('navigation', { name: 'Profile pages', exact: true }).getByRole('link', { name: 'Your details', exact: true }).focus();
+  await page.getByRole('navigation', { name: 'Mobile workspace navigation', exact: true }).getByRole('link', { name: 'Profile', exact: true }).focus();
   await page.keyboard.press('Enter');
   await page.getByRole('heading', { name: studentScreens.profile, exact: true }).waitFor();
   await assertStudentNavigation('profile');
@@ -1533,10 +1576,15 @@ try {
   const originalAccountKey = 'idealab-mec:request-draft:v1:design-preview';
   assert.equal(await page.evaluate(key => localStorage.getItem(key), originalAccountKey), null, 'Preview draft is not persisted in local storage');
   assert.equal(await page.evaluate(key => sessionStorage.getItem(key), originalAccountKey), null, 'Preview draft is not persisted in session storage');
-  await page.getByRole('link', { name: 'Return to work requests' }).click();
+  await page.getByRole('link', { name: 'Return to Make & borrow' }).click();
   await page.getByRole('heading', { name: 'Sample prototype fixture', exact: true }).waitFor();
   assert(await page.getByText('BROWSER DRAFT', { exact: true }).isVisible());
   assert(await page.getByText('We can’t check your submitted requests here yet.', { exact: false }).isVisible());
+  const studentBillingFlow = page.getByRole('region', { name: 'What happens after you submit' });
+  assert.deepEqual(await studentBillingFlow.locator('ol > li strong').allTextContents(), [
+    'Review the estimate.', 'Check the final bill.', 'Submit your transaction ID.',
+  ]);
+  assert.equal(await studentBillingFlow.locator('input, button, img').count(), 0, 'Billing wireframe does not expose live payment controls or a QR');
   await page.screenshot({ path: acceptanceArtifact('request-workspace-mobile.png'), fullPage: true });
   await page.getByRole('button', { name: 'Delete browser draft' }).click();
   assert(await page.getByRole('button', { name: 'Keep draft' }).evaluate(element => element === document.activeElement), 'Delete confirmation focuses safe action');
@@ -1551,6 +1599,13 @@ try {
   await page.getByRole('button', { name: 'Continue', exact: true }).click();
   assert.equal(await page.getByLabel('Request title').inputValue(), 'Sample prototype fixture');
   assert.equal(await page.getByLabel('Reference links (optional)').inputValue(), 'https://idealab.mec.ac.in/\nhttps://mec.ac.in/', 'Manual restore replaces unsaved URL text with saved references');
+  await page.getByRole('button', { name: 'Undo restore', exact: true }).click();
+  assert.equal(await page.getByLabel('Reference links (optional)').inputValue(), 'https://unsaved.example/', 'Undo restore recovers the previous unsaved reference text and step');
+  await page.getByRole('button', { name: 'Restore saved draft' }).click();
+  await page.getByRole('button', { name: 'Continue', exact: true }).click();
+  assert.equal(await page.getByLabel('Reference links (optional)').inputValue(), 'https://idealab.mec.ac.in/\nhttps://mec.ac.in/', 'Undo leaves the saved draft unchanged');
+  await page.getByLabel('Request title').fill('A new edit after restoring');
+  assert.equal(await page.getByRole('button', { name: 'Undo restore', exact: true }).count(), 0, 'new edits retire the undo snapshot');
   await page.reload();
   await page.getByRole('button', { name: 'Restore saved draft' }).click();
   assert.match(await page.getByRole('status').innerText(), /No saved draft was found/);
@@ -1559,7 +1614,7 @@ try {
   await page.getByLabel('What do you need?').fill('A temporary preview draft for checking deletion and focus handling.');
   await page.getByRole('button', { name: 'Save for later' }).click();
   assert.match(await page.getByRole('status').innerText(), /Draft saved for this preview session/);
-  await page.getByRole('link', { name: 'Return to work requests' }).click();
+  await page.getByRole('link', { name: 'Return to Make & borrow' }).click();
   await page.getByRole('heading', { name: 'Preview delete fixture', exact: true }).waitFor();
   await page.getByRole('link', { name: 'Back to IDEALAB MEC' }).click();
   await page.getByRole('heading', { name: 'Big ideas. Real things. Your move.' }).waitFor();
@@ -1621,6 +1676,20 @@ try {
     await page.getByRole('button', { name: label, exact: true }).click();
     assert.equal(await page.getByRole('button', { name: label, exact: true }).getAttribute('aria-pressed'), 'true', `${label} layout announces selection`);
     assert(await page.getByRole('heading', { name: heading, exact: true }).isVisible(), `${label} layout updates its scope description`);
+    const machineFlow = page.getByRole('region', { name: 'From estimate to close' });
+    assert.equal(await machineFlow.count(), label === 'Machine / Room Head' ? 1 : 0, 'Machine workflow belongs only to the Machine Head preview');
+    const eventFlow = page.getByRole('region', { name: 'From draft to registration' });
+    assert.equal(await eventFlow.count(), label === 'Events Head' ? 1 : 0, 'Event workflow belongs only to the Events Head preview');
+    if (label === 'Events Head') {
+      assert.deepEqual(await eventFlow.locator('ol > li strong').allTextContents(), [
+        'Create an event draft.', 'Set registration rules.', 'Publish and manage places.',
+      ]);
+      assert.equal(await eventFlow.locator('button, input, select, textarea').count(), 0, 'Event wireframe exposes no write controls');
+    }
+    if (label === 'Machine / Room Head') {
+      const steps = await machineFlow.locator('ol > li strong').allTextContents();
+      assert.deepEqual(steps, ['Prepare estimate.', 'Wait for student approval.', 'Record actual usage.', 'Verify payment and close.']);
+    }
   }
   assert.deepEqual(await storageSnapshot(page), previewStorage, 'Changing staff layout previews does not persist data');
   assert(await page.getByText('This preview contains no requests, people, counts or machine records.', { exact: false }).isVisible(), 'Inbox is empty without fabricated records');

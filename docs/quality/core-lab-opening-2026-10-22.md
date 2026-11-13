@@ -66,3 +66,25 @@ forced-RLS private tables without client policies (three new plus two existing).
 The existing leaked-password-protection warning remains; see
 [Supabase remediation](https://supabase.com/docs/guides/auth/password-security#password-strength-and-leaked-password-protection).
 There were no new warning/error-level advisor categories.
+
+## Security candidate follow-up — 4 November 2026
+
+An independent source review found that the installed isolated candidate did not
+check an active `auth.users.banned_until` value. [Supabase documents](https://supabase.com/docs/guides/auth/managing-user-data)
+that a temporary ban blocks sign-in but does not revoke already-issued sessions,
+so the RPC boundary needs its own live Auth check. The local candidate now checks
+and locks the caller's Auth row before the member/profile/capability checks; its
+status-read functions are marked volatile so the row lock is honored. Rollback-
+only SQL assertions were added for active-ban read/write denial, unchanged
+revision/history, and continued access after an expired ban. The existing
+idempotency replay revision behavior was retained because it matches the current
+contract and test.
+
+Verification is incomplete: `node --test scripts/lab-opening.test.mjs` passes
+(6 client-boundary tests), and `git diff --check` passes for the candidate, but
+the revised SQL assertions were not executed. No local PostgreSQL, Docker or
+Supabase CLI runtime is available; the isolated validation project is paused
+while the IDEALAB MEC project is active. This is a local, uninstalled source
+candidate only. Do not deploy or claim the finding remediated in a database until
+the SQL suite and ban/update concurrency check pass in a disposable validation
+database.

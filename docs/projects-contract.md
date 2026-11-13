@@ -260,3 +260,29 @@ these concurrency properties. This earlier section described a proposed
 implementation before the validation-only create-intent functions were
 installed; it is not the current website contract and does not authorize shared
 rollout.
+
+
+## Phase 0 shared cutover evidence - 4 November 2026
+
+Grow HEAD a88ce7e uses separate direct writes for project creation and creator lead membership, instant self-join, leave and multi-step ownership transfer. Its dirty worktree already calls guarded project RPCs. Preserve that work. Revoking membership INSERT alone would strand legacy project creation after its first write. Coordinate both client entry points before the shared grant change.
+
+A read-only shared aggregate found four projects, three membership rows, one project with a creator but no matching membership, no elevated non-creator memberships and no null project/user pairs. The guarded get_project_v1(uuid) function is absent. These counts establish migration test cases, not approval of existing rows.
+
+The shared candidate must preserve project IDs and existing visibility, reconcile missing creator membership without broadening access, and atomically create the project plus lead membership for new records. Replace instant join with a pending request and creator approval. Keep ownership transfer gated until its own atomic contract is approved. Validate legacy record preservation and denial of direct API membership writes against a disposable deployed-schema baseline before any cutover.
+
+
+The 4 November aggregate found no projects missing creator, timestamps, status or visibility, and none marked club-only. The disposable replay initialized a control record for each of two synthetic legacy projects, including one without creator membership. Repeating initialization kept the existing revisions and join codes. Project and membership rows remained identical. Evidence: `artifacts/database-runtime/runtime-1793782144562-0b494c1a.json`. This proves control backfill behavior only. Shared RPC activation and any creator membership repair require separate review.
+
+
+The disposable replay loaded the existing guarded list and detail functions onto the reconstructed project tables. A synthetic nonmember could discover the public project but could not see its join code or fetch the private project. The creator could read the private project and its code without a creator membership row. Evidence: `artifacts/database-runtime/runtime-1793782440891-d0a883b6.json`. This uses a synthetic readiness predicate to isolate the read projection. Real admission, the shared privilege cutover and client integration still require acceptance.
+
+
+The live catalog confirmed direct SELECT grants to anon and authenticated on both project tables. With the legacy policy and that grant, the disposable probe allowed anon to see a synthetic public project. After modeling grant revocation, anon lost direct project SELECT and detail RPC execution, authenticated lost raw membership SELECT and private-card helper execution, and the guarded signed-in projections still passed. Evidence: `artifacts/database-runtime/runtime-1793782687987-36677fe0.json`. No live row was queried for this probe.
+
+Grow HEAD a88ce7e has additional raw membership readers in Home, Lab tool booking, and both Profile providers. Those must move to scoped reads before shared grant revocation. The inspected dirty worktree no longer uses those raw table references, but its replacement journeys need acceptance. The separate project Storage client still generates public URLs. Storage exposure is outside this SQL proof.
+
+
+Read-only shared Storage inventory on 4 November found an empty public projects bucket, zero populated project showcase URLs, and no project-banners or portfolio buckets. Grow defines public-URL helpers for project images and banners, but the source scan found no callers beyond their declarations in the inspected worktree or HEAD. There is no observed project media to relocate in this snapshot. Keep uploads disabled until a reviewed private Storage policy and cross-client authorization are verified. Recheck counts at cutover.
+
+
+The disposable `node scripts/db-runtime.mjs --project-admission` run loaded the shared profile candidate, Lab readiness guard and isolated project RPCs together. A synthetic account saved its profile and declared MEC eligibility through the profile RPCs, then created and read a private project as creator. After an Auth ban, the same SQL identity was denied project listing. The transaction rolled back and the scratch cluster was removed. Evidence: `artifacts/database-runtime/runtime-1793783230043-d32fd0e7.json`. This exercises the admission implementation with synthetic Auth, not hosted provider or client behavior.

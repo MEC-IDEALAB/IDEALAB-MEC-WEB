@@ -4,7 +4,9 @@ import { eventFilter, eventTime, eventPageParams, parseEvents, parseUpcomingEven
 const id='11111111-1111-4111-8111-111111111111', time='2026-10-23T03:30:00Z';
 const card=()=>({id,title:'Test event',event_type:'workshop',event_date:time,end_date:null,venue:null,status:'upcoming'});
 test('programme links preserve legacy pagination and bind v2 cursors to their filter',()=>{
-  assert.deepEqual(eventPageParams({}),{filter:'all',cursor:null,version:2});
+  assert.deepEqual(eventPageParams({}),{filter:'upcoming',cursor:null,version:2});
+  assert.deepEqual(eventPageParams({status:'all'}),{filter:'all',cursor:null,version:2});
+  assert.deepEqual(eventPageParams({before:time,cursor:id}),{filter:'all',cursor:{event_date:time,id},version:1});
   assert.deepEqual(eventPageParams({status:'upcoming',before:time,cursor:id}),{filter:'upcoming',cursor:{event_date:time,id},version:1});
   assert.deepEqual(eventPageParams({status:'upcoming',before:time,cursor:id,order:'2:upcoming'}),{filter:'upcoming',cursor:{event_date:time,id},version:2});
   assert.equal(eventPageParams({status:'completed',before:time,cursor:id,order:'2:upcoming'}),null);

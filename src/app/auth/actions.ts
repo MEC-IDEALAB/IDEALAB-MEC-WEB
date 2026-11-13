@@ -4,12 +4,13 @@ import { redirect } from 'next/navigation';
 import { readAuthCredentials, readAuthEmail, readNewPassword } from '@/lib/auth-input';
 import { serverClient, clearLocalAuthSession } from '@/lib/supabase';
 import { googleAuthConfig, passwordRecoveryConfig, signupAuthConfig } from '@/lib/auth-config';
-import { exitLocalAuthSession } from '@/lib/local-auth-exit';
 import { attemptSignupAndClearSession } from '@/lib/signup-cleanup';
-import { matchesFormAccount } from '@/lib/form-account';
+import { matchesFormAccount, matchesFormRecoverySession } from '@/lib/form-account';
 import { backendConfig } from '@/lib/config';
 import { confirmedSignupProviderAvailable } from '@/lib/signup-provider-policy';
 import { inspectAuthEntry, type AuthEntryClient } from '@/lib/auth-entry';
+import { inspectRecoveryAuthority } from '@/lib/recovery-authority';
+import { exitLocalAuthSession } from '@/lib/local-auth-exit';
 
 async function requireSignedOutEntry(client: AuthEntryClient, connectionPath = '/sign-in?notice=connection') {
   const entry = await inspectAuthEntry(client);
@@ -68,23 +69,35 @@ export async function requestPasswordReset(form: FormData) {
 }
 
 export async function updatePassword(form: FormData) {
+  if (!passwordRecoveryConfig()) redirect('/reset-password?notice=configuration');
   const password = readNewPassword(form);
   if (!password) redirect('/reset-password?notice=mismatch');
-  if (!passwordRecoveryConfig()) redirect('/reset-password?notice=configuration');
   const client = await serverClient({ writable: true });
   if (!client) redirect('/reset-password?notice=configuration');
+  const authority = await inspectRecoveryAuthority(client);
+  if (!authority) redirect('/forgot-password?notice=expired');
+  if (!matchesFormAccount(form, authority.accountId) || !matchesFormRecoverySession(form, authority.sessionId)) {
+    redirect('/reset-password?notice=session');
+  }
 
-  let authenticated = false;
+  let consumed = false;
   try {
-    const { data, error } = await client.auth.getUser();
-    authenticated = !error && !!data.user;
-  } catch { /* Fail closed; never reflect auth tokens or provider errors. */ }
-  if (!authenticated) redirect('/forgot-password?notice=expired');
+    const result = await client.rpc('consume_recovery_session_v1', {
+      expected_user: authority.accountId, expected_session: authority.sessionId,
+    });
+    consumed = !result.error && result.data === true;
+  } catch { /* Missing API, uncertain receipt or replay cannot authorize a change. */ }
+  if (!consumed) redirect('/forgot-password?notice=expired');
 
   let updated = false;
-  try { const { error } = await client.auth.updateUser({ password }); updated = !error; } catch { /* Keep provider details out of the response. */ }
-  if (!updated) redirect('/reset-password?notice=update');
+  try {
+    const result = await client.auth.updateUser({ password });
+    updated = !result.error && result.data.user?.id === authority.accountId;
+  } catch { /* The provider may have committed despite a lost response. */ }
+  // Consumption and the Auth update are separate transactions. Either outcome
+  // retires this browser's attempt; uncertainty requires a new recovery link.
   const exit = await exitLocalAuthSession(() => client.auth.signOut({ scope: 'local' }), clearLocalAuthSession);
+  if (!updated) redirect('/forgot-password?notice=unconfirmed');
   if (exit !== 'cleared') redirect('/sign-in?notice=password-updated-cleanup');
   redirect('/sign-in?notice=password-updated');
 }
@@ -154,6 +167,7 @@ export async function resendSignupConfirmation(form: FormData) {
   if (!email) redirect('/confirm-email?notice=invalid');
   const client = await serverClient({ writable: true });
   if (!client) redirect('/confirm-email?notice=configuration');
+  await requireSignedOutEntry(client);
   try {
     await client.auth.resend({ type: 'signup', email, options: { emailRedirectTo: config.callback } });
   } catch { /* Generic response also covers provider limits and missing accounts. */ }

@@ -32,15 +32,19 @@ jobs:
       - run: npm run lint
       - run: npm run typecheck
       - run: npm run test:boundaries
+      - run: npm run test:event-management
       - run: npm run test:proxy
       - run: npm audit --audit-level=high
       - run: npm run build:acceptance
       - run: npx playwright install --with-deps chromium
       - run: npm run test:request-journal
       - run: npm run test:project-journal
+      - run: npm run test:event-journal
       - run: npm run test:acceptance
       - name: Verify gated member workspace preview
         run: npm run test:member-space
+      - name: Verify Event Head editor preview and configuration gate
+        run: npm run test:event-studio
       - name: Retain public and sample browser evidence
         if: always()
         uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6
@@ -49,15 +53,113 @@ jobs:
           path: |
             artifacts/acceptance/
             artifacts/member-space/
+            artifacts/event-manager/
+          if-no-files-found: error
+          retention-days: 7
+  staff-authority-sql:
+    name: Scoped staff authority SQL
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    defaults:
+      run:
+        working-directory: idealab-mec-web
+    env:
+      IDEALAB_PG_BIN: /usr/lib/postgresql/17/bin
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          persist-credentials: false
+          path: idealab-mec-web
+      - name: Check out reviewed shared Grow SQL sources
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          repository: MEC-IDEALAB/Grow-by-IL
+          # Grow PR #17 publishes the reviewed shared SQL sources.
+          ref: 6f9f9f1cffaba930d5ed7ec96cc191948ec5f98a
+          path: Grow
+          persist-credentials: false
+      - name: Require reviewed shared SQL sources
+        run: |
+          for source in \
+            ../Grow/supabase/candidates/shared_profile_contract_v1.sql \
+            ../Grow/supabase/candidates/shared_profile_contract_v1_rollback.sql \
+            ../Grow/supabase/migrations/20261102130200_shared_profile_contract_v1.sql \
+            ../Grow/supabase/tests/shared_profile_contract_v1_fixture.sql \
+            ../Grow/supabase/tests/shared_profile_contract_v1_rollback_checks.sql \
+            ../Grow/supabase/tests/shared_profile_contract_v1_behavior_checks.sql; do
+            if ! test -f "$source"; then
+              echo "::error::Reviewed Grow SQL dependency missing: $source. Reconcile and pin its source commit."
+              exit 1
+            fi
+          done
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7
+        with:
+          node-version: '24.19.0'
+      - name: Install PostgreSQL 17 from the PostgreSQL Apt Repository
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y ca-certificates curl gnupg
+          sudo install -d /usr/share/postgresql-common/pgdg
+          sudo curl --fail --silent --show-error --location \
+            --output /usr/share/postgresql-common/pgdg/apt.postgresql.org.asc \
+            https://www.postgresql.org/media/keys/ACCC4CF8.asc
+          fingerprint="$(gpg --show-keys --with-colons /usr/share/postgresql-common/pgdg/apt.postgresql.org.asc | awk -F: '$1 == "fpr" { print $10; exit }')"
+          test "$fingerprint" = "B97B0AFCAA1A47F044F244A07FCC7D46ACCC4CF8"
+          printf '%s\n' \
+            'Types: deb' \
+            'URIs: https://apt.postgresql.org/pub/repos/apt' \
+            'Suites: noble-pgdg' \
+            'Architectures: amd64' \
+            'Components: main' \
+            'Signed-By: /usr/share/postgresql-common/pgdg/apt.postgresql.org.asc' \
+            | sudo tee /etc/apt/sources.list.d/pgdg.sources >/dev/null
+          sudo apt-get update
+          sudo apt-get install -y postgresql-17
+      - name: Require local PostgreSQL binaries
+        run: |
+          for binary in postgres initdb pg_ctl psql pg_dump pg_restore; do
+            test -x "$IDEALAB_PG_BIN/$binary"
+          done
+      - name: Rehearse permissions, concurrent revocation and rollback
+        run: node scripts/db-runtime.mjs --staff-scope
+      - name: Verify targeted shared-profile function descriptors
+        run: node scripts/db-runtime.mjs --shared-profile-function-parity
+      - name: Rehearse shared account migration and pristine rollback
+        run: node scripts/db-runtime.mjs --preprofile-metadata-rehearsal
+      - name: Verify scratch archive restore and owner-only access
+        run: node scripts/db-runtime.mjs --restore-drill
+      - name: Rehearse staff authorization with shared-profile SQL
+        run: node scripts/db-runtime.mjs --staff-scope-shared
+      - name: Rehearse concurrent Lab opening and automatic checkout
+        run: node scripts/db-runtime.mjs --lab-opening
+      - name: Rehearse future-table default privilege isolation
+        run: node scripts/db-runtime.mjs --default-acl-probe
+      - name: Rehearse recovery authorization and concurrent replay denial
+        run: node scripts/db-runtime.mjs --recovery-consumption
+      - name: Rehearse shared foreign key indexes and rollback
+        run: node scripts/db-runtime.mjs --shared-fk-indexes
+      - name: Rehearse Lab roster admission and privacy
+        run: node scripts/db-runtime.mjs --lab-presence
+      - name: Rehearse project admission, banned-account denial and profile-revocation concurrency
+        run: node scripts/db-runtime.mjs --project-admission
+      - name: Rehearse private event drafts and concurrent publication
+        run: node scripts/db-runtime.mjs --event-drafts
+      - name: Retain sanitized SQL evidence
+        if: always()
+        uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6
+        with:
+          name: staff-authority-sql-evidence
+          path: idealab-mec-web/artifacts/database-runtime/*.json
           if-no-files-found: error
           retention-days: 7
   required-gate:
     name: Required gate
     if: always()
-    needs: [verification]
+    needs: [verification, staff-authority-sql]
     runs-on: ubuntu-latest
     steps:
       - name: Reject failed, absent or skipped verification
         env:
           RESULT: ${{ needs.verification.result }}
-        run: test "$RESULT" = success
+          SQL_RESULT: ${{ needs.staff-authority-sql.result }}
+        run: test "$RESULT" = success && test "$SQL_RESULT" = success

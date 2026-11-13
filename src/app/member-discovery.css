@@ -1,4 +1,9 @@
 /* Member Home uses the shared notebook, ink and accent tokens. */
+@media (hover:hover) and (prefers-reduced-motion:no-preference){
+  .discovery-directory-links a svg,.discovery-learning-links a svg,.discovery-support a svg{transition:transform 180ms ease}
+  .discovery-directory-links a:hover svg,.discovery-learning-links a:hover svg,.discovery-support a:hover svg{transform:translate(3px,-3px)}
+  .discovery-directory-links a:active svg,.discovery-learning-links a:active svg,.discovery-support a:active svg{transform:translate(1px,-1px)}
+}
 .discovery-page{max-width:1400px}.member-discovery{display:grid;gap:clamp(32px,5vw,64px);min-width:0}.discovery-label{display:block;font:.75rem/1.8 var(--font-retro),monospace;letter-spacing:-.025em}
 .discovery-hero{display:grid;grid-template-columns:1.2fr 1fr;gap:clamp(24px,4vw,60px);align-items:center}.discovery-greeting{font-size:1.05rem;margin:22px 0 12px;font-weight:600;overflow-wrap:anywhere}.member-discovery .discovery-hello h1{font:800 clamp(2.3rem,4vw,4rem)/1.13 var(--font-editorial),var(--font-display),sans-serif;letter-spacing:-.06em}.discovery-hello h1>span{display:inline;background:var(--accent-pink);color:var(--accent-ink);box-decoration-break:clone;padding-inline:4px}.discovery-hello>p:last-of-type{margin-top:23px;max-width:480px;font-size:.97rem}.discovery-hero-links{display:flex;flex-wrap:wrap;align-items:center;gap:16px 24px;margin-top:26px}.discovery-hero-links .text-link{font-size:.86rem}
 .discovery-art{position:relative;border:2px solid var(--ink);box-shadow:8px 8px 0 var(--accent-purple);margin:6px 8px 18px 0;transform:rotate(1deg);background:var(--surface)}.discovery-art-toolbar{display:flex;justify-content:space-between;gap:8px;padding:12px;border-bottom:2px solid var(--ink);font:.5rem/1.6 var(--font-retro),monospace}.discovery-art .auth-ascii{height:clamp(180px,21vw,280px)}.discovery-art-caption{padding:14px;display:grid;gap:7px;font-size:.8rem}.discovery-art-caption>span:first-child{font:.5rem/1.7 var(--font-retro),monospace}.discovery-art-sticker{position:absolute;right:-10px;bottom:-18px;padding:12px;background:var(--accent-green);color:var(--accent-ink);border:2px solid var(--accent-ink);box-shadow:3px 3px 0 var(--accent-ink);font:.6rem/1.7 var(--font-retro),monospace;transform:rotate(-6deg)}
@@ -37,3 +42,144 @@
 .discovery-activity-carousel__hint{margin:3px 0 0;color:var(--muted);font-size:.78rem}
 @media(max-width:760px){.discovery-activity-slide{flex-basis:min(86vw,380px);min-height:330px}.discovery-activity-carousel__track{gap:14px}.discovery-activity-carousel__hint{font-size:.8125rem}}
 @media(prefers-reduced-motion:reduce){.discovery-activity-carousel__track{scroll-behavior:auto}.discovery-activity-carousel__buttons button,.discovery-activity-slide{transition:none}}
+
+/* Home uses the available laptop width; other member pages keep their calmer column. */
+.member-shell--topnav .member-main-column--home { width: 100%; max-width: 1760px; }
+.member-shell--topnav .workspace-page.discovery-page { max-width: none; padding-inline: clamp(18px, 2.6vw, 46px); }
+.discovery-page .discovery-hero { grid-template-columns: minmax(0, 1.05fr) minmax(0, .95fr); gap: clamp(32px, 5vw, 84px); }
+.discovery-page .discovery-member-stream { grid-template-columns: repeat(2, minmax(0, 1fr)); align-items: start; gap: clamp(20px, 2.4vw, 36px); }
+.member-discovery .maker-ticker-content .ticker-track { animation-direction: normal; }
+
+/* Three full cards on laptop, two on tablet and a thumb-swipe card on phones. */
+.discovery-activity-carousel__track { align-items: stretch; }
+.discovery-activity-slide { position: relative; flex: 1 1 0; min-width: 0; max-width: none; overflow: hidden; }
+.discovery-activity-slide.is-active { box-shadow: 5px 6px 0 var(--accent-pink); }
+.discovery-activity-body { display: grid; grid-template-columns: minmax(0, 1fr) minmax(86px, 31%); align-items: center; gap: 8px; flex: 1; min-width: 0; }
+.discovery-activity-copy { min-width: 0; }
+.discovery-activity-art { display: grid; place-items: center; width: 100%; min-width: 0; }
+.home-pixel-illustration { display: block; width: 100%; max-width: 136px; height: auto; image-rendering: pixelated; overflow: visible; }
+.discovery-activity.is-active .home-pixel-illustration { animation: home-pixel-bop 1.6s steps(2, end) infinite; }
+.discovery-activity-carousel__dots { display: flex; justify-content: center; gap: 4px; margin: 0 auto; }
+.discovery-activity-carousel__dots button { display: grid; place-items: center; width: 44px; height: 44px; padding: 0; border: 0; background: transparent; cursor: pointer; }
+.discovery-activity-carousel__dots button span { display: block; width: 24px; height: 7px; border: 1px solid var(--ink); border-radius: 2px; background: var(--line); transition: width 220ms ease, background-color 220ms ease, transform 220ms ease; }
+.discovery-activity-carousel__dots button[aria-pressed="true"] span { width: 32px; background: var(--accent-yellow); transform: translateY(-1px); }
+.discovery-activity-carousel__dots button:focus-visible { outline: 3px solid var(--focus); outline-offset: 1px; border-radius: 6px; }
+.discovery-hero-mascot { position: absolute; z-index: 2; left: -9%; bottom: 10%; width: clamp(76px, 8vw, 116px); pointer-events: none; filter: drop-shadow(4px 4px 0 var(--ink)); }
+.discovery-hero-mascot .home-pixel-illustration { max-width: none; }
+.discovery-art-mascot { animation: home-pixel-bop 2s steps(2, end) infinite; }
+
+@keyframes home-pixel-bop {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-4px); }
+}
+
+@media (max-width: 1100px) and (min-width: 761px) {
+  .discovery-activity-slide { flex: 0 0 calc((100% - 20px) / 2); }
+  .discovery-page .discovery-member-stream { gap: 20px; }
+}
+
+@media (max-width: 760px) {
+  .member-shell--topnav .workspace-page.discovery-page { padding: 20px max(16px, env(safe-area-inset-right)) calc(40px + env(safe-area-inset-bottom)) max(16px, env(safe-area-inset-left)); }
+  .discovery-page .discovery-hero { grid-template-columns: minmax(0, 1fr); gap: 28px; }
+  .discovery-page .discovery-member-stream { grid-template-columns: minmax(0, 1fr); }
+  .discovery-activity-slide { flex: 0 0 min(86vw, 420px); min-height: 350px; }
+  .discovery-activity-body { grid-template-columns: minmax(0, 1fr) minmax(72px, 28%); }
+  .discovery-activity-art .home-pixel-illustration { max-width: 108px; }
+  .discovery-hero-mascot { display: none; }
+  .discovery-activity-carousel__dots button { width: 48px; height: 48px; }
+}
+
+@media (max-width: 359px) {
+  .discovery-activity-slide { flex-basis: min(88vw, 320px); }
+  .discovery-activity-body { grid-template-columns: minmax(0, 1fr) 68px; gap: 4px; }
+  .discovery-activity-art .home-pixel-illustration { max-width: 72px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .discovery-activity.is-active .home-pixel-illustration,
+  .discovery-art-mascot { animation: none; }
+  .discovery-activity-carousel__dots button span { transition: none; }
+}
+
+/* High fidelity maker scene: blueprint, printer and object share one motion study. */
+.discovery-maker-scene {
+  overflow: visible;
+  border: 2px solid var(--ink);
+  background: #090b12;
+  box-shadow: 8px 8px 0 var(--accent-purple);
+  transform: rotate(.6deg);
+}
+.discovery-maker-scene__visual {
+  position: relative;
+  overflow: hidden;
+  aspect-ratio: 720 / 470;
+  background: #090b12;
+  isolation: isolate;
+}
+.discovery-maker-scene__visual::before {
+  position: absolute;
+  z-index: 1;
+  inset: 0;
+  pointer-events: none;
+  background: linear-gradient(115deg, transparent 22%, rgb(49 93 255 / 12%) 47%, transparent 68%);
+  content: '';
+  animation: maker-scene-light 7s ease-in-out infinite;
+}
+.discovery-maker-scene__visual svg { display: block; width: 100%; height: 100%; }
+.maker-scene-route { animation: maker-scene-flow 5s linear infinite; }
+.maker-scene-carriage { transform-box: fill-box; transform-origin: center; animation: maker-scene-carriage 3.8s cubic-bezier(.45,0,.55,1) infinite alternate; }
+.maker-scene-object { transform-box: fill-box; transform-origin: center bottom; animation: maker-scene-object 3.4s cubic-bezier(.25,.75,.25,1) infinite alternate; }
+.maker-scene-blueprint { transform-box: fill-box; transform-origin: center; animation: maker-scene-blueprint 5s ease-in-out infinite; }
+.maker-scene-sparks { animation: maker-scene-signal 2.8s steps(2,end) infinite; }
+.discovery-maker-scene__index,
+.discovery-maker-scene__coordinates {
+  position: absolute;
+  z-index: 2;
+  padding: 7px 9px;
+  border: 1px solid #f7f5ec;
+  background: #0a0c13;
+  color: #f7f5ec;
+  font: 700 clamp(.48rem, .74vw, .66rem)/1.45 var(--font-retro), monospace;
+  letter-spacing: .04em;
+}
+.discovery-maker-scene__index { top: clamp(10px, 2vw, 18px); left: clamp(10px, 2vw, 18px); }
+.discovery-maker-scene__coordinates { right: clamp(10px, 2vw, 18px); bottom: clamp(10px, 2vw, 18px); color: #ffe029; border-color: #ffe029; }
+.discovery-maker-scene figcaption {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  min-height: 78px;
+  padding: 13px clamp(14px, 2.2vw, 22px);
+  border-top: 2px solid #f7f5ec;
+  color: #f7f5ec;
+}
+.discovery-maker-scene figcaption>div { display: grid; gap: 6px; min-width: 0; }
+.discovery-maker-scene figcaption>div>span { color: #a8c6ff; font: 700 .58rem/1.4 var(--font-retro), monospace; letter-spacing: .05em; }
+.discovery-maker-scene figcaption strong { font: 750 clamp(.86rem, 1.25vw, 1.08rem)/1.25 var(--font-display), sans-serif; }
+.discovery-maker-scene__status { display: inline-flex; align-items: center; gap: 8px; flex: none; color: #f7f5ec; font: 700 .55rem/1.4 var(--font-retro), monospace; }
+.discovery-maker-scene__status i { width: 9px; height: 9px; background: #ffe029; box-shadow: 0 0 12px #ffe029; }
+@keyframes maker-scene-flow { to { stroke-dashoffset: -68; } }
+@keyframes maker-scene-carriage { from { translate: -24px 0; } to { translate: 26px 0; } }
+@keyframes maker-scene-object { from { translate: 0 2px; } to { translate: 0 -4px; } }
+@keyframes maker-scene-blueprint { 0%,100% { translate: 0 0; } 50% { translate: 0 -5px; } }
+@keyframes maker-scene-signal { 0%,100% { opacity: .65; } 50% { opacity: 1; } }
+@keyframes maker-scene-light { 0%,100% { translate: -34% 0; opacity: .3; } 50% { translate: 34% 0; opacity: .8; } }
+@media (max-width: 760px) {
+  .discovery-maker-scene figcaption { align-items: flex-start; flex-direction: column; gap: 9px; min-height: 0; }
+  .discovery-maker-scene__status { font-size: .5rem; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .discovery-maker-scene__visual::before,
+  .maker-scene-route,
+  .maker-scene-carriage,
+  .maker-scene-object,
+  .maker-scene-blueprint,
+  .maker-scene-sparks { animation: none !important; }
+}
+html[data-automatic-motion="paused"] .discovery-maker-scene__visual::before,
+html[data-automatic-motion="paused"] .maker-scene-route,
+html[data-automatic-motion="paused"] .maker-scene-carriage,
+html[data-automatic-motion="paused"] .maker-scene-object,
+html[data-automatic-motion="paused"] .maker-scene-blueprint,
+html[data-automatic-motion="paused"] .maker-scene-sparks { animation-play-state: paused; }

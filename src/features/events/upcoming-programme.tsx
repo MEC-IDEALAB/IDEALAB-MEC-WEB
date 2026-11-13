@@ -2,6 +2,7 @@ import Link from 'next/link';
 import { ArrowUpRight } from 'lucide-react';
 import { loadUpcomingEvents } from './event-data';
 import { EventCards, EventTestNote } from './event-surfaces';
+import { EventCarousel } from './event-carousel';
 
 /** Uses the same guarded programme read as the Events page. */
 export async function UpcomingProgramme() {
@@ -13,7 +14,7 @@ export async function UpcomingProgramme() {
       ? <div className="workspace-card" role="status"><h3>The programme couldn’t be loaded.</h3><p>Open Events to try again. This does not mean there are no events.</p></div>
       : events.data.items.length === 0
         ? <div className="workspace-card"><h3>No future events are marked upcoming.</h3><p>Visit Events to explore the full recorded programme.</p></div>
-        : <><p className="small-copy">Up to three future events marked upcoming, shown in India Standard Time.</p><EventCards items={events.data.items} headingLevel="h3" /></>}
-    <p className="small-copy">Registration and payment are not available here yet.</p>
+      : <><p className="small-copy">Swipe through published events.</p><EventCarousel count={events.data.items.length}><EventCards items={events.data.items} headingLevel="h3" carousel /></EventCarousel></>}
+    <p className="small-copy">Event registration and payment are not available here yet.</p>
   </section>;
 }

@@ -1,0 +1,51 @@
+{
+  "capturedAt": "2026-11-06T11:56:19.773Z",
+  "node": "v24.19.0",
+  "configuredEnvironment": "validation",
+  "intendedValidationProject": "gvvqlfachzbufstzoiwi",
+  "verificationLevel": "Local regression tests with explicit SDK fixtures; no network or database acceptance.",
+  "sourceHashes": {
+    "src/lib/config.ts": "0aba46902789b5487c5226df8a4fb62ca1cdb2246c40dc593d4716d2685cdaf8",
+    "src/lib/auth-config.ts": "efc4d00e69d2de095ac51a476d538276dd352d54ed513f79e28b2cfceab57313",
+    "src/lib/auth-entry.ts": "362125be5981e09505dc4c1f0bec8c09070a942bddfc6b43a0e8d5f5228f7c9c",
+    "src/lib/recovery-authority.ts": "c2c314afef37e28f324042893d3383e1e5a6b47f54d2f2c3a3a0e8a978ab8991",
+    "src/app/auth/actions.ts": "40a2c6f58372af5060e84414dbf338b46ff4a8f83a229262fb01dd5e7bb9668a",
+    "src/lib/local-auth-exit.ts": "0dc7c7a0ab0b22fc67ba08b0f53d2967862d506e523e6a04ef021c89f68c8c31",
+    "src/lib/active-session.ts": "cdcb3d8232243268bf3849d61fa7def0d8a8d27d3147bff6c5a2d6ae0f38cd86",
+    "src/app/app/projects/page.tsx": "aba6d9a6700c30aa373c776860b90f969bf98907456676b723a1d053ea81c6d0",
+    "scripts/auth-entry.test.mjs": "846fab63f9c15d1d649f654c5492113e430a1f51fc0ce1099466fe9560ec3a9e",
+    "scripts/recovery-authority.test.mjs": "a14fc82ba2bd5a135dcff58b94864394a07a22507971be01a7341774e2a9f5c4",
+    "scripts/recovery-update.test.mjs": "9ea1a714269787ad65991987c169005588356bfa6dccfc980cb1b4ce7210acb2",
+    "scripts/active-session.test.mjs": "7b8123c7f71f3af473e1cd45596d54e6d6881baeac3142da7c718044fd6e148f"
+  },
+  "suites": [
+    {
+      "name": "auth-entry",
+      "command": "node scripts/auth-entry.test.mjs",
+      "stdout": "✔ auth entry projects only the server-verified account ID (2.6899ms)\n✔ only a definite missing or rejected session permits signed-out entry (0.8536ms)\n✔ network failure, provider failure and malformed identities fail closed (0.5451ms)\n✔ stale login, Google, signup and cleanup actions preserve an active account (10.8478ms)\n✔ uncertain identities cannot start login/signup/recovery or clear cookies (3.8721ms)\n✔ signed-out recovery requests keep provider failures account-enumeration safe (4.8824ms)\n✔ unsigned cleanup may remove stale cookies without signing out through the SDK (3.6034ms)\n✔ OAuth and confirmation callbacks do not exchange or clear an existing/uncertain session (13.4459ms)\n✔ recovery callback preserves an existing or uncertain session without exchanging the recovery code (4.5296ms)\n✔ recovery callback exchanges only a confirmed signed-out session and handles exchange outcomes (1.9687ms)\nℹ tests 10\nℹ suites 0\nℹ pass 10\nℹ fail 0\nℹ cancelled 0\nℹ skipped 0\nℹ todo 0\nℹ duration_ms 96.8857\n",
+      "stderr": "(node:8520) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///F:/kannan/projects/IDEALAB/idealab-mec-web/src/lib/auth-entry.ts is not specified and it doesn't parse as CommonJS.\nReparsing as ES module because module syntax was detected. This incurs a performance overhead.\nTo eliminate this warning, add \"type\": \"module\" to \\\\?\\F:\\kannan\\projects\\IDEALAB\\idealab-mec-web\\package.json.\n(Use `node --trace-warnings ...` to show where the warning was created)\n(node:8520) ExperimentalWarning: stripTypeScriptTypes is an experimental feature and might change at any time\n",
+      "exitCode": 0
+    },
+    {
+      "name": "recovery-authority",
+      "command": "node scripts/recovery-authority.test.mjs",
+      "stdout": "✔ fresh verified recovery projects only stable account and session IDs (2.6777ms)\n✔ ordinary login, OAuth and editable recovery metadata do not grant recovery (0.5333ms)\n✔ expired, future, stale and malformed time claims fail closed (0.7888ms)\n✔ malformed identities, roles, AMR structures and ambiguous methods are denied (1.5144ms)\n✔ verification errors, absent data and thrown provider errors grant no authority (1.1932ms)\n✔ account or session switching around the live identity check fails closed (0.414ms)\n✔ default wall clock is rechecked after asynchronous verification (0.3287ms)\n✔ invalid clocks and non-data claim properties cannot confer authority (0.296ms)\nℹ tests 8\nℹ suites 0\nℹ pass 8\nℹ fail 0\nℹ cancelled 0\nℹ skipped 0\nℹ todo 0\nℹ duration_ms 16.6027\n",
+      "stderr": "(node:12364) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///F:/kannan/projects/IDEALAB/idealab-mec-web/src/lib/recovery-authority.ts is not specified and it doesn't parse as CommonJS.\nReparsing as ES module because module syntax was detected. This incurs a performance overhead.\nTo eliminate this warning, add \"type\": \"module\" to \\\\?\\F:\\kannan\\projects\\IDEALAB\\idealab-mec-web\\package.json.\n(Use `node --trace-warnings ...` to show where the warning was created)\n",
+      "exitCode": 0
+    },
+    {
+      "name": "recovery-update",
+      "command": "node scripts/recovery-update.test.mjs",
+      "stdout": "✔ disabled recovery and invalid input cannot load an account or mutate a password (27.0781ms)\n✔ missing service or recovery authority never consumes or changes credentials (0.4536ms)\n✔ account and session switches, duplicate bindings and file bindings fail before consumption (4.8996ms)\n✔ only an explicit successful database receipt permits the Auth update (1.0965ms)\n✔ successful update follows consumption and clears the local attempt before sign-in (0.9593ms)\n✔ provider error, lost response or unexpected identity requires a fresh link with uncertainty stated (0.7757ms)\n✔ confirmed password change with failed cookie cleanup never claims browser sign-out (0.3134ms)\nℹ tests 7\nℹ suites 0\nℹ pass 7\nℹ fail 0\nℹ cancelled 0\nℹ skipped 0\nℹ todo 0\nℹ duration_ms 43.354\n",
+      "stderr": "(node:15968) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///F:/kannan/projects/IDEALAB/idealab-mec-web/src/lib/auth-input.ts is not specified and it doesn't parse as CommonJS.\nReparsing as ES module because module syntax was detected. This incurs a performance overhead.\nTo eliminate this warning, add \"type\": \"module\" to \\\\?\\F:\\kannan\\projects\\IDEALAB\\idealab-mec-web\\package.json.\n(Use `node --trace-warnings ...` to show where the warning was created)\n(node:15968) ExperimentalWarning: stripTypeScriptTypes is an experimental feature and might change at any time\n",
+      "exitCode": 0
+    },
+    {
+      "name": "active-session",
+      "command": "node scripts/active-session.test.mjs",
+      "stdout": "✔ elapsed timer is based on the saved check-in timestamp and never goes negative (1.5274ms)\n✔ elapsed timer formats long sessions without wrapping after 24 hours (0.3674ms)\n✔ checkout reminder appears at two hours and remains tied to the saved session (0.3049ms)\nℹ tests 3\nℹ suites 0\nℹ pass 3\nℹ fail 0\nℹ cancelled 0\nℹ skipped 0\nℹ todo 0\nℹ duration_ms 13.4679\n",
+      "stderr": "(node:10404) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///F:/kannan/projects/IDEALAB/idealab-mec-web/src/lib/active-session.ts is not specified and it doesn't parse as CommonJS.\nReparsing as ES module because module syntax was detected. This incurs a performance overhead.\nTo eliminate this warning, add \"type\": \"module\" to \\\\?\\F:\\kannan\\projects\\IDEALAB\\idealab-mec-web\\package.json.\n(Use `node --trace-warnings ...` to show where the warning was created)\n",
+      "exitCode": 0
+    }
+  ]
+}

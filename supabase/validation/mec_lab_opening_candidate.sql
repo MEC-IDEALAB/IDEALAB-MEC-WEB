@@ -3,6 +3,9 @@ DO $preflight$
 BEGIN
   IF current_user <> 'postgres' OR current_database() <> 'postgres'
     OR current_setting('server_version_num')::integer NOT BETWEEN 170000 AND 179999
+    OR NOT EXISTS (SELECT 1 FROM information_schema.columns
+      WHERE table_schema = 'auth' AND table_name = 'users' AND column_name = 'banned_until'
+        AND data_type = 'timestamp with time zone')
     OR to_regprocedure('public.get_own_profile_v1()') IS NULL
     OR to_regprocedure('idealab_private.has_current_verified_email_v1()') IS NULL
     OR to_regclass('idealab_private.lab_opening_permissions_v1') IS NOT NULL
@@ -54,18 +57,28 @@ REVOKE ALL ON idealab_private.lab_opening_permissions_v1, idealab_private.lab_op
 -- Explicit member-safe projection across private tables. Definer access is
 -- intentional and guarded; there is no raw-table API grant or metadata authority.
 CREATE FUNCTION idealab_private.lab_opening_member_ready_v1()
-RETURNS boolean LANGUAGE sql STABLE SECURITY INVOKER SET search_path = ''
+RETURNS boolean LANGUAGE plpgsql VOLATILE SECURITY DEFINER SET search_path = ''
 AS $ready$
-  SELECT auth.uid() IS NOT NULL
-    AND idealab_private.has_current_verified_email_v1()
+DECLARE v_banned_until timestamptz;
+BEGIN
+  IF auth.uid() IS NULL THEN RETURN false; END IF;
+  -- Auth bans do not revoke already-issued JWTs. Lock Auth first so a ban or
+  -- unban change serializes with every protected read/write in this command.
+  SELECT account.banned_until INTO v_banned_until
+    FROM auth.users AS account WHERE account.id = auth.uid() FOR SHARE;
+  IF NOT FOUND OR (v_banned_until IS NOT NULL AND v_banned_until > statement_timestamp()) THEN
+    RETURN false;
+  END IF;
+  RETURN idealab_private.has_current_verified_email_v1()
     AND EXISTS (SELECT 1 FROM public.get_own_profile_v1() AS p
       WHERE p.id = auth.uid() AND p.is_active IS TRUE
       AND (p.role IN ('lab_admin','super_admin') OR
         (p.role = 'student' AND p.profile_completed IS TRUE
          AND p.profile_contract_version = 1 AND p.mec_admitted IS TRUE)));
+END;
 $ready$;
 CREATE FUNCTION idealab_private.get_lab_opening_v1()
-RETURNS jsonb LANGUAGE plpgsql STABLE SECURITY DEFINER SET search_path = ''
+RETURNS jsonb LANGUAGE plpgsql VOLATILE SECURITY DEFINER SET search_path = ''
 AS $read$
 DECLARE v_state record; v_changes jsonb;
 BEGIN
@@ -119,18 +132,38 @@ BEGIN
   IF v_state.revision::text <> p_expected_revision THEN RETURN jsonb_build_object('status','conflict'); END IF;
   IF v_state.last_action = p_action THEN RETURN jsonb_build_object('status','unchanged','revision',v_state.revision::text); END IF;
   IF v_state.revision = 9223372036854775807 THEN RETURN jsonb_build_object('status','unavailable'); END IF;
+  -- A close cannot be reported as successful unless the shared attendance
+  -- relation is present. Check-in and checkout take FOR SHARE on this same
+  -- state row before session writes, so this transition waits for in-flight
+  -- attendance changes and blocks new ones until all active sessions have
+  -- been closed at the recorded event timestamp.
+  IF p_action = 'close' AND (
+    to_regclass('public.lab_sessions') IS NULL
+    OR NOT EXISTS (
+      SELECT 1 FROM pg_catalog.pg_attribute
+      WHERE attrelid = to_regclass('public.lab_sessions')
+        AND attname = 'checkout_time' AND atttypid = 'timestamptz'::regtype
+        AND attnum > 0 AND NOT attisdropped
+    )
+  ) THEN
+    RETURN jsonb_build_object('status','unavailable');
+  END IF;
   v_revision := v_state.revision + 1;
   SELECT greatest(clock_timestamp(),coalesce(max(occurred_at),'-infinity'::timestamptz)) INTO v_time
     FROM idealab_private.lab_opening_changes_v1 WHERE revision = v_state.revision;
   INSERT INTO idealab_private.lab_opening_changes_v1(revision,command_id,actor_id,action,actor_name,actor_duty,occurred_at)
     VALUES (v_revision,p_command_id,auth.uid(),p_action,v_name,v_duty,v_time);
+  IF p_action = 'close' THEN
+    EXECUTE 'UPDATE public.lab_sessions SET checkout_time = $1 WHERE checkout_time IS NULL'
+      USING v_time;
+  END IF;
   UPDATE idealab_private.lab_opening_state_v1 SET revision = v_revision,last_action = p_action WHERE singleton = 1;
   RETURN jsonb_build_object('status','applied','revision',v_revision::text);
 END;
 $write$;
 
 CREATE FUNCTION public.get_lab_opening_v1() RETURNS jsonb
-LANGUAGE sql STABLE SECURITY INVOKER SET search_path = ''
+LANGUAGE sql VOLATILE SECURITY INVOKER SET search_path = ''
 AS $public$ SELECT idealab_private.get_lab_opening_v1(); $public$;
 CREATE FUNCTION public.set_lab_opening_v1(p_action text, p_expected_revision text, p_command_id uuid) RETURNS jsonb
 LANGUAGE sql VOLATILE SECURITY INVOKER SET search_path = ''

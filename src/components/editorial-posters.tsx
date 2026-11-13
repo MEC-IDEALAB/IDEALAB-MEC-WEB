@@ -12,7 +12,6 @@ export function EditorialPosters() {
         <span className="poster-side-label poster-side-label-left" aria-hidden="true">MAKE / LEARN / REPEAT</span>
         <span className="poster-side-label poster-side-label-right" aria-hidden="true">MEC · KOCHI</span>
         <span className="poster-annotation poster-annotation-one" aria-hidden="true">TRY AGAIN ↗</span>
-        <span className="poster-annotation poster-annotation-two" aria-hidden="true">IDEA → OBJECT</span>
         <h2 id="possibilities-title" className="poster-headline">
           <span className="poster-line poster-line-lime"><span className="poster-cutout">Less</span></span>
           <span className="poster-line poster-line-pink"><span className="poster-cutout">“what if”.</span></span>

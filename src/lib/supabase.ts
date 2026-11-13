@@ -1,3 +1,4 @@
+import { fetchSupabase } from './supabase-fetch';
 import 'server-only';
 import { createServerClient } from '@supabase/ssr';
 import { cookies } from 'next/headers';
@@ -14,7 +15,7 @@ export async function serverClient(options: { writable?: boolean } = {}) {
     setAll: (values) => {
       writeCookieBatch(values, ({ name, value, options }) => jar.set(name, value, options), options.writable === true);
     },
-  }, global: { fetch: (input, init) => fetch(input, { ...init, signal: AbortSignal.timeout(12000) }) },
+  }, global: { fetch: fetchSupabase },
   });
 }
 

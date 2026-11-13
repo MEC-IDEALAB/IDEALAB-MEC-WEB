@@ -71,9 +71,12 @@ isolated validation; shared rollout requires its own migration and review gate.
 ## Pages and wireframes
 
 `/app/events`: Lab back link → Events & workshops heading → programme/status
-explanation → All/Upcoming/Ongoing/Completed/Cancelled links → bordered list
+explanation → Upcoming/Ongoing/Past/Cancelled/All links → bordered list
 cards with date, type, title, venue and text status → next-page link. Selection
 uses native links with aria-current; no hover-only navigation. Phone cards stack.
+New visits default to Upcoming. All events has an explicit `status=all` link.
+Legacy cursor links without a status preserve their original All filter and v1
+ordering. Empty Upcoming results offer a direct link to the full programme.
 `/app/events/[id]`: Events back link → title and status → time/venue/type facts →
 plain-text description → explicit registration unavailable state. Missing detail
 uses not-found; unavailable service offers retry through ordinary navigation.
@@ -81,6 +84,12 @@ No disabled pretend RSVP or payment button. Reuse approved tokens, typography,
 focus treatments and existing member navigation; no new sidebar.
 
 ## Remaining registration/staff dependencies
+
+3 November: the owner confirmed scoped Event Heads may create events before an
+event-specific assignment exists. A local private draft/edit/publication candidate
+now has disposable PostgreSQL permission, retry, publication atomicity and
+concurrent-submission checks. It is not installed or connected to a management
+UI. See [draft delivery and remaining integration gates](event-draft-delivery.md).
 
 The live RSVP uniqueness constraint does not prove atomic capacity, fee/payment
 or authorization. A reviewed write contract must define trusted Events Head
@@ -90,10 +99,32 @@ states and retry/audit semantics. Do not add client-writable counters or let
 payment pending hold a seat. Super Admin assignment remains its separate audited
 boundary. Required owner decisions must be settled before dependent writes.
 
+### Grow RSVP compatibility gate
+
+The 5 November read-only shared catalog check confirms that `public.rsvps.status`, `public.increment_rsvp_count` and `public.decrement_rsvp_count` are absent. `authenticated` has an effective table UPDATE grant, but the RSVP table has no UPDATE or ALL policy. No registration was attempted against the shared project.
+
+Grow's `lib/features/explore/data/event_repository.dart` writes `status: going` on RSVP and `status: cancelled` on cancellation, then calls the corresponding counter routine and inserts a notification in separate requests. `lib/shared/models/rsvp_model.dart` defaults a missing status to `going`, so a working list read does not establish write compatibility. The [RC4.3 replay](research/shared-baseline-function-map-2026-11-04.md) identifies related source and the deployed differences.
+
+Before enabling registration on either client, prove both clients use the same authorized server transitions. Test final-seat concurrency, retries after a lost response, cancellation with direct promotion, and notification retry independently of the committed registration. Exercise direct legacy write denial alongside the new paths. Adding a column alone would leave the split counter and notification writes unresolved.
+
 23 October owner reply: IDEALAB has its own GPay/UPI account, but the approved
 UPI ID/payee details are not currently available to the owner. Do not substitute
 a personal account, invented QR or sample payment destination. Payment submission
 remains disabled until the official details and dependent financial rules arrive.
+
+## Attendee visibility publication gate — 4 November 2026
+
+The approved event rule remains Event Head-controlled visibility, defaulting to
+registered attendees. The read-only shared schema review found no persisted
+attendee-visibility column on `public.events`, and the candidate has no
+authorized attendee-list read path. The validation-only draft therefore keeps
+the visibility choice in its private draft but rejects publication unless it is
+the conservative Event-Head-only value. This avoids silently discarding a
+visibility choice or publishing a broader list than the owner authorized.
+Restore the registered-attendee default only when a reviewed schema projection
+and permission-checked read path persist and enforce the chosen value. RSVP,
+waitlist, attendance and payment remain gated and no production schema was
+changed by this candidate check.
 
 ## Delivery and acceptance ledger
 

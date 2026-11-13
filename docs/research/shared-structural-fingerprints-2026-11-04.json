@@ -1,0 +1,1137 @@
+{
+  "capturedDate": "2026-11-04",
+  "projectId": "huftzhfqnnslvnfzvbex",
+  "scope": "Read-only structural fingerprints; no application rows, default expressions, trigger arguments or function bodies returned. MD5 is a comparison fingerprint only.",
+  "indexes": [
+    {
+      "is_valid": true,
+      "is_unique": true,
+      "index_name": "mec_registration_claims_v1_normalized_uidx",
+      "table_name": "mec_registration_claims_v1",
+      "schema_name": "idealab_private",
+      "definition_md5": "e877dedad11f4b171eaa88d234c22fb2"
+    },
+    {
+      "is_valid": true,
+      "is_unique": true,
+      "index_name": "mec_registration_claims_v1_one_current_per_user_uidx",
+      "table_name": "mec_registration_claims_v1",
+      "schema_name": "idealab_private",
+      "definition_md5": "2bdabaa72d3ff940922675b1652f4fa4"
+    },
+    {
+      "is_valid": true,
+      "is_unique": true,
+      "index_name": "mec_registration_claims_v1_one_pending_per_user_uidx",
+      "table_name": "mec_registration_claims_v1",
+      "schema_name": "idealab_private",
+      "definition_md5": "8ea46b5fd6b05baf58266299e76e3231"
+    },
+    {
+      "is_valid": true,
+      "is_unique": true,
+      "index_name": "mec_registration_claims_v1_pkey",
+      "table_name": "mec_registration_claims_v1",
+      "schema_name": "idealab_private",
+      "definition_md5": "fa959ffd1caca7e3146257bf7125f0bc"
+    },
+    {
+      "is_valid": true,
+      "is_unique": true,
+      "index_name": "mec_registration_collision_state_v1_pkey",
+      "table_name": "mec_registration_collision_state_v1",
+      "schema_name": "idealab_private",
+      "definition_md5": "db92ed340fb70b7a6f06e7066c972e0d"
+    },
+    {
+      "is_valid": true,
+      "is_unique": true,
+      "index_name": "profile_contract_baseline_v1_pkey",
+      "table_name": "profile_contract_baseline_v1",
+      "schema_name": "idealab_private",
+      "definition_md5": "9c3ca3f4d2377c291793815f496d13e6"
+    },
+    {
+      "is_valid": true,
+      "is_unique": true,
+      "index_name": "clubs_pkey",
+      "table_name": "clubs",
+      "schema_name": "public",
+      "definition_md5": "a199039e2ff074748ffa0ec53a6c2982"
+    },
+    {
+      "is_valid": true,
+      "is_unique": true,
+      "index_name": "events_pkey",
+      "table_name": "events",
+      "schema_name": "public",
+      "definition_md5": "246140ed37b0df04b471c7497b018d6f"
+    },
+    {
+      "is_valid": true,
+      "is_unique": false,
+      "index_name": "idx_events_date",
+      "table_name": "events",
+      "schema_name": "public",
+      "definition_md5": "d60c4cf1b98d47d1994ae952629a145b"
+    },
+    {
+      "is_valid": true,
+      "is_unique": true,
+      "index_name": "knowledge_articles_pkey",
+      "table_name": "knowledge_articles",
+      "schema_name": "public",
+      "definition_md5": "d5e047e27a5fd9c037b4f94096bffc8f"
+    },
+    {
+      "is_valid": true,
+      "is_unique": false,
+      "index_name": "idx_lab_sessions_user",
+      "table_name": "lab_sessions",
+      "schema_name": "public",
+      "definition_md5": "e84fa48832ba01e67394ac8198b7e3a6"
+    },
+    {
+      "is_valid": true,
+      "is_unique": true,
+      "index_name": "lab_sessions_pkey",
+      "table_name": "lab_sessions",
+      "schema_name": "public",
+      "definition_md5": "fef7c06e30ca640849407c5b16e7bfe9"
+    },
+    {
+      "is_valid": true,
+      "is_unique": false,
+      "index_name": "idx_notifications_user",
+      "table_name": "notifications",
+      "schema_name": "public",
+      "definition_md5": "df89b52baab4f31b11d4356a999185b2"
+    },
+    {
+      "is_valid": true,
+      "is_unique": false,
+      "index_name": "idx_notifications_user_created",
+      "table_name": "notifications",
+      "schema_name": "public",
+      "definition_md5": "529b5bcdca0b8f54569ff86eda2d331f"
+    },
+    {
+      "is_valid": true,
+      "is_unique": false,
+      "index_name": "idx_notifications_user_unread",
+      "table_name": "notifications",
+      "schema_name": "public",
+      "definition_md5": "20b9f652599045f6d5fb3a421327f812"
+    },
+    {
+      "is_valid": true,
+      "is_unique": true,
+      "index_name": "notifications_pkey",
+      "table_name": "notifications",
+      "schema_name": "public",
+      "definition_md5": "3435fbb51aa7e7d2ac858b253960952b"
+    },
+    {
+      "is_valid": true,
+      "is_unique": true,
+      "index_name": "project_members_pkey",
+      "table_name": "project_members",
+      "schema_name": "public",
+      "definition_md5": "fc243b69d38a2882d6014740fe7b0484"
+    },
+    {
+      "is_valid": true,
+      "is_unique": true,
+      "index_name": "project_members_project_id_user_id_key",
+      "table_name": "project_members",
+      "schema_name": "public",
+      "definition_md5": "b0540efc6f6bb95de2efaee8e1927a1e"
+    },
+    {
+      "is_valid": true,
+      "is_unique": false,
+      "index_name": "idx_projects_creator",
+      "table_name": "projects",
+      "schema_name": "public",
+      "definition_md5": "66fde99a211d6d4391cf93633205982d"
+    },
+    {
+      "is_valid": true,
+      "is_unique": true,
+      "index_name": "projects_pkey",
+      "table_name": "projects",
+      "schema_name": "public",
+      "definition_md5": "9f690e29f908397e6155686f952ce88a"
+    },
+    {
+      "is_valid": true,
+      "is_unique": false,
+      "index_name": "idx_rsvps_event",
+      "table_name": "rsvps",
+      "schema_name": "public",
+      "definition_md5": "c1a945a7825239251ab51d05fec8acdd"
+    },
+    {
+      "is_valid": true,
+      "is_unique": false,
+      "index_name": "idx_rsvps_user",
+      "table_name": "rsvps",
+      "schema_name": "public",
+      "definition_md5": "718c4face0042af2e8a9a1c0694fe919"
+    },
+    {
+      "is_valid": true,
+      "is_unique": true,
+      "index_name": "rsvps_event_id_user_id_key",
+      "table_name": "rsvps",
+      "schema_name": "public",
+      "definition_md5": "d335465bf5de5431be571fb7bc3008cc"
+    },
+    {
+      "is_valid": true,
+      "is_unique": true,
+      "index_name": "rsvps_pkey",
+      "table_name": "rsvps",
+      "schema_name": "public",
+      "definition_md5": "ad63da8052f21b85aff17de339ef3402"
+    },
+    {
+      "is_valid": true,
+      "is_unique": true,
+      "index_name": "rsvps_qr_ticket_data_key",
+      "table_name": "rsvps",
+      "schema_name": "public",
+      "definition_md5": "f4dce39ad8feec1c21b585b5c311e7c3"
+    },
+    {
+      "is_valid": true,
+      "is_unique": false,
+      "index_name": "idx_tool_bookings_status",
+      "table_name": "tool_bookings",
+      "schema_name": "public",
+      "definition_md5": "6436ddd9ace12c99f2056761c88ef2af"
+    },
+    {
+      "is_valid": true,
+      "is_unique": false,
+      "index_name": "idx_tool_bookings_tool_slot",
+      "table_name": "tool_bookings",
+      "schema_name": "public",
+      "definition_md5": "36b3cf269204038e7659d0b2a01a862a"
+    },
+    {
+      "is_valid": true,
+      "is_unique": false,
+      "index_name": "idx_tool_bookings_user",
+      "table_name": "tool_bookings",
+      "schema_name": "public",
+      "definition_md5": "790a85ca4960edb1f02499f4b22ff560"
+    },
+    {
+      "is_valid": true,
+      "is_unique": false,
+      "index_name": "idx_tool_bookings_user_status",
+      "table_name": "tool_bookings",
+      "schema_name": "public",
+      "definition_md5": "ece6b655562c519221744398b4cbe579"
+    },
+    {
+      "is_valid": true,
+      "is_unique": false,
+      "index_name": "no_overlapping_tool_bookings",
+      "table_name": "tool_bookings",
+      "schema_name": "public",
+      "definition_md5": "36a6055ea9607753bed54291e5727b7f"
+    },
+    {
+      "is_valid": true,
+      "is_unique": true,
+      "index_name": "tool_bookings_pkey",
+      "table_name": "tool_bookings",
+      "schema_name": "public",
+      "definition_md5": "2389455960c992e3e0f0e72dcb5fa025"
+    },
+    {
+      "is_valid": true,
+      "is_unique": true,
+      "index_name": "tools_pkey",
+      "table_name": "tools",
+      "schema_name": "public",
+      "definition_md5": "502466dbb45e11cd267b069803db0e4a"
+    },
+    {
+      "is_valid": true,
+      "is_unique": true,
+      "index_name": "tools_qr_code_data_key",
+      "table_name": "tools",
+      "schema_name": "public",
+      "definition_md5": "009fc604ac9625708013fe03a34d3731"
+    },
+    {
+      "is_valid": true,
+      "is_unique": false,
+      "index_name": "idx_user_education_user_id",
+      "table_name": "user_education",
+      "schema_name": "public",
+      "definition_md5": "af8d3beaed3b8907f855dfbe13f15ec3"
+    },
+    {
+      "is_valid": true,
+      "is_unique": true,
+      "index_name": "user_education_pkey",
+      "table_name": "user_education",
+      "schema_name": "public",
+      "definition_md5": "8fe5a46cb686ec11291a527caeb07748"
+    },
+    {
+      "is_valid": true,
+      "is_unique": false,
+      "index_name": "idx_user_experience_user_id",
+      "table_name": "user_experience",
+      "schema_name": "public",
+      "definition_md5": "1228d5becdb17b0186565741c420bf64"
+    },
+    {
+      "is_valid": true,
+      "is_unique": true,
+      "index_name": "user_experience_pkey",
+      "table_name": "user_experience",
+      "schema_name": "public",
+      "definition_md5": "68adea2b372388a9769957a454004c14"
+    },
+    {
+      "is_valid": true,
+      "is_unique": false,
+      "index_name": "idx_user_interests_user_id",
+      "table_name": "user_interests",
+      "schema_name": "public",
+      "definition_md5": "fd7d35948d35ed8f1c85c4ae60767a4d"
+    },
+    {
+      "is_valid": true,
+      "is_unique": true,
+      "index_name": "unique_user_interest",
+      "table_name": "user_interests",
+      "schema_name": "public",
+      "definition_md5": "102d4e8c95c30a8e9f8ef2a3526e4a26"
+    },
+    {
+      "is_valid": true,
+      "is_unique": true,
+      "index_name": "user_interests_pkey",
+      "table_name": "user_interests",
+      "schema_name": "public",
+      "definition_md5": "edbc42cf5436dc3e24c4939d242f953e"
+    },
+    {
+      "is_valid": true,
+      "is_unique": false,
+      "index_name": "idx_user_portfolio_projects_user_id",
+      "table_name": "user_portfolio_projects",
+      "schema_name": "public",
+      "definition_md5": "d002f5748a8ef1349f64dec7748d7928"
+    },
+    {
+      "is_valid": true,
+      "is_unique": true,
+      "index_name": "user_portfolio_projects_pkey",
+      "table_name": "user_portfolio_projects",
+      "schema_name": "public",
+      "definition_md5": "85f0fd3d00da046b4391dd46c075c24b"
+    },
+    {
+      "is_valid": true,
+      "is_unique": false,
+      "index_name": "idx_user_profiles_user_id",
+      "table_name": "user_profiles",
+      "schema_name": "public",
+      "definition_md5": "851dd2953d1887fe91480eb69b9e53ef"
+    },
+    {
+      "is_valid": true,
+      "is_unique": true,
+      "index_name": "unique_user_profile",
+      "table_name": "user_profiles",
+      "schema_name": "public",
+      "definition_md5": "aec53dce56e0c9ce34cc6d351c05791c"
+    },
+    {
+      "is_valid": true,
+      "is_unique": true,
+      "index_name": "user_profiles_pkey",
+      "table_name": "user_profiles",
+      "schema_name": "public",
+      "definition_md5": "ba33a7d07034987114eb066799259e3f"
+    },
+    {
+      "is_valid": true,
+      "is_unique": true,
+      "index_name": "user_profiles_username_key",
+      "table_name": "user_profiles",
+      "schema_name": "public",
+      "definition_md5": "4a0fdbc41b352b04a5f70443f8f6690c"
+    },
+    {
+      "is_valid": true,
+      "is_unique": false,
+      "index_name": "idx_user_skills_user_id",
+      "table_name": "user_skills",
+      "schema_name": "public",
+      "definition_md5": "33ae857c1bb88d799c8fa2f24f242855"
+    },
+    {
+      "is_valid": true,
+      "is_unique": true,
+      "index_name": "unique_user_skill",
+      "table_name": "user_skills",
+      "schema_name": "public",
+      "definition_md5": "0819ff5b0790f55c5ef8308e35842f60"
+    },
+    {
+      "is_valid": true,
+      "is_unique": true,
+      "index_name": "user_skills_pkey",
+      "table_name": "user_skills",
+      "schema_name": "public",
+      "definition_md5": "7e312fa0050adad758dfe95183333b7b"
+    },
+    {
+      "is_valid": true,
+      "is_unique": false,
+      "index_name": "idx_user_social_links_user_id",
+      "table_name": "user_social_links",
+      "schema_name": "public",
+      "definition_md5": "39e9eedb6f7d082cac632e2cc6483aed"
+    },
+    {
+      "is_valid": true,
+      "is_unique": true,
+      "index_name": "unique_user_platform",
+      "table_name": "user_social_links",
+      "schema_name": "public",
+      "definition_md5": "791e786470d8ac17497594a84c68a072"
+    },
+    {
+      "is_valid": true,
+      "is_unique": true,
+      "index_name": "user_social_links_pkey",
+      "table_name": "user_social_links",
+      "schema_name": "public",
+      "definition_md5": "50e8aec6a4f51336cc677bf095096ae5"
+    },
+    {
+      "is_valid": true,
+      "is_unique": false,
+      "index_name": "idx_user_volunteering_user_id",
+      "table_name": "user_volunteering",
+      "schema_name": "public",
+      "definition_md5": "4d3edc0e0d43fbd756fa14ae900016dd"
+    },
+    {
+      "is_valid": true,
+      "is_unique": true,
+      "index_name": "user_volunteering_pkey",
+      "table_name": "user_volunteering",
+      "schema_name": "public",
+      "definition_md5": "89e2d8a5e6dcacbcbd224302dd6ac99a"
+    },
+    {
+      "is_valid": true,
+      "is_unique": true,
+      "index_name": "users_college_roll_key",
+      "table_name": "users",
+      "schema_name": "public",
+      "definition_md5": "5eaf392e330a071b89b6636e1eddb6f9"
+    },
+    {
+      "is_valid": true,
+      "is_unique": true,
+      "index_name": "users_college_roll_normalized_v1_uidx",
+      "table_name": "users",
+      "schema_name": "public",
+      "definition_md5": "b19982bbacc1c80b95a5a09249754204"
+    },
+    {
+      "is_valid": true,
+      "is_unique": true,
+      "index_name": "users_email_key",
+      "table_name": "users",
+      "schema_name": "public",
+      "definition_md5": "cb4a94a885d938f3a568be8a2c91836a"
+    },
+    {
+      "is_valid": true,
+      "is_unique": true,
+      "index_name": "users_pkey",
+      "table_name": "users",
+      "schema_name": "public",
+      "definition_md5": "337abd2e2c42117357b05ac25862edca"
+    },
+    {
+      "is_valid": true,
+      "is_unique": true,
+      "index_name": "users_qr_code_data_key",
+      "table_name": "users",
+      "schema_name": "public",
+      "definition_md5": "993a2ff8e3443c65cfcfeb5eb01357bc"
+    }
+  ],
+  "defaults": [
+    {
+      "table_name": "mec_registration_claims_v1",
+      "column_name": "claim_id",
+      "schema_name": "idealab_private",
+      "expression_md5": "f3b72bb359a50b640590970a2ab8e514"
+    },
+    {
+      "table_name": "mec_registration_claims_v1",
+      "column_name": "created_at",
+      "schema_name": "idealab_private",
+      "expression_md5": "c92679b3a5f2d209d86c588ae97c31ed"
+    },
+    {
+      "table_name": "mec_registration_claims_v1",
+      "column_name": "normalized_value",
+      "schema_name": "idealab_private",
+      "expression_md5": "0c78a2777402f1389095ead9ba97ca95"
+    },
+    {
+      "table_name": "profile_contract_baseline_v1",
+      "column_name": "singleton",
+      "schema_name": "idealab_private",
+      "expression_md5": "b326b5062b2f0e69046810717534cb09"
+    },
+    {
+      "table_name": "clubs",
+      "column_name": "created_at",
+      "schema_name": "public",
+      "expression_md5": "75230039beb12ce952f24927f2bfa2f2"
+    },
+    {
+      "table_name": "clubs",
+      "column_name": "id",
+      "schema_name": "public",
+      "expression_md5": "f3b72bb359a50b640590970a2ab8e514"
+    },
+    {
+      "table_name": "events",
+      "column_name": "created_at",
+      "schema_name": "public",
+      "expression_md5": "75230039beb12ce952f24927f2bfa2f2"
+    },
+    {
+      "table_name": "events",
+      "column_name": "event_type",
+      "schema_name": "public",
+      "expression_md5": "fa3a1934bfaecf57377a7e95d7ff3267"
+    },
+    {
+      "table_name": "events",
+      "column_name": "id",
+      "schema_name": "public",
+      "expression_md5": "f3b72bb359a50b640590970a2ab8e514"
+    },
+    {
+      "table_name": "events",
+      "column_name": "rsvp_count",
+      "schema_name": "public",
+      "expression_md5": "cfcd208495d565ef66e7dff9f98764da"
+    },
+    {
+      "table_name": "events",
+      "column_name": "status",
+      "schema_name": "public",
+      "expression_md5": "e44b1752bed106ffca49b70f1453bff1"
+    },
+    {
+      "table_name": "knowledge_articles",
+      "column_name": "created_at",
+      "schema_name": "public",
+      "expression_md5": "75230039beb12ce952f24927f2bfa2f2"
+    },
+    {
+      "table_name": "knowledge_articles",
+      "column_name": "id",
+      "schema_name": "public",
+      "expression_md5": "f3b72bb359a50b640590970a2ab8e514"
+    },
+    {
+      "table_name": "knowledge_articles",
+      "column_name": "is_approved",
+      "schema_name": "public",
+      "expression_md5": "68934a3e9455fa72420237eb05902327"
+    },
+    {
+      "table_name": "knowledge_articles",
+      "column_name": "upvotes",
+      "schema_name": "public",
+      "expression_md5": "cfcd208495d565ef66e7dff9f98764da"
+    },
+    {
+      "table_name": "lab_sessions",
+      "column_name": "checkin_time",
+      "schema_name": "public",
+      "expression_md5": "75230039beb12ce952f24927f2bfa2f2"
+    },
+    {
+      "table_name": "lab_sessions",
+      "column_name": "created_at",
+      "schema_name": "public",
+      "expression_md5": "75230039beb12ce952f24927f2bfa2f2"
+    },
+    {
+      "table_name": "lab_sessions",
+      "column_name": "id",
+      "schema_name": "public",
+      "expression_md5": "f3b72bb359a50b640590970a2ab8e514"
+    },
+    {
+      "table_name": "notifications",
+      "column_name": "created_at",
+      "schema_name": "public",
+      "expression_md5": "75230039beb12ce952f24927f2bfa2f2"
+    },
+    {
+      "table_name": "notifications",
+      "column_name": "id",
+      "schema_name": "public",
+      "expression_md5": "f3b72bb359a50b640590970a2ab8e514"
+    },
+    {
+      "table_name": "notifications",
+      "column_name": "is_read",
+      "schema_name": "public",
+      "expression_md5": "68934a3e9455fa72420237eb05902327"
+    },
+    {
+      "table_name": "project_members",
+      "column_name": "id",
+      "schema_name": "public",
+      "expression_md5": "f3b72bb359a50b640590970a2ab8e514"
+    },
+    {
+      "table_name": "project_members",
+      "column_name": "joined_at",
+      "schema_name": "public",
+      "expression_md5": "75230039beb12ce952f24927f2bfa2f2"
+    },
+    {
+      "table_name": "project_members",
+      "column_name": "role",
+      "schema_name": "public",
+      "expression_md5": "f7a170ec8afb30676a0600e57073f910"
+    },
+    {
+      "table_name": "projects",
+      "column_name": "created_at",
+      "schema_name": "public",
+      "expression_md5": "75230039beb12ce952f24927f2bfa2f2"
+    },
+    {
+      "table_name": "projects",
+      "column_name": "id",
+      "schema_name": "public",
+      "expression_md5": "f3b72bb359a50b640590970a2ab8e514"
+    },
+    {
+      "table_name": "projects",
+      "column_name": "status",
+      "schema_name": "public",
+      "expression_md5": "3437309278ae0bdf4fc4d88562f322a3"
+    },
+    {
+      "table_name": "projects",
+      "column_name": "updated_at",
+      "schema_name": "public",
+      "expression_md5": "75230039beb12ce952f24927f2bfa2f2"
+    },
+    {
+      "table_name": "projects",
+      "column_name": "visibility",
+      "schema_name": "public",
+      "expression_md5": "4ca4342c78b459943a0c8c391f50aba5"
+    },
+    {
+      "table_name": "rsvps",
+      "column_name": "created_at",
+      "schema_name": "public",
+      "expression_md5": "75230039beb12ce952f24927f2bfa2f2"
+    },
+    {
+      "table_name": "rsvps",
+      "column_name": "id",
+      "schema_name": "public",
+      "expression_md5": "f3b72bb359a50b640590970a2ab8e514"
+    },
+    {
+      "table_name": "tool_bookings",
+      "column_name": "created_at",
+      "schema_name": "public",
+      "expression_md5": "75230039beb12ce952f24927f2bfa2f2"
+    },
+    {
+      "table_name": "tool_bookings",
+      "column_name": "id",
+      "schema_name": "public",
+      "expression_md5": "f3b72bb359a50b640590970a2ab8e514"
+    },
+    {
+      "table_name": "tool_bookings",
+      "column_name": "return_reminder_sent",
+      "schema_name": "public",
+      "expression_md5": "68934a3e9455fa72420237eb05902327"
+    },
+    {
+      "table_name": "tool_bookings",
+      "column_name": "status",
+      "schema_name": "public",
+      "expression_md5": "3d0c12821e68f0fc31291c72ad568aa9"
+    },
+    {
+      "table_name": "tools",
+      "column_name": "available_qty",
+      "schema_name": "public",
+      "expression_md5": "c4ca4238a0b923820dcc509a6f75849b"
+    },
+    {
+      "table_name": "tools",
+      "column_name": "created_at",
+      "schema_name": "public",
+      "expression_md5": "75230039beb12ce952f24927f2bfa2f2"
+    },
+    {
+      "table_name": "tools",
+      "column_name": "health_status",
+      "schema_name": "public",
+      "expression_md5": "b5713b9744675240138e5f5c81514fa4"
+    },
+    {
+      "table_name": "tools",
+      "column_name": "id",
+      "schema_name": "public",
+      "expression_md5": "f3b72bb359a50b640590970a2ab8e514"
+    },
+    {
+      "table_name": "tools",
+      "column_name": "total_qty",
+      "schema_name": "public",
+      "expression_md5": "c4ca4238a0b923820dcc509a6f75849b"
+    },
+    {
+      "table_name": "user_education",
+      "column_name": "created_at",
+      "schema_name": "public",
+      "expression_md5": "75230039beb12ce952f24927f2bfa2f2"
+    },
+    {
+      "table_name": "user_education",
+      "column_name": "field_of_study",
+      "schema_name": "public",
+      "expression_md5": "86e751880b3791dd7c2efae188915799"
+    },
+    {
+      "table_name": "user_education",
+      "column_name": "id",
+      "schema_name": "public",
+      "expression_md5": "f3b72bb359a50b640590970a2ab8e514"
+    },
+    {
+      "table_name": "user_education",
+      "column_name": "is_current",
+      "schema_name": "public",
+      "expression_md5": "68934a3e9455fa72420237eb05902327"
+    },
+    {
+      "table_name": "user_education",
+      "column_name": "sort_order",
+      "schema_name": "public",
+      "expression_md5": "cfcd208495d565ef66e7dff9f98764da"
+    },
+    {
+      "table_name": "user_education",
+      "column_name": "updated_at",
+      "schema_name": "public",
+      "expression_md5": "75230039beb12ce952f24927f2bfa2f2"
+    },
+    {
+      "table_name": "user_experience",
+      "column_name": "created_at",
+      "schema_name": "public",
+      "expression_md5": "75230039beb12ce952f24927f2bfa2f2"
+    },
+    {
+      "table_name": "user_experience",
+      "column_name": "description",
+      "schema_name": "public",
+      "expression_md5": "86e751880b3791dd7c2efae188915799"
+    },
+    {
+      "table_name": "user_experience",
+      "column_name": "id",
+      "schema_name": "public",
+      "expression_md5": "f3b72bb359a50b640590970a2ab8e514"
+    },
+    {
+      "table_name": "user_experience",
+      "column_name": "is_current",
+      "schema_name": "public",
+      "expression_md5": "68934a3e9455fa72420237eb05902327"
+    },
+    {
+      "table_name": "user_experience",
+      "column_name": "sort_order",
+      "schema_name": "public",
+      "expression_md5": "cfcd208495d565ef66e7dff9f98764da"
+    },
+    {
+      "table_name": "user_experience",
+      "column_name": "updated_at",
+      "schema_name": "public",
+      "expression_md5": "75230039beb12ce952f24927f2bfa2f2"
+    },
+    {
+      "table_name": "user_interests",
+      "column_name": "created_at",
+      "schema_name": "public",
+      "expression_md5": "75230039beb12ce952f24927f2bfa2f2"
+    },
+    {
+      "table_name": "user_interests",
+      "column_name": "id",
+      "schema_name": "public",
+      "expression_md5": "f3b72bb359a50b640590970a2ab8e514"
+    },
+    {
+      "table_name": "user_portfolio_projects",
+      "column_name": "created_at",
+      "schema_name": "public",
+      "expression_md5": "75230039beb12ce952f24927f2bfa2f2"
+    },
+    {
+      "table_name": "user_portfolio_projects",
+      "column_name": "description",
+      "schema_name": "public",
+      "expression_md5": "86e751880b3791dd7c2efae188915799"
+    },
+    {
+      "table_name": "user_portfolio_projects",
+      "column_name": "id",
+      "schema_name": "public",
+      "expression_md5": "f3b72bb359a50b640590970a2ab8e514"
+    },
+    {
+      "table_name": "user_portfolio_projects",
+      "column_name": "is_featured",
+      "schema_name": "public",
+      "expression_md5": "68934a3e9455fa72420237eb05902327"
+    },
+    {
+      "table_name": "user_portfolio_projects",
+      "column_name": "sort_order",
+      "schema_name": "public",
+      "expression_md5": "cfcd208495d565ef66e7dff9f98764da"
+    },
+    {
+      "table_name": "user_portfolio_projects",
+      "column_name": "technologies",
+      "schema_name": "public",
+      "expression_md5": "f81a5133416544064d5b9b182f73a6e1"
+    },
+    {
+      "table_name": "user_portfolio_projects",
+      "column_name": "updated_at",
+      "schema_name": "public",
+      "expression_md5": "75230039beb12ce952f24927f2bfa2f2"
+    },
+    {
+      "table_name": "user_profiles",
+      "column_name": "bio",
+      "schema_name": "public",
+      "expression_md5": "86e751880b3791dd7c2efae188915799"
+    },
+    {
+      "table_name": "user_profiles",
+      "column_name": "created_at",
+      "schema_name": "public",
+      "expression_md5": "75230039beb12ce952f24927f2bfa2f2"
+    },
+    {
+      "table_name": "user_profiles",
+      "column_name": "department",
+      "schema_name": "public",
+      "expression_md5": "86e751880b3791dd7c2efae188915799"
+    },
+    {
+      "table_name": "user_profiles",
+      "column_name": "id",
+      "schema_name": "public",
+      "expression_md5": "f3b72bb359a50b640590970a2ab8e514"
+    },
+    {
+      "table_name": "user_profiles",
+      "column_name": "is_public",
+      "schema_name": "public",
+      "expression_md5": "b326b5062b2f0e69046810717534cb09"
+    },
+    {
+      "table_name": "user_profiles",
+      "column_name": "show_email",
+      "schema_name": "public",
+      "expression_md5": "68934a3e9455fa72420237eb05902327"
+    },
+    {
+      "table_name": "user_profiles",
+      "column_name": "show_phone",
+      "schema_name": "public",
+      "expression_md5": "68934a3e9455fa72420237eb05902327"
+    },
+    {
+      "table_name": "user_profiles",
+      "column_name": "show_stats",
+      "schema_name": "public",
+      "expression_md5": "b326b5062b2f0e69046810717534cb09"
+    },
+    {
+      "table_name": "user_profiles",
+      "column_name": "updated_at",
+      "schema_name": "public",
+      "expression_md5": "75230039beb12ce952f24927f2bfa2f2"
+    },
+    {
+      "table_name": "user_profiles",
+      "column_name": "user_type",
+      "schema_name": "public",
+      "expression_md5": "2a2908245d6896ef309d85ffc2441c8c"
+    },
+    {
+      "table_name": "user_skills",
+      "column_name": "created_at",
+      "schema_name": "public",
+      "expression_md5": "75230039beb12ce952f24927f2bfa2f2"
+    },
+    {
+      "table_name": "user_skills",
+      "column_name": "id",
+      "schema_name": "public",
+      "expression_md5": "f3b72bb359a50b640590970a2ab8e514"
+    },
+    {
+      "table_name": "user_skills",
+      "column_name": "level",
+      "schema_name": "public",
+      "expression_md5": "c4ca4238a0b923820dcc509a6f75849b"
+    },
+    {
+      "table_name": "user_skills",
+      "column_name": "sort_order",
+      "schema_name": "public",
+      "expression_md5": "cfcd208495d565ef66e7dff9f98764da"
+    },
+    {
+      "table_name": "user_social_links",
+      "column_name": "created_at",
+      "schema_name": "public",
+      "expression_md5": "75230039beb12ce952f24927f2bfa2f2"
+    },
+    {
+      "table_name": "user_social_links",
+      "column_name": "id",
+      "schema_name": "public",
+      "expression_md5": "f3b72bb359a50b640590970a2ab8e514"
+    },
+    {
+      "table_name": "user_social_links",
+      "column_name": "sort_order",
+      "schema_name": "public",
+      "expression_md5": "cfcd208495d565ef66e7dff9f98764da"
+    },
+    {
+      "table_name": "user_volunteering",
+      "column_name": "created_at",
+      "schema_name": "public",
+      "expression_md5": "75230039beb12ce952f24927f2bfa2f2"
+    },
+    {
+      "table_name": "user_volunteering",
+      "column_name": "description",
+      "schema_name": "public",
+      "expression_md5": "86e751880b3791dd7c2efae188915799"
+    },
+    {
+      "table_name": "user_volunteering",
+      "column_name": "id",
+      "schema_name": "public",
+      "expression_md5": "f3b72bb359a50b640590970a2ab8e514"
+    },
+    {
+      "table_name": "user_volunteering",
+      "column_name": "is_current",
+      "schema_name": "public",
+      "expression_md5": "68934a3e9455fa72420237eb05902327"
+    },
+    {
+      "table_name": "user_volunteering",
+      "column_name": "sort_order",
+      "schema_name": "public",
+      "expression_md5": "cfcd208495d565ef66e7dff9f98764da"
+    },
+    {
+      "table_name": "user_volunteering",
+      "column_name": "updated_at",
+      "schema_name": "public",
+      "expression_md5": "75230039beb12ce952f24927f2bfa2f2"
+    },
+    {
+      "table_name": "users",
+      "column_name": "created_at",
+      "schema_name": "public",
+      "expression_md5": "75230039beb12ce952f24927f2bfa2f2"
+    },
+    {
+      "table_name": "users",
+      "column_name": "is_active",
+      "schema_name": "public",
+      "expression_md5": "b326b5062b2f0e69046810717534cb09"
+    },
+    {
+      "table_name": "users",
+      "column_name": "level",
+      "schema_name": "public",
+      "expression_md5": "c4ca4238a0b923820dcc509a6f75849b"
+    },
+    {
+      "table_name": "users",
+      "column_name": "profile_completed",
+      "schema_name": "public",
+      "expression_md5": "68934a3e9455fa72420237eb05902327"
+    },
+    {
+      "table_name": "users",
+      "column_name": "profile_contract_version",
+      "schema_name": "public",
+      "expression_md5": "cfcd208495d565ef66e7dff9f98764da"
+    },
+    {
+      "table_name": "users",
+      "column_name": "profile_revision",
+      "schema_name": "public",
+      "expression_md5": "cfcd208495d565ef66e7dff9f98764da"
+    },
+    {
+      "table_name": "users",
+      "column_name": "reputation_score",
+      "schema_name": "public",
+      "expression_md5": "f899139df5e1059396431415e770c6dd"
+    },
+    {
+      "table_name": "users",
+      "column_name": "role",
+      "schema_name": "public",
+      "expression_md5": "2a2908245d6896ef309d85ffc2441c8c"
+    },
+    {
+      "table_name": "users",
+      "column_name": "updated_at",
+      "schema_name": "public",
+      "expression_md5": "75230039beb12ce952f24927f2bfa2f2"
+    },
+    {
+      "table_name": "users",
+      "column_name": "xp",
+      "schema_name": "public",
+      "expression_md5": "cfcd208495d565ef66e7dff9f98764da"
+    }
+  ],
+  "triggers": [
+    {
+      "enabled": "O",
+      "table_name": "users",
+      "schema_name": "auth",
+      "trigger_name": "shared_profile_after_auth_insert_v1",
+      "function_name": "provision_shared_profile_v1",
+      "definition_md5": "b24365a4ac3e2309304a74fba91a6e59",
+      "function_schema": "idealab_private"
+    },
+    {
+      "enabled": "O",
+      "table_name": "users",
+      "schema_name": "auth",
+      "trigger_name": "shared_profile_after_auth_update_v1",
+      "function_name": "provision_shared_profile_v1",
+      "definition_md5": "1a306abc727a5dbcf5d2cc1efed695b1",
+      "function_schema": "idealab_private"
+    },
+    {
+      "enabled": "O",
+      "table_name": "mec_registration_claims_v1",
+      "schema_name": "idealab_private",
+      "trigger_name": "mec_registration_claims_v1_no_pending_at_commit",
+      "function_name": "enforce_no_committed_pending_mec_claim_v1",
+      "definition_md5": "ea53fc1dfa4e54d192c2db5b33a42198",
+      "function_schema": "idealab_private"
+    },
+    {
+      "enabled": "O",
+      "table_name": "project_members",
+      "schema_name": "public",
+      "trigger_name": "trg_notify_project_member_join",
+      "function_name": "notify_project_member_join",
+      "definition_md5": "f9e59dcaed0477b95381cdd61ef0a99f",
+      "function_schema": "private"
+    },
+    {
+      "enabled": "O",
+      "table_name": "tool_bookings",
+      "schema_name": "public",
+      "trigger_name": "trg_notify_booking_status_change",
+      "function_name": "notify_booking_status_change",
+      "definition_md5": "222261648947ec14a043f13c5c5dffba",
+      "function_schema": "private"
+    },
+    {
+      "enabled": "O",
+      "table_name": "user_education",
+      "schema_name": "public",
+      "trigger_name": "trg_user_education_updated_at",
+      "function_name": "set_updated_at",
+      "definition_md5": "9258e65c398945ee7cd54ba13e7caae9",
+      "function_schema": "public"
+    },
+    {
+      "enabled": "O",
+      "table_name": "user_experience",
+      "schema_name": "public",
+      "trigger_name": "trg_user_experience_updated_at",
+      "function_name": "set_updated_at",
+      "definition_md5": "727383cc0aa86525a1771cb126a43444",
+      "function_schema": "public"
+    },
+    {
+      "enabled": "O",
+      "table_name": "user_portfolio_projects",
+      "schema_name": "public",
+      "trigger_name": "trg_user_portfolio_projects_updated_at",
+      "function_name": "set_updated_at",
+      "definition_md5": "75f4cc8bad0f7684b590fcf43e0deddc",
+      "function_schema": "public"
+    },
+    {
+      "enabled": "O",
+      "table_name": "user_profiles",
+      "schema_name": "public",
+      "trigger_name": "trg_user_profiles_updated_at",
+      "function_name": "set_updated_at",
+      "definition_md5": "378547570ffcc651f5d71c45b65de29a",
+      "function_schema": "public"
+    },
+    {
+      "enabled": "O",
+      "table_name": "user_volunteering",
+      "schema_name": "public",
+      "trigger_name": "trg_user_volunteering_updated_at",
+      "function_name": "set_updated_at",
+      "definition_md5": "58848c0a3460a73102eb061a40d8e5c9",
+      "function_schema": "public"
+    }
+  ]
+}

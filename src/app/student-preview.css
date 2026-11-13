@@ -113,3 +113,9 @@ html[data-theme=dark] .student-preview-privacy-copy{background:#0b0b0b;color:#f4
 @media(prefers-reduced-motion:reduce){.student-preview-app,.student-preview-sidebar-toggle,.student-preview-notification-button{transition:none}}
 .student-preview-sidebar-collapsed .student-preview-side-nav{grid-template-columns:minmax(0,1fr);min-width:0}
 .student-preview-sidebar-collapsed .student-preview-side-nav>.student-preview-nav-link{min-width:0}
+.student-billing-steps {
+  display: grid;
+  gap: .75rem;
+  padding-inline-start: 1.5rem;
+  list-style: decimal outside;
+}

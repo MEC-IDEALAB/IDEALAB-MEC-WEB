@@ -97,3 +97,8 @@ npm run test:shared-profile-sql
 
 The optional command is not added to public CI because that runner does not
 provide these verified native binaries or real backend services.
+
+
+## Phase 0 recheck - 4 November 2026
+
+The current PostgreSQL 17.6 disposable suite passed profile and claim behavior, public profile access, concurrent saves and claims, and rollback. Evidence: `artifacts/database-runtime/runtime-1793779740702-39dd8f5b.json`. The initial failure used a statement timestamp earlier than the newly written attestation. Grow fixture readbacks now run in separate SQL statements, matching the application request boundary. No migration body changed. This synthetic rehearsal does not reproduce the exact May migrations or prove provider behavior, shared-client acceptance, or backup restoration.

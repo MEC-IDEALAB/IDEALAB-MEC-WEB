@@ -52,18 +52,89 @@ The documented V1 is the product destination. Delivery is incremental: a working
 | WEB-004 | Minimum account profile | Required name, +country-code phone, MEC registration number, department, current study year selected from Year 1–8 and canonical MEC institution for the pilot. One claim per normalized MEC number; compare without case/repeated/surrounding-space differences and preserve display text. Self-edit remains subject to registration-claim integrity; details are private by default. Rich profile remains deferred. |
 | WEB-005 | Public/private projects, signed-in discovery and join requests | Public projects discoverable to signed-in users; project code creates a request; creator approves membership; private records protected server-side. |
 | WEB-006 | Free/paid events and participation | Eligibility and capacity enforced atomically; payment pending holds no seat; Events Head handles event cancellation/refund decisions. |
-| WEB-007 | Manual lab check-in/out and visit history | Purpose and timestamps recorded; outside-hours policy enforced; check-in grants no machine authority. QR remains optional. |
+| WEB-007 | Manual lab check-in/out and visit history | One-tap check-in with a generic visit label, authoritative timestamps, and current lab-open state enforced; app-wide active-session timer/reminder and checkout; check-in grants no machine authority. QR remains optional. |
 | WEB-008 | Separate Machine and Operations requests | One Start a Work Request entry, approved service-specific questions, collaborators/links, review, material-edit approval and accountable history. |
 | WEB-009 | Preferred time followed by head confirmation | Requested time provisional; requester explicitly accepts any changed proposed time before it becomes agreed/confirmed. Declining a proposed time keeps the request open for another proposal, with no automatic expiry. Authorized head decision and acceptance audited; no inferred capacity reservation. |
 | WEB-010 | Request cancellation | Direct cancellation before head claim/review, atomically checked; afterward reasoned request requiring responsible head decision. |
 | WEB-011 | Manufacturing tasks, queue, machine state/runtime/maintenance | Separate entities and permissioned staff controls; verified catalog and safe disclosure; no student operation of fabrication machines. |
 | WEB-012 | Inventory, assets, consumables and borrowing | Distinct item classes, approved imports/stock, movement history, due dates and Operations-verified return. Fine rules require approval. |
-| WEB-013 | Quotes and manual UPI verification | Official QR and transaction/proof workflow; no automatic verification; no invented deposit, charge or refund rules. |
+| WEB-013 | Estimates, approved quotes and manual UPI verification | Provisional estimates use an approved, versioned rate catalog and itemized assumptions; verified actual usage is separate. Official payment route, fee terms and refund rules must be approved before payment submission; no automatic verification or invented charge. |
 | WEB-014 | Notifications, operational exports and audit | Real events and read states; approved report scope; actor/action/entity/time metadata for critical mutations. |
-| WEB-015 | Administration and configurable master data | Only Super Admin assigns/revokes machine/room-scoped heads and manages active-work handover/reassignment. Audited trusted assignments, approved configuration and server-enforced scoped access. |
+| WEB-015 | Administration and configurable master data | Student Ambassador and Super Admin have equal in-app administrative powers, including operational Head assignment/revocation and handover. Use an audited trusted-roster path and server-enforced scope. Infrastructure credentials and ownership remain separate. |
 | WEB-016 | Responsive and accessible professional experience | Criteria in [experience](experience.md); keyboard, touch, text enlargement, status feedback and reduced motion work. |
 | WEB-017 | Truthful persistence and failure handling | Missing backend shows unavailable; drafts explicitly local/unsubmitted; no simulated operational success. |
 | WEB-018 | Shared-backend production gate | Reconcile schema/grants/RLS/functions/storage/migration ledger, approve contracts and verify negative authorization before enabling writes. |
+
+## Event, project-resource and work-request flows — owner direction, 3 November 2026
+
+The member Home and Lab show multiple upcoming activities in a horizontally
+scrollable event strip. Each card opens a dedicated event detail route using a
+shared event layout. The Events destination lists the full event programme with
+status filters and bounded pagination. The list, detail route and carousel
+already exist in the web source; their current Supabase contract is read-only.
+
+Students need a real RSVP/registration record. The Event Head creates and
+manages events and configures open or invite-only eligibility, capacity, the
+attendee-list visibility, and free or paid status. The owner chose Event Head
+control of attendee visibility, with registered attendees as the default.
+Attendance names must be served only to audiences allowed by that event's
+setting. A free RSVP must enforce eligibility and capacity atomically. A paid
+event may be configured, but its RSVP/payment path stays disabled until the
+official payment route, fee terms and refund rules are approved; no personal
+payment account or unverified payment flow may be substituted.
+
+Projects lists the signed-in member's projects and active campus projects,
+including visibility, project details, membership counts and an appropriately
+private member roster. Keep existing project create and creator-approved join
+flows. A project may request machine work or components/tools through the common
+Make & borrow request hub. The project ID must be validated against membership
+and visibility on the server. A request is not a reservation, confirmed stock,
+machine authorization or charge.
+
+Project resource accounting distinguishes a request, estimate, accepted quote,
+actual use, final bill and payment confirmation. The owner confirmed that the
+assigned head prepares an estimate from entered filament/service details, sends
+it to the student, and work starts only after the student explicitly approves.
+After production, the head records actual usage and the final bill, confirms
+payment, and closes the request into history. Students do not upload design
+files; storage limitations make head-entered quantities the first release path.
+The initial filament rate of ₹3 per gram is approved. Assigned heads manage
+rates only within their trusted scope; every change is versioned and audited.
+
+The server must snapshot rate versions and assumptions in each estimate, keep
+estimated quantities distinct from verified actuals, and calculate the final
+bill from head-recorded actual usage. No production begins without student
+approval. Initial rates for machine use, design and time-based service beyond
+the approved filament rate are not configured yet; assigned heads will manage
+rates in their trusted scope before those charges are quoted. A declined
+estimate stays open for the head to revise or reject. A higher final bill
+requires an explicitly submitted student approval checkbox tied to that bill’s
+revision and amount. The student pays using IDEALAB’s official UPI QR and
+enters the transaction ID. The head verifies receipt before closure. A project
+showcase report may publish only verified usage, approved totals and explicitly
+shareable member fields. Inventory, booking, pricing, report storage and public
+sharing still require reviewed authorization, retention and audit contracts.
+See [project resource estimates](project-resource-estimates.md).
+
+The current Make & borrow request categories are Machine work (laser, 3D
+printing/design, CNC, cup/T-shirt printing, laser design, lathe and woodwork)
+and Operations support (components, ICs, electronics tools and hardware).
+Service, title and description are required. Preferred time, reference links,
+quantity, material, dimensions and other technical details remain optional.
+Head confirmation is required for a booking or operational change; the
+requester's explicit acceptance remains required when a proposed time changes.
+
+As of this date, the website has the event list/detail/carousel and project
+list/create/detail/join-request surfaces, plus a Make & borrow draft workflow.
+It does not have connected event RSVP/Event Head APIs, project-linked resource
+usage/cost/report APIs, or production request submission. The active Supabase
+schema contains legacy `events`, `rsvps`, `projects`, `project_members`,
+`tools` and `tool_bookings` tables, but only the initial schema, shared access
+hardening and shared profile migrations are recorded. It has no event/project
+RPCs in the inspected public schema; direct event/RSVP/project membership
+policies are insufficient for capacity, eligibility or creator/head decisions.
+Do not enable the feature from table presence alone. A complete reviewed
+migration and negative authorization/concurrency tests are release gates.
 
 ## Roles and permission boundaries
 
@@ -81,7 +152,7 @@ These are required product responsibilities, not proof of deployed permission gr
 | Machine Head | Assigned machine requests, manufacturing tasks, queue and runtime | Machine/room-specific assignment required, plus training/machine policies and server transition authorization. |
 | Operations Head | Operations requests, stock/prices, borrowing, billing and reports | Approved stock/pricing and financial rules; audited updates. |
 | Events Head | Event publication, registration/payment decisions, attendance/refunds | Event-scoped authority, atomic capacity and payment transitions. |
-| Super Admin | Exclusive head assignment/revocation and active-work handover/reassignment; master data, moderation and audit access | Trusted audited server path; no email-name inference or client-writable authority. Detailed action matrix and in-flight transaction effects still require decisions. |
+| Super Admin and Student Ambassador | Equal in-app administrative powers, including operational Head assignments, master data, moderation and authorized audit access | Trusted audited roster path; no self-elevation, email-name inference or client-writable authority. Supabase/service-role credentials, database ownership, GitHub organization ownership, Vercel ownership and production secrets remain outside application roles. |
 | Other core positions | Web/Design and any approved responsibilities | No automatic operational powers; define roster/scope before granting controls. |
 
 ## Current evidence versus planned work
@@ -90,7 +161,7 @@ Current owner direction uses notebook cross-grid paper and the original yellow `
 
 The maker-spirit eyebrow, hero service-availability footnote and first-card boilerplate were removed at the owner’s request. Factual unavailable messages remain on account/service routes. Sign-in retains its semantic form and password show/hide control, disabled while account activation is unavailable. The auth story panels use the current shared palette and theme controls. `/sign-up` shows a clearly labeled, disabled email/password registration preview and Google control, with no contact CTA or account-creation writes. The loading skeleton remains scoped to sign-in to preserve ordinary not-found HTTP status behavior.
 
-The protected member route tree now uses Home / Lab / Profile top navigation across widths, shared with the no-data student wireframe. Lab groups Requests, Borrowing, Events, Visits and Projects; Profile groups account details and Settings. No member sidebar, bottom navigation or More menu remains. Existing direct module URLs and server guards are preserved. Notifications and theme stay top-right. The isolated profile save/declaration journey works; operational modules remain unavailable until their own backend acceptance. See [navigation evidence](research/workspace-topnav-2026-10-22.json).
+The protected member route tree and no-data wireframe share Home / Lab / Profile navigation. Desktop uses the top navigation; phones use a bottom navigation bar and keep only the brand, theme and notification utilities in the top header. Lab quick access is one responsive card with Make & borrow, Events and Projects; old request/borrow URLs redirect to the combined destination, and Visits stay within the check-in/history card. Profile contains account details and Settings. Existing server guards remain. Operational modules remain unavailable until their own backend acceptance. See the current [member workspace redesign](member-workspace-redesign-2026-11-02.md).
 
 Notebook/content validation passed (session 11250, exit 0): lint, production build and real browser coverage of five homepage widths and all three facility photos; the full 11-entry `/lab` directory at 320/768/1440 px in both themes; `/explore` history and public event-theme boundaries; prior contrast, motion, no-JavaScript, draft and guard journeys. Jet-black dark-mode validation subsequently passed in session 7536, including the body and neutral section strip. Backend availability, full V1 and deployment remain unverified.
 
@@ -112,7 +183,7 @@ All remaining full-V1 operational modules are planned or gated, not implemented 
 
 1. Collaborator discovery/privacy and scoped-head routing remain open. On 22 October the owner approved Machine categories: laser cutting, 3D printing, CNC, cup printing, T-shirt printing, 3D design, laser design, lathe and woodwork; Operations: components, ICs, electronics tools and hardware. Required intake is service/title/description, with optional preferred time and references. Machine quantity/material/dimensions and Operations item/quantity/purpose may be optional. This authorizes intake categories, not stock, prices, availability or automatic machine access.
 2. Time lifecycle details: rescheduling/cancellation effects, capacity source and conflicts. Preferred-time semantics, explicit requester acceptance of changed time, keeping declined proposals open for another proposal, and no automatic expiry are settled.
-3. Authoritative machine/room-specific head roster, detailed allowed actions, handover mechanics/in-flight transaction effects and audit readers/retention. Only Super Admin assigns/revokes scoped heads and manages active-work handover/reassignment; no automatic reassignment rule is decided. Deputies/escalation remain deferred until pilot readiness.
+3. Named trusted-roster maintainer and backup, approved machine/room scope map, detailed actions, handover/in-flight transaction effects and audit retention. The 4 November decision supersedes earlier Super-Admin-only wording: Student Ambassador and Super Admin have equal in-app administrative powers and both use the trusted roster process. No automatic reassignment rule is decided. Deputies/escalation remain deferred until pilot readiness.
 4. MEC registration-format/course coverage, enforceable save-limit design, technical validation lengths, approved contacts/hours, policy texts and rich-profile field matrix. Self-declared eligibility is approved for the pilot; no college-record ownership check is promised. Country-code phone input, case/space comparison, Year 1–8, coordinated Flutter rollout, generic conflict errors/save limits and private-by-default profiles are confirmed; the pilot uses canonical MEC institution and one registration claim.
 5. Deferred Operations inputs: verified catalog/stock/prices, quote/charge/deposit/balance/cancellation/refund/fine rules. Do not reintroduce historical 50/50 defaults.
 6. Mandatory first-release report set and storage/upload contract.
@@ -128,3 +199,18 @@ Historical planning inputs live in the parent Grow workspace at `docs/01_Product
 ## Branded loading state
 
 The first page boot uses repeated lowercase IDEALAB wordmarks behind a maker scene with a drawn prototype, orbiting blueprint marker, staggered title, geometric star and indeterminate progress rail. It appears once per browser-tab visit. The bundled motion stylesheet starts each layer at a dim but readable opacity so the first CSS-rendered frame already shows the composition; a nonce-protected layout fallback preserves matching loader geometry if that stylesheet fails. The ten-second intro timeline starts with the first frame and includes scene assembly, followed by a 320 ms hand-off that keeps page controls inert until the overlay exits. Font and high-priority image readiness is bounded to 400 ms. Reduced-motion users skip the animation; a 12-second watchdog from initial boot releases interaction if startup stalls and may shorten the intro on very slow starts. JavaScript-disabled browsers do not receive an overlay, and the root route has no loading boundary so ordinary 404 status remains intact. See [loader timing and accessibility evidence](quality/loader-visual-timing-2026-11-01.md).
+
+
+## Approved V1 execution — 4 November 2026
+
+The approved staged plan in [delivery plan](delivery-plan.md) supersedes earlier conflicting statements. Both top roles manage operational Heads. Verified active Lab core members can open or close the Lab. Recorded closure automatically ends active visits. The checkout reminder runs only while the web app is open. Explicit Publish controls public profile access. Payment follows completion, and a disputed increase stays blocked until Operations resolves it and obtains consent where required.
+
+The MEC pilot targets 16 December 2026, six weeks after Task 1 started on 4 November; scope review is 25 November. GitHub linking, then the public heatmap, then optional portfolio steps are the first schedule cut. GitHub and profile publication have independent controls; if publication privacy/takedown acceptance fails, disable public profile and QR while preserving drafts and allowing the verified account/Lab path to continue.
+
+The profile is not published by onboarding completion. Members preview the public allowlist and explicitly choose Publish. QR codes contain only an opaque, rate-limited URL; public reads are uncached and withdrawal/deletion/takedown must stop URL resolution. Provider avatar or initials are the pilot image source; custom uploads remain deferred until storage, validation and deletion are proven.
+
+Lab opening/check-in/closure share server-authoritative serialized state. Only a verified active Lab core member can open or close; a different core member may close. Check-in is rejected while closed, only one active visit per member is allowed, and recorded closure checks out active visits idempotently at the exact closure timestamp. The in-app reminder operates only while the web app is open; closing the browser stops reminders, while recorded Lab closure still ends the visit. A reconnect reloads server state and does not fabricate success.
+
+The validation-only STAFF-01A candidate now uses separate assignment/history tables and a database-enforced maximum of two active Machine Heads per machine scope. Focused PostgreSQL 16.1 capacity, approval, revocation and rollback checks passed, and the revised candidate passed Grow synthetic shared-profile SQL on PostgreSQL 17.11. The faithful deployed-schema rehearsal and live Next.js/Flutter calls remain unverified. Independent review found that Student Ambassador appointment/revocation and Lab-core roster changes have no candidate-level audit history; connect them to an audited trusted roster process or add a reviewed append-only audit path before activation. Keep staff actions disabled until that roster dependency, current candidate review and shared-client authorization gates pass.
+
+For event publishing, preserve Event Head attendee-visibility intent only when the published/read projection enforces it. If the shared event schema lacks a safe persisted field or authorized read path, fail closed to the approved fixed default and do not expose an ignored setting. Event RSVP, capacity, waitlists and attendee lists remain gated until their own contract and acceptance tests pass.

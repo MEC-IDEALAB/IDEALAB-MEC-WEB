@@ -2,6 +2,9 @@
 
 These records describe product requirements, UX plans, integration boundaries and verified delivery evidence for the standalone Next.js website. They separate planned behavior from implemented or live-verified behavior.
 
+- [Phase 1 shared FK reconciliation, isolated tests and Flutter write-path evidence](quality/phase1-database-validation-2026-11-06.md)
+- [Website onboarding, staff and Lab acceptance checkpoint](quality/phase2-website-acceptance-2026-11-13.md)
+
 - [Current launch follow-up, public UI checks and privacy task list](launch-followup-2026-11-02.md)
 - [Member platform readiness, carousel checks and live backend gates — 3 November](quality/member-platform-readiness-2026-11-03.md)
 - [Performance and scalability backlog — 31 requested tasks](performance-backlog-2026-11-02.md)

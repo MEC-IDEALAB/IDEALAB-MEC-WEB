@@ -3,6 +3,7 @@ import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
 import { stripTypeScriptTypes } from 'node:module';
 import { inspectAuthEntry } from '../src/lib/auth-entry.ts';
+import { authFailureNotice, readAuthCode } from '../src/lib/auth-input.ts';
 
 const signedIn = { data: { user: { id: 'account-A', email: 'member@example.invalid', role: 'untrusted-extra' } }, error: null };
 const signedOut = { data: { user: null }, error: { name: 'AuthSessionMissingError', status: 400 } };
@@ -41,16 +42,16 @@ class TestRedirect extends Error {
 function actionFixture(response, source) {
   const calls = { mutation: 0, cleanup: 0, provider: 0 };
   const forbiddenMutation = async () => { calls.mutation++; throw new Error('fixture must not mutate'); };
-  const client = { auth: { getUser: async () => response, signInWithPassword: forbiddenMutation, signInWithOAuth: forbiddenMutation, signUp: forbiddenMutation, signOut: forbiddenMutation, resetPasswordForEmail: forbiddenMutation } };
+  const client = { auth: { getUser: async () => response, signInWithPassword: forbiddenMutation, signInWithOAuth: forbiddenMutation, signUp: forbiddenMutation, signOut: forbiddenMutation, resetPasswordForEmail: forbiddenMutation, resend: forbiddenMutation } };
   const names = ['redirect', 'serverClient', 'inspectAuthEntry', 'readAuthCredentials', 'readAuthEmail', 'googleAuthConfig', 'passwordRecoveryConfig', 'signupAuthConfig', 'backendConfig', 'confirmedSignupProviderAvailable', 'clearLocalAuthSession', 'attemptSignupAndClearSession'];
   const values = [path => { throw new TestRedirect(path); }, async () => client, inspectAuthEntry, () => ({ email: 'member@example.invalid', password: 'fixture-not-a-live-password' }), () => 'member@example.invalid', () => ({ callback: 'https://site.example.invalid/auth/callback' }), () => ({ callback: 'https://site.example.invalid/auth/recovery/callback' }), () => ({ callback: 'https://site.example.invalid/auth/confirm' }), () => { calls.provider++; return {}; }, async () => { calls.provider++; return true; }, async () => { calls.cleanup++; }, async () => { calls.mutation++; }];
-  const create = new Function(...names, source + '\nreturn { signIn, signInWithGoogle, signUp, requestPasswordReset, retrySignupCleanup, finishPasswordResetSignOut };');
+  const create = new Function(...names, source + '\nreturn { signIn, signInWithGoogle, signUp, requestPasswordReset, retrySignupCleanup, finishPasswordResetSignOut, resendSignupConfirmation };');
   return { actions: create(...values), calls };
 }
 
 test('stale login, Google, signup and cleanup actions preserve an active account', async () => {
   const source = await body('../src/app/auth/actions.ts');
-  for (const name of ['signIn', 'signInWithGoogle', 'signUp', 'requestPasswordReset', 'retrySignupCleanup', 'finishPasswordResetSignOut']) {
+  for (const name of ['signIn', 'signInWithGoogle', 'signUp', 'requestPasswordReset', 'retrySignupCleanup', 'finishPasswordResetSignOut', 'resendSignupConfirmation']) {
     const { actions, calls } = actionFixture(signedIn, source);
     await assert.rejects(actions[name](new FormData()), error => error instanceof TestRedirect && error.path === '/app', name);
     assert.deepEqual(calls, { mutation: 0, cleanup: 0, provider: 0 }, name);
@@ -59,7 +60,7 @@ test('stale login, Google, signup and cleanup actions preserve an active account
 
 test('uncertain identities cannot start login/signup/recovery or clear cookies', async () => {
   const source = await body('../src/app/auth/actions.ts');
-  for (const name of ['signIn', 'signInWithGoogle', 'signUp', 'requestPasswordReset', 'retrySignupCleanup', 'finishPasswordResetSignOut']) {
+  for (const name of ['signIn', 'signInWithGoogle', 'signUp', 'requestPasswordReset', 'retrySignupCleanup', 'finishPasswordResetSignOut', 'resendSignupConfirmation']) {
     const { actions, calls } = actionFixture(unavailable, source);
     const path = name === 'signUp' ? '/sign-up?notice=connection'
       : name === 'requestPasswordReset' ? '/forgot-password?notice=callback'
@@ -105,6 +106,17 @@ test('unsigned cleanup may remove stale cookies without signing out through the 
 class TestResponse extends Response {
   static redirect(url, init = {}) { return new TestResponse(null, { status: 307, ...init, headers: { ...init.headers, Location: url.href } }); }
 }
+test('Google callback keeps the expired-attempt notice without forwarding provider text or opening a session', async () => {
+  const source = await body('../src/app/auth/callback/route.ts');
+  const create = new Function('readAuthCode', 'authFailureNotice', 'NextResponse', 'serverClient', 'googleAuthConfig', source + '\nreturn GET;');
+  const handler = create(readAuthCode, authFailureNotice, TestResponse,
+    async () => assert.fail('a callback without a code must not open an Auth client'),
+    () => ({ callback: 'https://site.example.invalid/auth/callback' }));
+  const nextUrl = new URL('https://site.example.invalid/auth/callback?error=invalid_request&error_code=bad_oauth_state&error_description=provider-detail');
+  const result = await handler({ nextUrl });
+  assert.equal(result.headers.get('location'), 'https://site.example.invalid/sign-in?notice=oauth-expired');
+  assert.equal(result.headers.get('cache-control'), 'private, no-store');
+});
 test('OAuth and confirmation callbacks do not exchange or clear an existing/uncertain session', async () => {
   for (const path of ['../src/app/auth/callback/route.ts', '../src/app/auth/confirm/route.ts']) {
     const source = await body(path);
@@ -129,9 +141,9 @@ test('recovery callback preserves an existing or uncertain session without excha
   for (const response of [signedIn, unavailable]) {
     let exchanges = 0;
     const client = { auth: { getUser: async () => response, exchangeCodeForSession: async () => { exchanges++; } } };
-    const create = new Function('readAuthCode', 'NextResponse', 'serverClient', 'passwordRecoveryConfig', 'inspectAuthEntry', source + '\nreturn GET;');
+    const create = new Function('readAuthCode', 'NextResponse', 'serverClient', 'passwordRecoveryConfig', 'inspectAuthEntry', 'inspectRecoveryAuthority', source + '\nreturn GET;');
     const handler = create(() => ({ code: 'fixture-recovery-code' }), TestResponse, async () => client,
-      () => ({ callback: 'https://site.example.invalid/auth/recovery/callback' }), inspectAuthEntry);
+      () => ({ callback: 'https://site.example.invalid/auth/recovery/callback' }), inspectAuthEntry, async () => null);
     const result = await handler({ nextUrl: new URL('https://site.example.invalid/auth/recovery/callback?code=fixture-recovery-code') });
     const destination = new URL(result.headers.get('location'));
     assert.equal(destination.origin, 'https://site.example.invalid');
@@ -145,7 +157,8 @@ test('recovery callback preserves an existing or uncertain session without excha
 test('recovery callback exchanges only a confirmed signed-out session and handles exchange outcomes', async () => {
   const source = await body('../src/app/auth/recovery/callback/route.ts');
   for (const scenario of [
-    { result: { error: null }, pathname: '/reset-password', search: '' },
+    { result: { error: null }, authority: { accountId: 'fixture-account', sessionId: 'fixture-session' }, pathname: '/reset-password', search: '' },
+    { result: { error: null }, authority: null, pathname: '/forgot-password', search: '?notice=expired' },
     { result: { error: { message: 'invalid code' } }, pathname: '/forgot-password', search: '?notice=expired' },
     { throws: true, pathname: '/forgot-password', search: '?notice=callback' },
   ]) {
@@ -156,9 +169,9 @@ test('recovery callback exchanges only a confirmed signed-out session and handle
       if (scenario.throws) throw new Error('fixture exchange failure');
       return scenario.result;
     } } };
-    const create = new Function('readAuthCode', 'NextResponse', 'serverClient', 'passwordRecoveryConfig', 'inspectAuthEntry', source + '\nreturn GET;');
+    const create = new Function('readAuthCode', 'NextResponse', 'serverClient', 'passwordRecoveryConfig', 'inspectAuthEntry', 'inspectRecoveryAuthority', source + '\nreturn GET;');
     const handler = create(() => ({ code: 'fixture-recovery-code' }), TestResponse, async () => client,
-      () => ({ callback: 'https://site.example.invalid/auth/recovery/callback' }), inspectAuthEntry);
+      () => ({ callback: 'https://site.example.invalid/auth/recovery/callback' }), inspectAuthEntry, async () => scenario.authority ?? null);
     const result = await handler({ nextUrl: new URL('https://site.example.invalid/auth/recovery/callback?code=fixture-recovery-code') });
     const destination = new URL(result.headers.get('location'));
     assert.equal(destination.origin, 'https://site.example.invalid');

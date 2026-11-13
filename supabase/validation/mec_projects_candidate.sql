@@ -80,11 +80,14 @@ $tables$;
 
 -- Internal applicant check; no API-role EXECUTE. It never returns profile data.
 CREATE FUNCTION idealab_private.project_applicant_ready_v1(p_id uuid) RETURNS boolean
-LANGUAGE sql STABLE SECURITY DEFINER SET search_path=''
+-- VOLATILE is required here: this check runs after the caller locks the Auth
+-- row, and must read the latest committed ban/verification state.
+LANGUAGE sql VOLATILE SECURITY DEFINER SET search_path=''
 AS $eligible$
   SELECT EXISTS(SELECT 1 FROM public.users u JOIN auth.users a ON a.id=u.id
     WHERE u.id=p_id AND u.is_active IS TRUE AND a.is_anonymous IS FALSE
       AND a.email_confirmed_at IS NOT NULL AND length(btrim(a.email))>0
+      AND (a.banned_until IS NULL OR a.banned_until<=statement_timestamp())
       AND (u.role IN ('lab_admin','super_admin') OR (u.role='student'
         AND u.profile_completed IS TRUE AND u.profile_contract_version=1
         AND length(regexp_replace(u.name,'^[[:space:]]+|[[:space:]]+$','','g')) BETWEEN 1 AND 120 AND u.name !~ '[[:cntrl:]]'
@@ -108,7 +111,7 @@ AS $card$
   FROM public.projects p JOIN idealab_private.project_controls_v1 c ON c.project_id=p.id WHERE p.id=p_id;
 $card$;
 CREATE FUNCTION idealab_private.get_projects_v1(p_view text,p_query text,p_before_time timestamptz,p_before_id uuid) RETURNS jsonb
-LANGUAGE plpgsql STABLE SECURITY DEFINER SET search_path=''
+LANGUAGE plpgsql VOLATILE SECURITY DEFINER SET search_path=''
 AS $list$
 DECLARE v_ids uuid[]; v_items jsonb; v_cursor jsonb:=NULL; v_last record;
 BEGIN
@@ -136,7 +139,7 @@ BEGIN
 END;
 $list$;
 CREATE FUNCTION idealab_private.get_project_v1(p_id uuid) RETURNS jsonb
-LANGUAGE plpgsql STABLE SECURITY DEFINER SET search_path=''
+LANGUAGE plpgsql VOLATILE SECURITY DEFINER SET search_path=''
 AS $detail$
 DECLARE v_project public.projects%ROWTYPE; v_control idealab_private.project_controls_v1%ROWTYPE;
   v_team boolean; v_members jsonb:='[]'::jsonb; v_requests jsonb:='[]'::jsonb; v_pending bigint:=0;
@@ -162,7 +165,7 @@ BEGIN
 END;
 $detail$;
 CREATE FUNCTION idealab_private.get_own_project_requests_v1() RETURNS jsonb
-LANGUAGE plpgsql STABLE SECURITY DEFINER SET search_path=''
+LANGUAGE plpgsql VOLATILE SECURITY DEFINER SET search_path=''
 AS $requests$
 DECLARE v_result jsonb;
 BEGIN
@@ -186,7 +189,7 @@ DECLARE v_actor uuid:=auth.uid(); v_kind text; v_keys text[]; v_expected_keys te
   v_request idealab_private.project_join_requests_v1%ROWTYPE; v_attempt idealab_private.project_join_attempts_v1%ROWTYPE;
   v_time timestamptz; v_status text; v_changed boolean:=false; v_request_revision bigint;
 BEGIN
-  IF NOT idealab_private.lab_opening_member_ready_v1() THEN RETURN jsonb_build_object('status','denied'); END IF;
+  IF v_actor IS NULL THEN RETURN jsonb_build_object('status','denied'); END IF;
   IF p_command_id IS NULL OR jsonb_typeof(p_command) IS DISTINCT FROM 'object' OR pg_column_size(p_command)>25000 THEN RETURN jsonb_build_object('status','invalid'); END IF;
   v_kind:=p_command->>'kind';
   v_expected_keys:=CASE v_kind
@@ -222,9 +225,19 @@ BEGIN
       FROM idealab_private.project_join_requests_v1 r JOIN public.projects p ON p.id=r.project_id WHERE r.id=v_request_id;
     IF NOT FOUND OR (v_kind='decide' AND v_owner IS DISTINCT FROM v_actor) OR (v_kind='cancel' AND v_applicant IS DISTINCT FROM v_actor) THEN RETURN jsonb_build_object('status','denied'); END IF;
   END IF;
-  -- Deterministic profile order before project/request locks, including applicants.
-  PERFORM 1 FROM public.users WHERE id=v_actor OR (v_kind='decide' AND id=v_applicant) ORDER BY id FOR UPDATE;
-  IF NOT idealab_private.lab_opening_member_ready_v1() THEN RETURN jsonb_build_object('status','denied'); END IF;
+  -- Auth state must be locked before any profile/project/request row. This
+  -- serializes approval against a concurrent ban and preserves lock ordering.
+  IF v_kind IN ('decide','cancel') THEN
+    PERFORM 1 FROM auth.users WHERE id=v_actor OR id=v_applicant ORDER BY id FOR SHARE;
+    PERFORM 1 FROM public.users WHERE id=v_actor OR (v_kind='decide' AND id=v_applicant) ORDER BY id FOR UPDATE;
+    IF NOT idealab_private.lab_opening_member_ready_v1() THEN RETURN jsonb_build_object('status','denied'); END IF;
+  ELSE
+    IF NOT idealab_private.lab_opening_member_ready_v1() THEN RETURN jsonb_build_object('status','denied'); END IF;
+    PERFORM 1 FROM public.users WHERE id=v_actor FOR UPDATE;
+    -- A profile/claim change may commit while the row lock waits. Recheck the
+    -- current eligibility under the profile lock before any project mutation.
+    IF NOT idealab_private.lab_opening_member_ready_v1() THEN RETURN jsonb_build_object('status','denied'); END IF;
+  END IF;
   SELECT request,result INTO v_receipt FROM idealab_private.project_commands_v1 WHERE user_id=v_actor AND command_id=p_command_id;
   IF FOUND THEN
     IF v_receipt.request IS DISTINCT FROM p_command THEN RETURN jsonb_build_object('status','conflict'); END IF;
@@ -314,11 +327,11 @@ END;
 $mutation$;
 
 CREATE FUNCTION public.get_projects_v1(p_view text,p_query text,p_before_time timestamptz,p_before_id uuid) RETURNS jsonb
-LANGUAGE sql STABLE SECURITY INVOKER SET search_path='' AS $p$ SELECT idealab_private.get_projects_v1(p_view,p_query,p_before_time,p_before_id); $p$;
+LANGUAGE sql VOLATILE SECURITY INVOKER SET search_path='' AS $p$ SELECT idealab_private.get_projects_v1(p_view,p_query,p_before_time,p_before_id); $p$;
 CREATE FUNCTION public.get_project_v1(p_id uuid) RETURNS jsonb
-LANGUAGE sql STABLE SECURITY INVOKER SET search_path='' AS $p$ SELECT idealab_private.get_project_v1(p_id); $p$;
+LANGUAGE sql VOLATILE SECURITY INVOKER SET search_path='' AS $p$ SELECT idealab_private.get_project_v1(p_id); $p$;
 CREATE FUNCTION public.get_own_project_requests_v1() RETURNS jsonb
-LANGUAGE sql STABLE SECURITY INVOKER SET search_path='' AS $p$ SELECT idealab_private.get_own_project_requests_v1(); $p$;
+LANGUAGE sql VOLATILE SECURITY INVOKER SET search_path='' AS $p$ SELECT idealab_private.get_own_project_requests_v1(); $p$;
 CREATE FUNCTION public.mutate_project_v1(p_command jsonb,p_command_id uuid) RETURNS jsonb
 LANGUAGE sql VOLATILE SECURITY INVOKER SET search_path='' AS $p$ SELECT idealab_private.mutate_project_v1(p_command,p_command_id); $p$;
 REVOKE ALL ON FUNCTION idealab_private.project_applicant_ready_v1(uuid),idealab_private.project_card_v1(uuid),

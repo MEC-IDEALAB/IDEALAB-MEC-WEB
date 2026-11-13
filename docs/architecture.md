@@ -154,7 +154,7 @@ One Postgres authority serves Next.js and Flutter. Each business mutation should
 | Scheduling | Preferred time is provisional; head confirms. The requester must explicitly accept a changed proposed time. Declining keeps the request open for another proposal with no automatic expiry. Conflict/rescheduling side effects still need a precise contract. |
 | Projects | Create with creator membership; join code creates a pending request; creator approves/denies; prevent last-lead removal. |
 | Events | Lock capacity during confirmation; pending paid verification holds no seat; unique registration; Events Head cancellation/refund authority. |
-| Positions | Only Super Admin assigns/revokes machine/room-scoped heads and manages active-work handover/reassignment; sensitive actions check current DB assignments. Exact roster, action matrix, handover mechanics and in-flight effects remain unresolved; no automatic reassignment rule is inferred. |
+| Positions | Student Ambassador and Super Admin have equal in-app administrative powers and use the audited trusted-roster assignment/revocation path. Infrastructure ownership and credentials remain separate. See the [scoped staff authority contract](staff-authority-contract.md) for action scope and transaction rules. |
 | Inventory/payments | Verified catalog, stock movements, return verification and manual payment decisions; no inferred balances, prices or automatic refunds. |
 
 Work Requests, Manufacturing Tasks, Machine Queue, inventory and payments remain separate records and lifecycles. Cancelling a request must not silently refund, consume/release stock or stop an executing task.

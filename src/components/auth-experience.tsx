@@ -1,6 +1,7 @@
 import Link from 'next/link';
 import { ArrowUpRight } from 'lucide-react';
 import { signIn, signUp, signOut, finishPasswordResetSignOut } from '@/app/auth/actions';
+import { redirect } from 'next/navigation';
 import { backendConfig } from '@/lib/config';
 import { signupAuthConfig } from '@/lib/auth-config';
 import { AuthCardSwitcher, type AuthView } from '@/components/auth-card-switcher';
@@ -50,20 +51,23 @@ export async function AuthExperience({ initialView, notice }: { initialView: Aut
     <AuthPoster signup />
     <div className="auth-poster-bottomline"><span>CURIOSITY LOOKS GOOD ON YOU.</span><span>↗</span></div>
   </>;
-  if (entry.state === 'signed-in') return <main id="main-content" className="auth-page reference-auth poster-auth arcade-auth">
-    <div className="auth-toolbar"><Link className="text-link" href="/"><ArrowUpRight className="auth-back-icon" size={18} aria-hidden="true" /> Back to IDEALAB MEC</Link><ThemePicker /></div>
-    <div className="auth-grid" data-auth-view="sign-in">
-      <section className="auth-story" aria-label="Welcome back">{signInStory}</section>
-      <div className="auth-card-stage"><section className="auth-card auth-continuation" aria-labelledby="continue-account-title">
-        <div className="auth-mini-art"><AuthPoster mini /></div>
-        <h2 id="continue-account-title">You’re signed in.</h2>
-        <p>Continue where you left off.</p>
-        <Link className="button button-primary" href="/app" prefetch={false}>Continue to IDEALAB MEC <ArrowUpRight size={18} aria-hidden="true" /></Link>
-        <form action={signOut}><input type="hidden" name="expected_account" value={entry.accountId} /><SubmitButton className="button" pendingText="Signing out…">Sign out to switch accounts</SubmitButton></form>
-        <Link className="text-link" href="/">Back to homepage</Link>
-      </section></div>
-    </div>
-  </main>;
+  if (entry.state === 'signed-in') {
+    if (initialView !== 'sign-in' || notice !== 'password-updated-cleanup') redirect('/app');
+    return <main id="main-content" className="auth-page reference-auth poster-auth arcade-auth">
+      <div className="auth-grid" data-auth-view="sign-in">
+        <section className="auth-story" aria-label="Welcome back">{signInStory}</section>
+        <div className="auth-card-stage"><section className="auth-card auth-continuation" aria-labelledby="recovery-cleanup-title">
+          <h2 id="recovery-cleanup-title">Finish signing out</h2>
+          <p role="status">This browser still has an active session. Sign out of the current account to return to sign-in.</p>
+          <form action={signOut}>
+            <input type="hidden" name="expected_account" value={entry.accountId} />
+            <SubmitButton className="button button-primary" pendingText="Signing out…">Sign out of this account</SubmitButton>
+          </form>
+          <Link className="text-link" href="/app">Continue to IDEALAB MEC</Link>
+        </section></div>
+      </div>
+    </main>;
+  }
   const signInPanel = <>
     <div className="auth-mini-art"><AuthPoster mini /></div>
     <h2 id="sign-in-title" tabIndex={-1}>Sign in</h2>

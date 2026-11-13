@@ -158,6 +158,49 @@ motion. Carousels need keyboard access and a discoverable motion control without
 covering navigation. Cache public editorial content separately from private
 member data; avoid duplicate requests and large animation dependencies.
 
+## Event RSVP, project materials and requests follow-up — 3 November 2026
+
+The owner confirmed that Home/Lab event cards should lead to dedicated event
+details, students should RSVP, and Event Heads configure eligibility, capacity,
+attendee visibility and free/paid status. Attendee visibility defaults to
+registered attendees and is configurable per event by its Event Head. The
+existing horizontal upcoming-event strip and paginated Events list/detail pages
+are already present; the read contracts do not include RSVP or Event Head
+controls. Paid RSVP remains gated until approved payment and refund details are
+available.
+
+Project pages should retain Discover/My projects, active campus projects,
+public/private rules, create and creator-approved membership. New work includes
+project-linked machine/components requests, a verified usage ledger, approved
+rate snapshots and an optionally published project showcase report. Proposed
+integrity rule pending owner confirmation: requests and actual use are separate
+facts, and a responsible scoped head approves/records actual use. Report
+publication must respect project privacy and the profile visibility selected
+by each member. The current project list/detail/create surfaces exist, but
+resource, usage, cost and report APIs do not.
+
+Machine requests cover laser, 3D printing/design, CNC, cup/T-shirt printing,
+laser design, lathe and woodwork. Operations requests cover components, ICs,
+electronics tools and hardware. Required fields remain service, title and
+description; technical details stay optional. Project association requires a
+server-checked membership. The current Make & borrow route, request categories,
+multi-step local draft and retry-journal UI exist, but shared production
+submission, project association, inventory and head approval are not connected.
+
+The active Supabase project has legacy event, RSVP, project, membership, tool
+and booking tables; metadata-only review on 3 November found no matching public
+event/project RPCs and found direct-write policies that do not enforce the new
+capacity, invite, head-approval or material-accounting rules. No database rows
+or schema were changed in this review. A reviewed migration, privacy-safe
+projections, atomic capacity and inventory operations, and negative permission
+tests are required before turning these controls on.
+
+| New task | Owner | Dependency | State / evidence | Next action |
+| --- | --- | --- | --- | --- |
+| MW-09 Event RSVP and Event Head controls | Main | Head assignment, attendee visibility, payment/refund contract | Existing list/carousel/detail are read-only; active schema/RLS inspected | Design and review the complete secure schema/RPC/API; then UI, concurrency and signed-in E2E |
+| MW-10 Project materials, rates and showcase report | Main | Project membership/privacy, verified inventory and approved rates | Existing project CRUD/join flow lacks resource usage/cost/report records | Confirm scoped approval rules; design usage ledger and public-report contract |
+| MW-11 Project-linked Make & borrow requests | Main | Work request lifecycle plus project authorization | Existing local draft form has no project association; submit is validation-gated | Add the project context to the reviewed request contract and validate request-to-head flow |
+
 ## Local implementation checkpoint
 
 The new Home reuses real streaming programme/project panels and moves opening
@@ -279,8 +322,8 @@ include it; CI also retains the member screenshots/results. These hosted workflo
 checks have not run on this local-only revision.
 
 Fresh local verification on 3 November 2026 used the required Node.js 24 runtime:
-ESLint, TypeScript, all 168 boundary tests, and the member preview browser suite
-(42 responsive layouts and 12 axe snapshots) passed. The isolated optimized
+ESLint, TypeScript, all 187 boundary tests, and the member preview browser suite
+(54 responsive layouts and 12 axe snapshots) passed. The isolated optimized
 acceptance build and public Chromium suite also passed, including the cinematic
 loader milestones, reduced-motion handling, auth/recovery presentation, security
 headers, ten-route WCAG snapshots, gated member pages and offline PWA shell. The
@@ -308,3 +351,159 @@ anonymous Supabase/PostgREST tests; QR decoding/device scan and public cache/
 revocation checks; approved email delivery; the unfinished presence, requests,
 booking, borrowing, events and staff workflows; then current-head CI, review and
 release checks. The workspace is local and unpushed/undeployed.
+
+## Mobile-first workspace navigation and event cards — 3 November 2026
+
+The protected workspace and visual preview now share Home / Lab / Profile
+navigation with distinct responsive layouts: desktop keeps the primary top bar;
+phones hide those links and use a safe-area-aware bottom bar with three
+thumb-sized destinations. The compact mobile header keeps the IDEALAB mark,
+theme and notifications. The Lab quick-access card now contains only Make &
+borrow, Events and Projects; old request and borrowing routes redirect into
+Make & borrow, with their access guard retained. Check-in, checkout and private
+visit history are grouped in one session card, while current presence is shown
+separately and remains clearly unavailable until the live service exists. The
+Lab check-in is a single action with a generic visit label. Once a saved session
+is active, a pinned reminder stays above the app's scroll area on mobile (and
+sticks to the top while scrolling on desktop), shows elapsed time, and provides
+checkout without changing pages. The Lab card also offers inline checkout and
+shows both timestamps for the latest completed visit. After two hours the
+banner replaces the ticking counter with `2h+` and highlights a checkout
+reminder. Checkout still requires the member to submit it. This is an
+in-app reminder and does not claim OS push delivery.
+
+Home and Lab use the same event carousel backed only by published records. It
+supports swipe/scroll-snap and accessible arrows when there are multiple events,
+fills the viewport for a single event, and respects reduced-motion preferences.
+The design-only preview labels its empty card as having no live event data; it
+does not create example event records. The event-control browser checks use an
+isolated test-only design route and never access member or event data.
+
+Local verification on Node.js 24.19.0: `npm run test:member-space` passed 42
+responsive layouts and 12 axe snapshots, including 320/390/600 px widths,
+200% text, touch targets, mobile/desktop navigation, combined Make & borrow,
+event arrow movement, single-card sizing, reduced-motion behavior, and a
+no-overlap check for the event placeholder stamp. The screenshots under
+`artifacts/member-space/` were visually inspected; this uncovered and fixed the
+small-screen event-stamp collision. The visual browser run does not test live
+sign-in, saved account data, member attendance, current presence or event
+operations. The existing database and production activation gates are unchanged.
+
+## Profile controls and edit sections — 3 November 2026
+
+The Profile identity card no longer uses a photographic background. Its whole
+front is a keyboard-accessible button with a visible “Flip for QR” prompt; the
+reverse face flips back when its surface is activated, without a separate
+“Back to card” control. The motion is smooth, reduced-motion aware, and uses a
+darker yellow face with dense pixel/ASCII artwork across about 40% of the card.
+The QR still contains only a same-origin public profile URL when sharing is
+available. The profile header now places Share next
+to a Settings dropdown. The menu links to profile editing, appearance/motion,
+feedback, policy rows, invitation, deletion review and sign-out.
+
+`/app/profile/edit` lists Basic profile, Social links, Profile settings, Projects,
+Work experience, Education, Volunteering and Interests. Only the existing six
+private MEC fields use the current save action; own projects use the existing
+owner-scoped project read. Optional public-profile fields remain disabled, and
+work history, education history and volunteering have no shared persistence
+contract. Those sections are shown as unavailable instead of pretending to
+save. The design-only profile editor uses labeled sample content and does not
+write account data. The onboarding flow still collects only its required MEC
+fields; optional interests and portfolio data are not persisted during
+onboarding yet.
+
+Terms, Privacy and Community Guidelines are listed but explicitly marked
+unpublished. Account deletion remains a request for review by email, not
+self-service deletion. No shared schema or account data was changed for this UI
+work. The latest member browser suite covers the card in responsive layouts;
+live Auth, profile persistence and deletion remain unverified.
+
+## Home pixel illustration and responsive carousel — 3 November 2026
+
+The member Home now follows the owner-provided IDEALAB MEC concept: a denser
+full-width laptop layout, compact top information ribbon, short ASCII scene,
+and original pixel-SVG mascot and activity illustrations. The SVGs are local
+hand-authored artwork and do not add image dependencies. Activity cards use
+three-up desktop, two-up tablet and one-card phone layouts; arrows and direct
+indicators select the cards, and phone users can swipe. Autoplay wraps after
+the last card and pauses on hover, keyboard focus or the global motion control.
+Reduced motion disables animation. Events and Projects share a row on desktop
+and stack on phones. Home retains the existing top and bottom moving quote
+ribbons, with their motion control limited to regions actually rendered on
+each page.
+
+The tablet carousel needed an explicit non-shrinking two-card basis: without
+it, flex shrinking placed all three cards in view and the next arrow moved only
+the active label. The regression check now requires the strip to move at tablet
+width while verifying all three cards fit on wide laptop screens and that phone
+layout has no horizontal page overflow.
+
+Latest local verification at that checkpoint: `npm run test:member-space` passed
+54 responsive layouts across Home/Lab/Profile, five widths, light/dark themes,
+and 12 axe snapshots. The broader public/student `npm run test:acceptance` was
+not rerun after the latest profile changes. These are local visual and flow
+checks; production Auth, event data and operational member services remain
+unverified.
+
+## Maker profile dashboard — 3 November 2026
+
+The Profile overview now follows the owner-provided Maker Profile dashboard
+concept. Its order is identity/share card, full-width Edit Profile action,
+public links, compact interest chips, GitHub activity panel, anchored Activity /
+Projects / Experience / Education / Volunteering navigation, then the five
+scroll-reveal showcase sections. The desktop page uses a wide two-column
+overview; phone layouts stack the card and panels and keep the existing app
+bottom navigation. The identity card retains the accessible flip-to-QR
+interaction and uses pixel/ASCII artwork rather than a photo background.
+
+The design route labels its maker identity, project rows, participation,
+education, experience, volunteering, links, interests, and contribution grid
+as illustrative sample content. The signed-in route requires a member session,
+uses the existing private MEC profile fields for name/institution/department/
+study year, and uses an allowlisted Google-hosted avatar only when available.
+It loads own-project membership only when the project feature is enabled. The
+overview does not print private email, phone, or registration number. An
+unavailable project reader, empty project membership, or missing optional
+profile fields produces an explicit empty state.
+
+GitHub contribution data is not connected. The live chart is empty, clearly
+described as unconnected, and the link cannot imply activity that was not
+fetched. Activity attendance, work experience, education beyond the MEC account
+fields, volunteering, and editable interests/links still have no enabled shared
+save/read contract; the live Add controls remain disabled. Optional public
+profile services remain feature-gated, and onboarding still stores only the
+required MEC fields. No migration or member-data write was made for this UI.
+
+Current local verification after the dashboard change: `npm run typecheck`,
+`npm run lint -- --no-warn-ignored`, `git diff --check`, and `npm run
+test:member-space` passed. The browser run passed 54 responsive layouts across
+Home/Lab/Profile, five viewport widths and both themes, with 12 axe snapshots;
+desktop and phone Profile screenshots were visually inspected. The suite uses
+the design preview and does not test authenticated profile persistence, live
+GitHub activity, or production services. The broader public/student acceptance
+suite was not rerun for this profile-only change.
+
+2026-11-04 visual polish: replaced the Home hero's console/ASCII text treatment
+with an original animated pixel-style sketch-to-3D-print scene. Profile Share
+and Settings are icon-only round controls with accessible names; the Projects
+chapter uses a box/build icon and project samples use original pixel SVGs. The
+profile-to-QR card uses a 1.05-second 3D flip with a reduced-motion fallback.
+`npm run test:member-space` passed after updating its assertions for the new
+hero, icon-only controls, and motion; its 54 responsive layouts, 12 axe
+snapshots, and real flip-midpoint check passed. This remains a visual preview;
+profile persistence and live GitHub activity are still disconnected.
+# Profile section navigation verification — 5 November 2026
+
+The website Profile now highlights the current Activity, Projects, Experience, Education or Volunteering section while scrolling. Mobile uses the member workspace scroll area and desktop uses the document. Native anchor links remain available before JavaScript. The selected link stays visible in the horizontal mobile strip without moving keyboard focus. Offset calculation includes scroll padding and section margins.
+
+The current-source production preview build and browser suite passed 54 layouts and 12 axe snapshots, including new 320/1440 px scroll and anchor assertions. TypeScript and scoped lint passed. Independent source review found no scoped defect before the final scroll-padding adjustment, which was subsequently exercised by the browser suite. These checks use the design route and do not establish signed-in persistence. The change is local and awaits the existing website release gates.
+
+The optional profile editor had a browser-confirmed input reset after its action resolved. Name and bio now use controlled values, consistent with interests and links. The new preview regression fills both fields, submits the local review action and verifies both values remain. The full production-preview browser suite passed again with this regression. No backend publication capability was enabled by the change.
+
+## Auth release and member motion follow-up — 5 November 2026
+
+Public auth background PR #68 merged as `db36904b1bc8f6aac1cb3de6b64ba99f2c3345a7`. Hosted Website CI and Documentation CI passed on that main revision. Production browser checks verified WebGL particle movement, pause and mobile signup rendering. This scoped release does not include the dirty member-platform changes associated with draft PR #67.
+
+The local auth entry now redirects an already authenticated account to `/app`; member admission checks still determine whether onboarding is required. Home and Lab reveal animations now observe streamed panels and release removed nodes. A duplicate motion controller in the student preview was removed. Lab session and presence panels share a responsive grid, with two columns on larger displays and one on mobile. Resource links have motion on hover without a color change.
+
+The final local preview report contains 54 responsive layouts and 12 axe scans, plus animated flip and carousel assertions. Lint, TypeScript and ten auth-entry boundary tests passed. Independent source review found no concrete scoped blocker. Preview checks use no live accounts and do not establish real provider login, onboarding persistence or staff authorization acceptance. These member changes remain local until those gates pass.

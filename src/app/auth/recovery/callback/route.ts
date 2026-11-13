@@ -3,6 +3,7 @@ import { NextResponse, type NextRequest } from 'next/server';
 import { serverClient } from '@/lib/supabase';
 import { passwordRecoveryConfig } from '@/lib/auth-config';
 import { inspectAuthEntry } from '@/lib/auth-entry';
+import { inspectRecoveryAuthority } from '@/lib/recovery-authority';
 
 export async function GET(request: NextRequest) {
   const config = passwordRecoveryConfig();
@@ -24,7 +25,10 @@ export async function GET(request: NextRequest) {
       if (entry.state === 'signed-in') return response('/app');
       if (entry.state === 'unavailable') return response('/forgot-password?notice=callback');
       const { error } = await client.auth.exchangeCodeForSession(input.code, input.options);
-      if (!error) return response('/reset-password');
+      if (!error) {
+        const authority = await inspectRecoveryAuthority(client);
+        return response(authority ? '/reset-password' : '/forgot-password?notice=expired');
+      }
     }
   } catch { return response('/forgot-password?notice=callback'); }
   return response('/forgot-password?notice=expired');

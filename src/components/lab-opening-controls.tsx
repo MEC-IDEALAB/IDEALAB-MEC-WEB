@@ -9,14 +9,26 @@ import type { LabOpeningActionState } from '@/lib/lab-opening';
 export function LabStatusRefresh({ loadedAt }: { loadedAt: string }) {
   const router = useRouter();
   const [pending, startTransition] = useTransition();
+  const lastRefresh = useRef<number | null>(null);
   useEffect(() => {
-    const refresh = () => { if (document.visibilityState === 'visible') startTransition(() => router.refresh()); };
+    if (pending) return;
+    const refresh = () => {
+      if (document.visibilityState !== 'visible') return;
+      const now = performance.now();
+      if (lastRefresh.current !== null && now - lastRefresh.current < 1000) return;
+      lastRefresh.current = now;
+      startTransition(() => router.refresh());
+    };
     const timer = window.setInterval(refresh, 30_000);
     document.addEventListener('visibilitychange', refresh);
     window.addEventListener('focus', refresh);
     return () => { window.clearInterval(timer); document.removeEventListener('visibilitychange', refresh); window.removeEventListener('focus', refresh); };
-  }, [router]);
-  return <div className="lab-status-refresh"><span>Checked <time dateTime={loadedAt}>{new Intl.DateTimeFormat('en-IN', { hour: '2-digit', minute: '2-digit', timeZone: 'Asia/Kolkata' }).format(new Date(loadedAt))} IST</time> · refreshes every 30s while visible</span><button className="button" type="button" disabled={pending} onClick={() => startTransition(() => router.refresh())}><RefreshCw size={15} aria-hidden="true" />{pending ? 'Refreshing…' : 'Refresh status'}</button></div>;
+  }, [pending, router]);
+  function refreshManually() {
+    lastRefresh.current = performance.now();
+    startTransition(() => router.refresh());
+  }
+  return <div className="lab-status-refresh"><span>Checked <time dateTime={loadedAt}>{new Intl.DateTimeFormat('en-IN', { hour: '2-digit', minute: '2-digit', timeZone: 'Asia/Kolkata' }).format(new Date(loadedAt))} IST</time></span><button className="button" type="button" aria-label="Refresh lab status" disabled={pending} onClick={refreshManually}><RefreshCw size={15} aria-hidden="true" />{pending ? 'Refreshing…' : 'Refresh'}</button></div>;
 }
 
 export function LabOpeningControls({ accountId, revision, status, commandId }: { accountId: string; revision: string; status: 'unknown' | 'open' | 'closed'; commandId: string }) {

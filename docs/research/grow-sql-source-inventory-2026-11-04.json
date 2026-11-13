@@ -1,0 +1,106 @@
+{
+  "capturedDate": "2026-11-04",
+  "repository": "MEC-IDEALAB/Grow-by-IL",
+  "head": "a88ce7eb357faa37e0b7b447b8ff43b4050092bc",
+  "scope": "Explicit SQL dependency inventory only; hashes, no source bodies/member records. Local untracked files have not been published.",
+  "trackedCount": 2,
+  "untrackedCount": 14,
+  "files": [
+    {
+      "path": "supabase/migrations/003_profile_ecosystem.sql",
+      "sha256": "4467bae3fb1bfb742e8d8df35782bef6dfb1625a6eb6c4c49f8afec2c525d3b9",
+      "tracked": true,
+      "presentAtHead": true
+    },
+    {
+      "path": "supabase/migrations/006_profile_rls_hardening.sql",
+      "sha256": "478c28326660cb58be81560f35a8ee75b93392ef9b094eec8d25d245a7dc8aac",
+      "tracked": true,
+      "presentAtHead": true
+    },
+    {
+      "path": "supabase/migrations/20261102083307_shared_access_hardening_v1.sql",
+      "sha256": "d0b78457f55befaabc67d4767507e0b6a282ed6c909c4884cae7535719f23a15",
+      "tracked": false,
+      "presentAtHead": false
+    },
+    {
+      "path": "supabase/migrations/20261102130200_shared_profile_contract_v1.sql",
+      "sha256": "492fbccba41ac6db03836b2ab62b1a5e9d7349a278d0670f032e8b2daad297b0",
+      "tracked": false,
+      "presentAtHead": false
+    },
+    {
+      "path": "supabase/candidates/shared_profile_contract_v1.sql",
+      "sha256": "ed013ced6cb7ba8f77a9b341814f3ad533d85db338afb24e57e268a5334cdaad",
+      "tracked": false,
+      "presentAtHead": false
+    },
+    {
+      "path": "supabase/candidates/shared_profile_contract_v1_rollback.sql",
+      "sha256": "1910d96461f9432fa62d43c2bdc7e16d11d43c86b841790e268eeabd204b36b0",
+      "tracked": false,
+      "presentAtHead": false
+    },
+    {
+      "path": "supabase/candidates/shared_public_profile_v1.sql",
+      "sha256": "52103d1c8ad1ec6d00b5951dbfe56087e386d5cb2efa8038a6f6726b4b6d26bf",
+      "tracked": false,
+      "presentAtHead": false
+    },
+    {
+      "path": "supabase/candidates/shared_public_profile_v1_rollback.sql",
+      "sha256": "0fd4daeaa0d880acf018fcb9738776691df079ff10a76ca629f57ff6c9dec700",
+      "tracked": false,
+      "presentAtHead": false
+    },
+    {
+      "path": "supabase/tests/shared_profile_contract_v1_fixture.sql",
+      "sha256": "27f719c0ee9867dea2968a44b961d5f6719bfb3ecbecabc092aad413c7ae96f2",
+      "tracked": false,
+      "presentAtHead": false
+    },
+    {
+      "path": "supabase/tests/shared_profile_contract_v1_candidate_checks.sql",
+      "sha256": "c1f46f0bf3673fb0e2ecb90944286fb693deb2a986e7439486cdab186e1425f9",
+      "tracked": false,
+      "presentAtHead": false
+    },
+    {
+      "path": "supabase/tests/shared_profile_contract_v1_legacy_fixture_checks.sql",
+      "sha256": "6db14a7a22bb87357e7d7a1350040c642edd645faf6818471eda95c8abca9734",
+      "tracked": false,
+      "presentAtHead": false
+    },
+    {
+      "path": "supabase/tests/shared_profile_contract_v1_behavior_checks.sql",
+      "sha256": "0d8b6d5f2b7fbb28044f8e384859b617cd7cf8ff1f7c74e140cb0699298f1cae",
+      "tracked": false,
+      "presentAtHead": false
+    },
+    {
+      "path": "supabase/tests/shared_profile_contract_v1_rollback_checks.sql",
+      "sha256": "5064c71c4afb6cd1e348552e4edc79bb950a4919dcd908b786856cc3091efa71",
+      "tracked": false,
+      "presentAtHead": false
+    },
+    {
+      "path": "supabase/tests/shared_public_profile_v1_fixture.sql",
+      "sha256": "0c0a88ebae7fd5eacfaaad7c1d75a56674cd53d30aec5e4da77000e682a65480",
+      "tracked": false,
+      "presentAtHead": false
+    },
+    {
+      "path": "supabase/tests/shared_public_profile_v1_checks.sql",
+      "sha256": "6fecf4eca3380a7aee5f9d5c6ce6da017566d0e99165bd9781b205571794c1c9",
+      "tracked": false,
+      "presentAtHead": false
+    },
+    {
+      "path": "supabase/tests/shared_public_profile_v1_rollback_checks.sql",
+      "sha256": "292c9d3507697e2ec78e8a1452c674b246517cb254ff59829d05482141b87c3e",
+      "tracked": false,
+      "presentAtHead": false
+    }
+  ]
+}

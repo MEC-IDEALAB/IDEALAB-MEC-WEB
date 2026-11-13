@@ -1,6 +1,7 @@
 'use client';
 
 import Image from 'next/image';
+import { MemberSignalArt } from './member-signal-art';
 import { Wifi, Zap } from 'lucide-react';
 import { HomeTickerTop } from './home-ticker-bands';
 import { AutomaticMotionControl } from './automatic-motion';
@@ -11,7 +12,7 @@ export function LabOverviewBanner() {
     <header className="lab-photo-banner">
       <h1 className="sr-only">Your lab.</h1>
       <Image src="/events/robotics-training.jpg" alt="" fill sizes="(max-width: 1288px) 100vw, 1288px" priority className="lab-photo-banner-image" />
-      <div className="lab-photo-banner-texture" aria-hidden="true" />
+      <div className="lab-photo-banner-texture" aria-hidden="true"><MemberSignalArt variant="lab" /></div>
       <div className="lab-photo-statuses" role="group" aria-label="Lab utilities; live status is not connected">
         <span className="lab-photo-status" role="img" aria-label="Wi-Fi status unknown">
           <Wifi size={28} aria-hidden="true" />

@@ -3,12 +3,16 @@ node_modules.previous/
 package-lock.previous.json
 .next/
 .next-acceptance/
+.next-recovery/
 out/
 coverage/
 artifacts/
 .vercel/
 .playwright/
 .playwright-cli/
+.local/
+output/
+supabase/.temp/
 *.tsbuildinfo
 next-env.d.ts
 .env*

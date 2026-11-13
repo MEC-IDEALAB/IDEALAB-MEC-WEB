@@ -23,6 +23,13 @@ BEGIN
   FOREACH f IN ARRAY ARRAY['public.get_projects_v1(text,text,timestamptz,uuid)','public.get_project_v1(uuid)','public.get_own_project_requests_v1()','public.mutate_project_v1(jsonb,uuid)'] LOOP
     ASSERT (SELECT NOT prosecdef FROM pg_proc WHERE oid=f::regprocedure),'public wrappers are invoker';
   END LOOP;
+  FOREACH f IN ARRAY ARRAY['idealab_private.get_projects_v1(text,text,timestamptz,uuid)',
+    'idealab_private.get_project_v1(uuid)','idealab_private.get_own_project_requests_v1()',
+    'idealab_private.project_applicant_ready_v1(uuid)','public.get_projects_v1(text,text,timestamptz,uuid)',
+    'public.get_project_v1(uuid)','public.get_own_project_requests_v1()'] LOOP
+    ASSERT (SELECT provolatile='v' FROM pg_proc WHERE oid=f::regprocedure),
+      'ban- and profile-lock guarded reads use current transaction snapshots';
+  END LOOP;
 END;
 $catalog$;
 SET LOCAL ROLE authenticated;
@@ -39,4 +46,4 @@ BEGIN
 END;
 $sessionless$;
 RESET ROLE;
-SELECT '70 project catalog/sessionless-role assertions passed' AS result;
+SELECT '77 project catalog/sessionless-role assertions passed' AS result;

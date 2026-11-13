@@ -9,6 +9,7 @@ import { passwordRecoveryConfig } from '@/lib/auth-config';
 export const metadata = { title: 'Reset your password', robots: { index: false, follow: false } };
 
 const messages: Record<string, { kind: 'error' | 'status'; text: string }> = {
+  unconfirmed: { kind: 'error', text: 'We couldn’t confirm the password update. It may have completed. Try signing in, or request a fresh recovery link before another attempt.' },
   requested: { kind: 'status', text: 'If this address can receive account recovery email, a link will arrive shortly. Check your inbox and spam folder; this message is the same whether or not an account exists.' },
   invalid: { kind: 'error', text: 'Enter a valid email address and try again.' },
   expired: { kind: 'error', text: 'That recovery link is missing or expired. Request a fresh link to continue.' },

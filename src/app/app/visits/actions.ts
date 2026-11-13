@@ -12,7 +12,7 @@ export async function changeOwnVisit(_previous: VisitCommandState, form: FormDat
   const member = await requireMember();
   if (!matchesFormAccount(form, member.user.id)) return { status: 'error', message: 'Your signed-in account changed. Refresh this page before updating your visit.' };
   const command = buildVisitCommand(form);
-  if (!command) return { status: 'invalid', message: 'Check your visit purpose, or refresh this page if the form is out of date.' };
+  if (!command) return { status: 'invalid', message: 'This check-in could not be saved. Refresh the lab session and try again.' };
   const client = await serverClient({ writable: true });
   if (!client) return parseVisitCommandResult(null);
   try {

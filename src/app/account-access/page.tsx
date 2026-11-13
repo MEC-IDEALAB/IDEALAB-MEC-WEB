@@ -51,6 +51,7 @@ export default async function AccountAccess() {
       />}
       {account.profileState === 'admission-required' && <MecDeclarationForm key={`${account.profile.id}:${account.profile.profile_revision}`} profile={account.profile} action={claimMecRegistration} />}
       {account.profileState === 'admission-required' && <details className="setup-edit-profile"><summary>Edit saved profile</summary><ProfileSetupForm profile={account.profile} action={saveRequiredProfile} mode="edit" /></details>}
+      {(account.profileState === 'incomplete' || account.profileState === 'admission-required') && <p className="account-setup-next-note">After setup, review your saved details in Profile. Extra sections like interests and work history are not connected to save yet.</p>}
       <div className="button-row setup-account-actions">
         {account.profileState === 'unverified'
           ? <Link className="button" href="/sign-in">Back to sign in</Link>

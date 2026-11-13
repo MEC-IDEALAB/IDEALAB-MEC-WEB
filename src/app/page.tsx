@@ -2,7 +2,7 @@ import Image from "next/image";
 import { redirect } from 'next/navigation';
 import { authFailureNotice } from '@/lib/auth-input';
 import Link from "next/link";
-import { ArrowRight, ArrowUpRight, CalendarDays, CircleArrowRight, Layers3, Wrench } from "lucide-react";
+import { ArrowRight, ArrowUpRight, Boxes, CalendarDays, CircleArrowRight, Wrench } from "lucide-react";
 import { Brand } from "@/components/brand";
 import { ThemePicker } from '@/components/theme-picker';
 import { AutomaticMotionControl } from '@/components/automatic-motion';
@@ -17,7 +17,7 @@ import { HomeVectorArtwork } from '@/components/home-vector-artwork';
 
 const paths = [
   { n: "01", title: "Make something real.", text: "Explore the tools, understand the process and find the right support for your next idea.", href: "/lab", label: "Explore the lab", icon: Wrench, tone: "lime" },
-  { n: "02", title: "Find your next project.", text: "Follow ideas as they take shape. Discover projects and connect your curiosity to practical work.", href: "/projects", label: "Discover projects", icon: Layers3, tone: "blue" },
+  { n: "02", title: "Find your next project.", text: "Follow ideas as they take shape. Discover projects and connect your curiosity to practical work.", href: "/projects", label: "Discover projects", icon: Boxes, tone: "blue" },
   { n: "03", title: "Learn by showing up.", text: "Find lab events and opportunities to learn, experiment, and meet people who like making things too.", href: "/events", label: "Explore events", icon: CalendarDays, tone: "coral" },
 ];
 
@@ -31,7 +31,7 @@ export default async function Home({ searchParams }: { searchParams: Promise<{ e
         <h1 id="hero-title" className="hero-pixel-headline">Big ideas.<br />Real things.<br /><span className="hero-highlight">Your move.</span></h1>
         <p className="hero-description">A place for curious minds and hands-on making. Bring your next idea to life at Model Engineering College’s IDEA Lab.</p>
         <div className="hero-actions"><Link className="button button-primary" href="/explore">Find your starting point <ArrowUpRight size={20} aria-hidden="true" /></Link><Link className="text-link" href="/lab">Meet the lab <ArrowRight size={18} aria-hidden="true" /></Link></div>
-      </div><div className="hero-art-wrap"><div className="hero-vector-field" aria-hidden="true"><HomeVectorArtwork /></div><span className="hero-vector-tag" aria-hidden="true">VISUAL STUDY / 01</span><DoodleStar className="hero-star" /><MakerPhotoPoster /><DoodleOrbit className="hero-orbit" /><span className="handwritten hero-scribble">a little curiosity goes a long way.</span><span className="hero-vector-index" aria-hidden="true">IDEA → OBJECT</span></div>
+      </div><div className="hero-art-wrap"><div className="hero-vector-field" aria-hidden="true"><HomeVectorArtwork /></div><span className="hero-vector-tag" aria-hidden="true">MAKER STUDY / MEC</span><DoodleStar className="hero-star" /><MakerPhotoPoster /><DoodleOrbit className="hero-orbit" /><span className="handwritten hero-scribble">a little curiosity goes a long way.</span></div>
     </section>
     <div className="principles-strip"><div className="container principles-inner"><span>IDEAS INTO ACTION</span><span aria-hidden="true">✳</span><span>LEARNING BY MAKING</span><span aria-hidden="true">✳</span><span>MADE AT MEC</span><span aria-hidden="true">✳</span></div></div>
     <section className="section container" aria-labelledby="possibilities-title"><EditorialPosters />

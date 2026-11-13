@@ -124,3 +124,11 @@ keyboard focus, previews and drafts, security headers, PWA/offline boundaries.
 This is not real account/provider/onboarding acceptance. No required check was
 silenced, lowered or replaced with a fake provider. Source hashes in the linked
 evidence record match the final tested application files.
+
+## Pixel background reference — 5 November 2026
+
+The owner supplied a React sign-in reference with a dot field and requested IDEALAB colors. The website adapts the effect in `AuthPixelBackground` using a local Canvas2D renderer. Sign-in uses yellow and blue, signup uses pink and lavender. Pixel sizes and density adapt to the viewport. Rendering is capped at 20 updates per second with device pixel ratio capped at 1.5. The frame loop stops in hidden tabs and respects the shared motion preference and reduced motion. A labeled 44 px toolbar control pauses or resumes the field. Form actions, notices and account route handling retain their existing contracts.
+
+Desktop sign-in and mobile signup screenshots were inspected locally. Independent source review found no blocking issue and identified a pause-reset polish issue, subsequently corrected by retaining phase across effect changes. The final optimized acceptance build and full public Chromium suite passed, including changing canvas frames, static paused frames, dynamic reduced-motion behavior, sign-in/signup layouts and the existing auth routes. Scoped lint, TypeScript and 403 local documentation links passed. Actual provider and member acceptance remain required before production account activation.
+
+The requested 21st plugin was inspected at source commit `c0505c7f1c2d9cea6db05e44892b61cb7ce35334` and installed locally as version 0.5.0. Its manifests and CLI skill describe catalog search/retrieval, UI creation/review, design sync and editable video projects. The portable MCP uses OAuth against `https://21st.dev/api/mcp`; the compatibility manifest supports an environment token. Installation is verified, while this chat has no callable 21st tools yet. Remote authentication and capability smoke tests remain unverified. No account key was added to website source or documentation. [Reviewed plugin source](https://github.com/21st-dev/codex-plugin/tree/c0505c7f1c2d9cea6db05e44892b61cb7ce35334)

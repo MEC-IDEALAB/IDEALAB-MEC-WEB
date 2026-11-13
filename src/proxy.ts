@@ -1,3 +1,4 @@
+import { fetchSupabase } from './lib/supabase-fetch';
 import { randomBytes } from 'node:crypto';
 import { createServerClient } from '@supabase/ssr';
 import { NextResponse, type NextRequest } from 'next/server';
@@ -48,7 +49,7 @@ export async function proxy(request: NextRequest) {
       values.forEach(({ name, value, options }) => response.cookies.set(name, value, options));
       Object.entries(headers).forEach(([name, value]) => response.headers.set(name, value));
     },
-  }, global: { fetch: (input, init) => fetch(input, { ...init, signal: AbortSignal.timeout(12000) }) } });
+  }, global: { fetch: fetchSupabase } });
   let authenticated = false;
   try { const { data, error } = await client.auth.getUser(); authenticated = !error && !!data.user; } catch { /* Fail closed on a timeout or unavailable account service. */ }
   if (!authenticated) {

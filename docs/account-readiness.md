@@ -1,5 +1,63 @@
 # Current account delivery status
 
+## Recovery implementation — 5 November 2026
+
+The website now has verified recovery-session reading, account/session-bound
+submission and one-use consumption before Auth update. The consumption API is
+installed only in validation as `20261105172121`. Lint, TypeScript, 204 boundary
+tests and disposable PostgreSQL concurrency/rollback checks pass. The shared
+project and hosted account activation are unchanged. Real delivery/recovery and
+fresh-account onboarding still need acceptance. See [recovery evidence](quality/recovery-integration-2026-11-05.md).
+
+## Auth provider recheck — 5 November 2026
+
+The local development server is running at `http://127.0.0.1:3015` against the
+shared project `huftzhfqnnslvnfzvbex`. Its public provider settings report Google
+and email enabled, signup enabled and email confirmation required. A real
+Chromium signed-out probe reached Google without `invalid_client` or
+`redirect_uri_mismatch`. The owner confirmed that their existing Google account
+returned to Home. This is returning-account evidence, not a new-account,
+confirmation-email, recovery or cross-client acceptance pass.
+
+A first-time account attempt subsequently returned `bad_oauth_state`. Read-only
+Auth error aggregates confirm an expired attempt. Fresh private-window acceptance
+is pending. Provisioning source creates a student with an incomplete version-zero
+profile; the existing member guard routes that state to `/account-access`. It does
+not derive admission from Google metadata. Parser checks pass for incomplete
+profiles, but they do not replace a genuine new-account browser journey.
+
+The owner added the exact Vercel callback and confirmation URLs to Supabase and
+changed its Site URL. A safe invalid-callback probe now returns to
+`https://idealab-mec-web.vercel.app/`, rather than the former localhost fallback.
+No Google secret or database schema was changed in this recheck.
+
+Vercel production previously had no account environment variables. The shared
+public URL/key and canonical site URL are now configured. Google and shared
+contract flags are prepared, while `ENABLE_MEMBER_PLATFORM=false` preserves the
+release gate. The source also rejects hosted account activation. Recovery remains
+disabled. Email delivery, new-account onboarding persistence, cross-account and
+Grow compatibility checks still block production account activation. The public
+auth visual release is separate from these gates.
+
+| Work | Owner | State | Evidence / next action |
+| --- | --- | --- | --- |
+| Returning Google account | Web / owner | Locally confirmed | Owner reached Home; public provider/browser probes also pass. |
+| New Google account | Web / QA | In progress | Expired attempt observed; retry from a fresh private-window entry, then verify profile persistence. |
+| Auth URLs | Platform / owner | Updated | Owner-reported exact allowlist additions; invalid-callback fallback probe confirms the live site origin. |
+| Hosted account activation | Release / QA | Blocked by acceptance | Configured but disabled; complete real account/recovery and shared-client gates before enabling. |
+| Auth pixel gradient | Web / reviewer | Released in PR #69 | White/pastel waves, theme synchronization and static fallback; independent review and live browser checks passed. |
+
+The focused visual/error-handling follow-up is now released in PR #69, merge
+`ef6c5bdb51b9e372cd6402e0314ad5a6e275da5d`. Its 149 boundary tests, public
+Chromium suite, build, configured-proxy denial checks and independent review
+passed before push; required hosted checks passed on `eeaaefe` before merge.
+The live Vercel deployment passed visible GPU movement, pause, mobile signup
+layout and sanitized expired-attempt routing checks. Account activation remains gated.
+
+The local confirmation-resend action now also rejects active or uncertain account
+entry, matching the other guest-only auth actions. Seventeen auth entry/input
+boundary checks and lint pass. This follow-up remains local with draft PR #67.
+
 ## Read-only backend recheck — 3 November 2026
 
 The connected Supabase read-only tools report the shared project `huftzhfqnnslvnfzvbex`
@@ -202,3 +260,23 @@ Next acceptance dependencies are real password/email/recovery tests, a second ge
 cross-owner checks, concurrency, Flutter compatibility and approved production
 rollout. See [task ledger](task-list-2026-10-21.md), [architecture](architecture.md)
 and [delivery plan](delivery-plan.md) for the broader scope and gates.
+
+## Live identity acceptance checkpoint — 5 November 2026
+
+Supabase reports the isolated validation project as inactive and the shared
+project as active. Run member acceptance against the isolated project once its
+availability and callback configuration are approved. Use two approved test
+accounts. Record outcomes and revision identifiers without storing passwords,
+email links, OAuth codes, session tokens or student registration numbers.
+
+| Gate | Required evidence |
+| --- | --- |
+| Email signup and login | A new account receives the confirmation email, verifies on the intended origin and signs in. The server associates the verified identity with its own profile. |
+| Google | The callback returns to the intended origin and loads the correct account and onboarding state. A cancelled attempt leaves protected pages inaccessible. |
+| Recovery | Implement a verified recovery-session boundary and atomic single use before enabling recovery. Confirm delivery, reject replay and account switching, then prove the new password works. |
+| Web and Grow | Both clients resolve the same admitted account and enforce the same owner and role boundaries. Check two genuine sessions for cross-account denial. |
+| Member and core workflows | Verify persistence after reload, Lab check-in and closure, owner history and staff authorization against the same reviewed revision. |
+
+The production browser acceptance suite verifies the public shell and layout.
+Local SQL rehearsals provide separate database evidence. Release acceptance
+requires the actual provider, signed-in browser and Grow results above.

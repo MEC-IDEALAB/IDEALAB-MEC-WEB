@@ -78,6 +78,31 @@ notification/review. This is not live pilot intake until that receiving path is
 implemented and accepted. Collaborators, material changes and head review remain
 part of full V1, not accepted by this partial slice.
 
+## Owner-confirmed estimate-to-close extension — 3 November 2026
+
+The owner confirmed a machine-request lifecycle that extends beyond this
+isolated intake contract: a submitted request notifies its assigned head; the
+head enters expected filament and service quantities; the server calculates an
+itemized estimate from scoped, versioned rates; and the student approves the
+exact estimate before production. The initial filament rate is approved at
+₹3/gram. Students do not upload design files. Assigned heads manage rates in
+their authorized scope, with each change versioned and audited.
+
+After production, the head records actual usage, the server calculates the
+final bill, the head confirms payment manually, and the request closes into
+member history. Estimated values remain distinct from actual use. This workflow
+is not present in the current intake schema: it has no staff assignment,
+notification, rate, quote, approval, production, actual-use, bill or payment
+transition. It must be designed as a guarded extension with row locks,
+revision-bound member approval, idempotent commands and audited history. The
+student’s decline keeps the request open so the head can revise the estimate
+or reject the request. A higher final bill requires the student to submit an
+approval checkbox tied to its exact revision and amount before payment. The
+student pays using IDEALAB’s official UPI QR and enters only the transaction ID.
+The head verifies receipt against that bill before closure. The official QR
+asset and financial fields/period for the anonymized archive remain release
+dependencies.
+
 ## UX and acceptance
 
 The existing Type → Details → Review composer remains the single entry. Member

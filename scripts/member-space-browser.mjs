@@ -415,9 +415,28 @@ try {
   assert.equal(await wizard.getByRole('textbox', { name: /Department/ }).inputValue(), 'Sample department');
   await wizard.getByRole('button', { name: 'Next' }).click();
   await registration.fill('LMDL24CS219');
-  await wizard.getByRole('button', { name: 'Next' }).click();
-  await wizard.getByRole('button', { name: 'Submit profile' }).click();
+  let wizardPosts = 0;
+  const countWizardPost = request => {
+    if (request.method() === 'POST') wizardPosts++;
+  };
+  settingsPage.on('request', countWizardPost);
+  const registrationNext = wizard.getByRole('button', { name: 'Next' });
+  const nextPosition = await registrationNext.boundingBox();
+  assert.ok(nextPosition, 'The registration Next button is visible');
+  await settingsPage.mouse.dblclick(nextPosition.x + nextPosition.width / 2, nextPosition.y + nextPosition.height / 2);
+  const review = wizard.locator('.setup-review dd');
+  assert.deepEqual(await review.allTextContents(), [
+    'Sample Maker', '+919000000000', 'LMDL24CS219', 'Model Engineering College', 'Sample department', '2',
+  ], 'The review displays all six synthetic profile values');
+  const submitProfile = wizard.getByRole('button', { name: 'Submit profile' });
+  assert.equal(await submitProfile.isDisabled(), true, 'Submit starts disabled on entering Review');
+  await wizard.getByRole('heading', { name: /Step 4 of 4/ }).press('Enter');
+  await submitProfile.click({ trial: true });
+  assert.equal(wizardPosts, 0, 'Rapid Next and Enter on the review heading do not submit the profile');
+  await submitProfile.click();
   await wizard.getByRole('status').getByText('Preview check complete. Nothing was sent to the database.').waitFor();
+  assert.equal(wizardPosts, 1, 'One deliberate submit sends one preview request');
+  settingsPage.off('request', countWizardPost);
   await settingsContext.close();
   const combinedContext = await browser.newContext({ viewport: { width: 390, height: 844 }, reducedMotion: 'reduce' });
   await combinedContext.addInitScript(() => sessionStorage.setItem('idealab-mec:loader-seen:v3', '1'));

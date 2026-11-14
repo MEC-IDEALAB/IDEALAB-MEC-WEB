@@ -167,3 +167,17 @@ none in public. These counts describe the validation catalog. Compare the
 existing routine fingerprints against the private backup or reviewed migration
 source for the shared restore rehearsal. Definition export by the connector was
 rejected by automatic approval review.
+
+### Phase 2 acceptance
+
+| Gate | Evidence and next step |
+| --- | --- |
+| Shared restore | The shared migration-ledger read still returned 28P01 on 14 November. The captured catalogs and hashes provide comparison evidence, but omit definitions and dependencies required to reconstruct all 19 public and three private tables faithfully. Supply an approved private schema archive or verified definitions, roles, extensions and managed Auth dependencies. Restore on a disposable target, compare against the captures, then rehearse the eight-index apply and rollback on that target. |
+| Staff and Lab | The 13 November disposable PG17.6 shared staff rehearsal passed with the shared profile candidate, and the Lab rehearsal passed concurrent opening, concurrent check-in/closure, closure timestamp and retry assertions. These fixtures carry synthetic memberships. Production activation still requires the approved roster and real authorized accounts. |
+| Website onboarding | The member browser suite exercises the same four-card private profile form as account setup, including invalid registration feedback, focus, Back retention, the six-field Review and an explicit preview submission. A rapid double-click on Next and Enter on the Review heading send zero POST requests. Submit starts disabled on entering Review, and a deliberate Submit sends one preview POST. This is synthetic-browser evidence. Real admission, maker draft persistence and public publication remain separate gates. |
+| Grow release | The [latest public Grow release](https://github.com/NAVANEETHVVINOD/Grow-by-IL/releases/tag/v1.0.0-rc2-stable) lists an APK published on 9 May 2026. The release tag resolves to 433f2844b0aaaf71daf30967605a1cbb73937d41, whose source has no shared-account gateway or four shared-account build flags. The inspected local release workflow passes the Supabase URL and client key only. Obtain the exact distributed APK or store build provenance and attest its build flags, then test an approved account using the [shared account configuration from Phase 1](quality/phase1-database-validation-2026-11-06.md). A local debug APK and CI artifacts do not establish which build members installed. |
+
+The current wizard keeps unsaved private values in page memory. The handoff's
+refresh-durable maker drafts and Publish controls are later feature work. Keep
+private registration, phone and other MEC fields out of browser storage when
+designing recovery for an interrupted onboarding step.

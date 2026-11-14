@@ -4,6 +4,7 @@ node_modules.previous
 package-lock.previous.json
 .next
 .next-acceptance
+.next-recovery
 out
 coverage
 .vercel

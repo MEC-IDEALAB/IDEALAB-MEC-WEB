@@ -1,5 +1,29 @@
 # Vercel delivery
 
+## Production baseline — 14 November 2026
+
+Vercel reports Ready for production deployment
+`dpl_2pvdM2fNidAdXpXw5KQRDLSDMQfA` under the personal hosting scope
+`navaneethvvinods-projects`. The GitHub Vercel status for
+`ef6c5bdb51b9e372cd6402e0314ad5a6e275da5d` points to the same deployment,
+and GitHub reports successful required, documentation and public acceptance
+checks for that commit. This is the baseline deployment to record in the
+production rollback plan.
+[Deployment](https://vercel.com/navaneethvvinods-projects/idealab-mec-web/2pvdM2fNidAdXpXw5KQRDLSDMQfA)
+
+The primary alias returned 200 for the homepage, web manifest and offline
+page. The member route returned 307 to `/sign-in?notice=configuration` with
+`Cache-Control: private, no-store` and `Vary: Cookie`. The member design
+preview returned 404. The project dashboard still reports the Other
+framework preset. The repository sets Next.js explicitly in
+[vercel.json](../vercel.json), and the deployment lists dynamic page handlers.
+
+P0-05 still needs production sender and callback acceptance, approved
+institutional hosting and incident ownership, and a faithful disposable
+restore. The public production baseline is healthy. The integrated pilot
+revision remains in the local reconciliation checkout and PR #67 remains draft.
+
+
 Current production check — 31 October 2026: `main` is at `7e4891ff1f7e40e4af51623d20ac0cb7c334fbfb` after PR #29. The public repository `MEC-IDEALAB/IDEALAB-MEC-WEB` is connected to the Vercel project `idealab-mec-web` on the personal Hobby team `navaneethvvinods-projects`. The latest production deployment `dpl_287xsdd3daiiywUPwXiHfRa5krtA` is Ready, and its primary alias `https://idealab-mec-web.vercel.app/` serves the website. This is a personal-team project; no IDEALAB-owned Vercel team is available to the connected account.
 
 ## 404 root cause and fix

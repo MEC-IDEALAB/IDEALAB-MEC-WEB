@@ -139,3 +139,31 @@ The [local PostgreSQL 17 restore rehearsal](quality/sql-ci-rehearsal-2026-11-04.
 4. Verify the recovery inventory separately for Auth configuration, provider and sender setup, secrets and Storage objects where in scope. The database backup contains Storage metadata. Object recovery needs separate evidence. [Supabase Database Backups](https://supabase.com/docs/guides/platform/backups)
 5. Have the recovery owner review the measured recovery time and backup age against the approved objectives. Record the result, outstanding gaps and disposal of restored data under the approved retention rules. Keep dumps, credentials and identifiable records in the private evidence boundary.
 The next read-only pass captured 94 default-expression fingerprints, 59 index-definition fingerprints and 10 noninternal trigger fingerprints, including relevant Auth triggers. See [structural fingerprints](research/shared-structural-fingerprints-2026-11-04.json) and the [inspection query](../supabase/inspection/shared_structural_fingerprints.sql). The snapshot includes state flags and function references while the query emits normalized comparison rows. Neither returns expression bodies or user data. Differences are investigation leads, not permission to change the shared database; PostgreSQL-version formatting differences must be resolved before claiming parity.
+
+### Application table metadata capture
+
+Use the [read-only table catalog query](../supabase/inspection/shared_application_table_catalog.sql)
+from an approved SQL session. It captures table and column ACLs, policy
+permissiveness, defaults, indexes, constraints and triggers for the application
+schemas without reading rows. Keep the result in the approved private restore
+evidence store. The query does not substitute for the backup or for collecting
+the referenced roles, functions, extensions and managed Auth dependencies.
+
+On 14 November, the query's aggregate result matched the isolated validation
+catalog at 23 relations and 158 columns. Shared SQL access returned `28P01`;
+a new shared capture is pending valid read-only access.
+
+The [restore dependency inventory](../supabase/inspection/shared_restore_dependencies.sql)
+collects schema and default ACLs, extensions, relevant roles and memberships,
+and application-owned Auth trigger definitions. Its aggregate validation
+returned three schemas, five extensions, six relevant roles and three
+Auth triggers on 14 November. Compare the shared result with the retained
+catalog and function fingerprints when SQL access is restored.
+
+The [aggregate routine inventory](../supabase/inspection/application_routine_inventory.sql)
+reported 42 private and 27 public application routines on isolated validation,
+all with explicit ACLs. It counted 36 private security-definer routines and
+none in public. These counts describe the validation catalog. Compare the
+existing routine fingerprints against the private backup or reviewed migration
+source for the shared restore rehearsal. Definition export by the connector was
+rejected by automatic approval review.

@@ -115,3 +115,18 @@ payment payee, refund terms, age policy and retention periods need institutional
 confirmation. Do not invent policy commitments, fees, testimonials, consent
 records, unsubscribe links or completed deletion behavior. Payment intake remains
 disabled until the approved public payment details and operational contract exist.
+
+### Pilot consent checkpoint — 14 November 2026
+
+The local release candidate omits the Analytics and Speed Insights mounts.
+This prevents optional visitor and performance events before the consent
+controls are approved and connected. Keep the public-route filtering and
+URL sanitization when connecting the approved consent flow. Verify first
+visit, decline, accept and withdrawal using browser network requests.
+Track this under [issue #41](https://github.com/MEC-IDEALAB/IDEALAB-MEC-WEB/issues/41).
+
+MEC approval remains open for the privacy, terms and cookie text,
+eligibility and any guardian consent, retention and deletion, approved
+sender and hosting, and incident, backup and roster ownership. Financial
+and refund terms are required for the payments release. Use the existing
+policy, consent, release, roster and payments issues to record approvals.

@@ -135,7 +135,7 @@ async function storageSnapshot(page) {
     return JSON.stringify({ local: entries(localStorage), session: entries(sessionStorage) });
   });
 }
-const env = { ...process.env, NEXT_PUBLIC_SUPABASE_URL: '', NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: '', ENABLE_MEMBER_PLATFORM: 'false', ENABLE_MEMBER_PLATFORM_PRODUCTION: 'false', ENABLE_MEMBER_PLATFORM_TEST: 'false', IDEALAB_ISOLATED_ACCEPTANCE_BUILD: 'true', ENABLE_DESIGN_PREVIEW: 'true' };
+const env = { ...process.env, VERCEL_ENV: 'production', NEXT_PUBLIC_SUPABASE_URL: '', NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: '', ENABLE_MEMBER_PLATFORM: 'false', ENABLE_MEMBER_PLATFORM_PRODUCTION: 'false', ENABLE_MEMBER_PLATFORM_TEST: 'false', IDEALAB_ISOLATED_ACCEPTANCE_BUILD: 'true', ENABLE_DESIGN_PREVIEW: 'true' };
 // Workspace navigation is checked against rendered links, grouping, touch
 // targets and viewport geometry below, rather than obsolete fixed-bar CSS.
 const server = spawn(process.execPath, ['node_modules/next/dist/bin/next', 'start', '--hostname', '127.0.0.1', '--port', String(port)], { env, stdio: ['ignore', 'pipe', 'pipe'] });
@@ -203,6 +203,23 @@ try {
   }
   assert.equal((await fetch(base + '/unknown-page')).status, 404);
   browser = await chromium.launch({ headless: true });
+  const consentContext = await browser.newContext({ reducedMotion: 'reduce' });
+  try {
+    const telemetryRequests = [];
+    await consentContext.route(/\/_vercel\/(?:insights|speed-insights)|vitals\.vercel-insights\.com|va\.vercel-scripts\.com/, route => {
+      telemetryRequests.push(new URL(route.request().url()).pathname);
+      return route.abort();
+    });
+    const consentPage = await consentContext.newPage();
+    for (const path of ['/', '/lab', '/sign-in']) {
+      const response = await consentPage.goto(base + path, { waitUntil: 'networkidle' });
+      assert.equal(response?.status(), 200, `Initial visit loads ${path}`);
+    }
+    assert.deepEqual(telemetryRequests, [], 'Initial visit sends no optional telemetry requests');
+    console.log('PASS: production-mode first visits send no optional telemetry before consent.');
+  } finally {
+    await consentContext.close();
+  }
   const serviceWorkerResponse = await fetch(base + '/sw.js');
   assert.equal(serviceWorkerResponse.status, 200);
   assert.match(await serviceWorkerResponse.text(), /request\.mode !== 'navigate'/, 'The offline worker must not intercept API or asset requests');

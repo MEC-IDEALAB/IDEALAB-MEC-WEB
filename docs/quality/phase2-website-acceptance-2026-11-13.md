@@ -110,3 +110,28 @@ with the expired-attempt notice visible while sign-in remains disabled.
 The merge commit represents the published branch reconciliation. Unpublished
 implementation still needs to be integrated and verified on the resulting
 revision. Shared schema access returned `28P01` again on a read-only probe.
+
+## Integrated revision — 14 November 2026
+
+Local commit `23aee652d4a3ada4a1d3e30ae6c31d79dd311737` integrates the
+website work with the reconciled PR. The original worktree and its staged
+Projects fix were preserved. Third-party audit drafts stayed local.
+Independent review confirmed that ordinary signed-in users still go to
+Home and that the recovery cleanup screen offers explicit sign-out bound
+to the verified account.
+
+Typecheck, lint, 205 boundary tests, seven event management tests, the proxy
+check and the dependency audit passed. Chromium passed the public and
+member preview suites, the request/project/event journals and eight Event
+Studio checks. The committed archive resolved 420 links across 89 documents.
+Twelve disposable PostgreSQL modes passed with the CI-pinned Grow SQL
+sources. The [integrated FK rehearsal](../research/shared-fk-rehearsal-integrated-2026-11-13.json)
+records the normalized candidate and rollback hashes. The Phase 1 evidence
+describes the original checkout.
+
+The browser suites used fixture configuration or sample data. Live signup,
+confirmation, recovery and authenticated workflow acceptance remain open.
+The available local configuration points at the shared project and cannot
+serve as isolated validation acceptance. The current draft PR branch still
+points at 755b0d0. The release checklist calls for relevant live acceptance
+before publishing application changes.

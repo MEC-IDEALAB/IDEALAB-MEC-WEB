@@ -28,7 +28,6 @@ import { BrandLoading } from '@/components/brand-loading';
 import { BootReady } from '@/components/boot-ready';
 import { PwaServiceWorker } from '@/components/pwa-service-worker';
 import { AutomaticMotionProvider } from '@/components/automatic-motion';
-import { VercelTelemetry } from '@/components/vercel-telemetry';
 import {
   BRAND_LOADING_EXIT_MS,
   BRAND_LOADING_MINIMUM_DURATION_MS,
@@ -274,7 +273,6 @@ export default async function RootLayout({ children }: Readonly<{ children: Reac
             {children}
           </div>
         </AutomaticMotionProvider>
-        <VercelTelemetry vercelEnvironment={process.env.VERCEL_ENV} />
       </body>
     </html>
   );

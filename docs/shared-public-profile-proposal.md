@@ -14,7 +14,7 @@ contract together; direct child-table reads cannot bypass visibility.
 
 | Draft API boundary | Proposed behavior |
 | --- | --- |
-| Own optional profile read/save | Strict field allowlist, optimistic revision, new optional content defaults public with disclosure before save; no automatic copying from required onboarding |
+| Own optional profile read/save | Strict field allowlist and optimistic revision. Drafts stay private. Show the exact public projection and require explicit Publish. Never copy from required onboarding. |
 | Visibility/QR revocation | Atomic private/public transition and optional opaque share-ID rotation; stale updates cannot republish |
 | Anonymous public read | Deliberately authored display identity, bio, safe links/processed image, interest badges and selected showcase sections only |
 | Member presence read | Paginated current display names; no session IDs, purposes, arrival times, contact or registration data |
@@ -63,7 +63,7 @@ this is a review draft, not an installation-ready cutover. No SQL was applied.
 The website feature is now source-disabled regardless of environment flags in
 `src/features/profile/public-profile-config.ts`; an environment variable alone
 cannot enable RPC calls that are absent from the installed shared schema. The
-profile editor remains a visual preview, not a functioning public profile.
+profile editor demonstrates a private draft, public-field review and a separate publication action. Draft persistence and publication remain unavailable. The candidate generic save can still set public visibility. Shared enforcement and a distinct audited publication transition remain required.
 Current backend evidence and the full list of acceptance gates are recorded in
 [member platform readiness](quality/member-platform-readiness-2026-11-03.md).
 

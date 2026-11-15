@@ -9,21 +9,7 @@ import './brand-loading.css';
 import './audit-polish.css';
 import './home-neo.css';
 import './home-refinements.css';
-import './onboarding-preview.css';
-import './staff-preview.css';
-import './auth-recovery.css';
-import './auth-flow.css';
-import './auth-pixels.css';
-import './member-shell.css';
-import './account-setup.css';
 import './navigation-refresh.css';
-import './auth-poster.css';
-import './auth-arcade.css';
-import './workspace-arcade.css';
-import './member-discovery.css';
-import './member-mobile.css';
-import './member-settings.css';
-import './public-profile.css';
 import { BrandLoading } from '@/components/brand-loading';
 import { BootReady } from '@/components/boot-ready';
 import { PwaServiceWorker } from '@/components/pwa-service-worker';
@@ -241,6 +227,21 @@ try {
 export const metadata: Metadata = {
   title: { default: "IDEALAB MEC — A place to make things happen", template: "%s | IDEALAB MEC" },
   description: "Explore the IDEA Lab at Model Engineering College. Bring your ideas, discover the lab, and connect with a community of makers.",
+  metadataBase: new URL('https://idealab-mec-web.vercel.app'),
+  openGraph: {
+    type: 'website',
+    siteName: 'IDEALAB MEC',
+    locale: 'en_IN',
+    title: 'IDEALAB MEC — A place to make things happen',
+    description: 'Explore the IDEA Lab at Model Engineering College. Bring your ideas, discover the lab, and connect with a community of makers.',
+    images: [{ url: '/brand/idea-lab.png', alt: 'IDEA Lab at Model Engineering College' }],
+  },
+  twitter: {
+    card: 'summary',
+    title: 'IDEALAB MEC — A place to make things happen',
+    description: 'Explore the IDEA Lab at Model Engineering College. Bring your ideas, discover the lab, and connect with a community of makers.',
+    images: ['/brand/idea-lab.png'],
+  },
   icons: { icon: [{ url: "/brand/app-icon-192.png", type: "image/png" }], apple: "/brand/app-icon-192.png" },
 };
 

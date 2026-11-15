@@ -1,3 +1,4 @@
+import '../auth-styles';
 import Link from 'next/link';
 import { ArrowLeft, ArrowUpRight, ShieldCheck } from 'lucide-react';
 import { updatePassword } from '@/app/auth/actions';

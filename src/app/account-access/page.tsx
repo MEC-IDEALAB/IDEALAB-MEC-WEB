@@ -1,3 +1,5 @@
+import '../auth-styles';
+import '../account-setup.css';
 import Link from 'next/link';
 import { redirect } from 'next/navigation';
 import { ArrowLeft, RefreshCw } from 'lucide-react';

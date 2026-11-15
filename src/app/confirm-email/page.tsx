@@ -1,3 +1,4 @@
+import '../auth-styles';
 import Link from 'next/link';
 import { resendSignupConfirmation, retrySignupCleanup } from '@/app/auth/actions';
 import { signupAuthConfig } from '@/lib/auth-config';

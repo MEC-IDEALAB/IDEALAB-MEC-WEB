@@ -42,7 +42,16 @@ The preview workflow pins Vercel CLI `65.4.0`, matching the CLI recorded in the 
 
 ## Analytics and privacy
 
-The application includes the pinned `@vercel/analytics` and `@vercel/speed-insights` packages in the current branch. The telemetry component runs only in Production and only on `/`, `/lab`, `/projects`, `/events`, and `/explore`; it drops private, unknown, dynamic, malformed and cross-origin events, removes query strings and fragments, and sanitizes route labels. The site also uses `Referrer-Policy: origin`, preventing full same-origin paths or queries from being sent as analytics referrers. Authentication, onboarding, member paths, local development and Preview deployments are excluded. The test suite covers these filters.
+The pinned `@vercel/analytics` and `@vercel/speed-insights` packages, telemetry
+component, and route-sanitizing helper exist in the current branch, but the
+component has no caller in `src/` and is not mounted. This source does not
+currently emit telemetry through that component. Its helper/component tests
+cover the public-route allowlist and removal of query strings/fragments if it is
+mounted later. Before enabling it, record MEC approval for the privacy notice
+and consent behavior; package presence and unit tests do not establish
+collection or consent compliance. The site also uses `Referrer-Policy: origin`,
+which prevents full same-origin paths or queries from being sent as analytics
+referrers. Dashboard activation and data collection remain unverified.
 
 Web Analytics and Speed Insights dashboard activation and data collection have not been verified. Enable the features, visit a public page, and check the Network panel and Vercel dashboard before reporting metrics. Vercel documents that data appears only after the feature is enabled, the component is deployed, and visitors generate page views or performance measurements: [Web Analytics setup](https://vercel.com/docs/analytics/quickstart), [Analytics privacy](https://vercel.com/docs/analytics/privacy-policy), [Speed Insights setup](https://vercel.com/docs/speed-insights/quickstart), and [Speed Insights privacy](https://vercel.com/docs/speed-insights/privacy-policy).
 

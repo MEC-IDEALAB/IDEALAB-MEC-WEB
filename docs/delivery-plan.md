@@ -1,5 +1,25 @@
 # IDEALAB MEC delivery plan
 
+## Website audit follow-up — 15 November 2026
+
+The public-site metadata, sitemap, shared footer, 404 navigation, and member-list
+recovery controls received source-level follow-up. Local verification and the
+standalone maker-publication scratch evidence are recorded in the [audit
+follow-up](quality/website-audit-follow-up-2026-11-15.md). This work does not
+enable hosted member access, change shared database state, or satisfy live
+provider/Grow acceptance. PR #67 and deployment remain subject to the current
+release gates below.
+
+The same follow-up now records the route-level CSS split and before/after local
+build asset measurements; public, auth, member, design-preview and shared-profile
+routes passed the current browser acceptance suite.
+
+Phase 1 task evidence, including the blocked shared-project advisor read and
+the local-only auth/recovery test results, is recorded in the [validation and
+parity checkpoint](quality/phase1-validation-and-parity-2026-11-15.md). The
+existing task scripts are fixture tests; they do not establish a session with
+the isolated validation database.
+
 Current checkpoint: [account delivery status](account-readiness.md). Older account
 implementation-status paragraphs below are historical; release criteria and the
 remaining full-V1 scope still apply.

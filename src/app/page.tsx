@@ -1,12 +1,10 @@
-import Image from "next/image";
 import { redirect } from 'next/navigation';
 import { authFailureNotice } from '@/lib/auth-input';
 import Link from "next/link";
 import { ArrowRight, ArrowUpRight, Boxes, CalendarDays, CircleArrowRight, Wrench } from "lucide-react";
-import { Brand } from "@/components/brand";
 import { ThemePicker } from '@/components/theme-picker';
-import { AutomaticMotionControl } from '@/components/automatic-motion';
 import { PublicHeader } from "@/components/public-header";
+import { PublicFooter } from '@/components/public-footer';
 import { HomeMotion } from "@/components/home-motion";
 import { HomeTickerBottom, HomeTickerTop } from "@/components/home-ticker-bands";
 import { DoodleStar, DoodleOrbit, DoodleTrail } from '@/components/doodles';
@@ -14,6 +12,24 @@ import { FacilityCards } from '@/components/facility-cards';
 import { MakerPhotoPoster } from '@/components/maker-poster';
 import { EditorialPosters } from '@/components/editorial-posters';
 import { HomeVectorArtwork } from '@/components/home-vector-artwork';
+import type { Metadata } from 'next';
+
+export const metadata: Metadata = {
+  title: { absolute: 'IDEALAB MEC — A place to make things happen' },
+  description: 'Explore the IDEA Lab at Model Engineering College. Bring your ideas, discover the lab, and connect with a community of makers.',
+  alternates: { canonical: '/' },
+  openGraph: {
+    type: 'website', url: '/', siteName: 'IDEALAB MEC', locale: 'en_IN',
+    title: 'IDEALAB MEC — A place to make things happen',
+    description: 'Explore the IDEA Lab at Model Engineering College. Bring your ideas, discover the lab, and connect with a community of makers.',
+    images: [{ url: '/brand/idea-lab.png', alt: 'IDEA Lab at Model Engineering College' }],
+  },
+  twitter: {
+    card: 'summary', title: 'IDEALAB MEC — A place to make things happen',
+    description: 'Explore the IDEA Lab at Model Engineering College. Bring your ideas, discover the lab, and connect with a community of makers.',
+    images: ['/brand/idea-lab.png'],
+  },
+};
 
 const paths = [
   { n: "01", title: "Make something real.", text: "Explore the tools, understand the process and find the right support for your next idea.", href: "/lab", label: "Explore the lab", icon: Wrench, tone: "lime" },
@@ -41,5 +57,5 @@ export default async function Home({ searchParams }: { searchParams: Promise<{ e
     <section className="journey-section" aria-labelledby="journey-title"><div className="container journey-grid"><div className="journey-intro" data-reveal="section"><p className="eyebrow">FROM PLAN TO PROTOTYPE</p><h2 id="journey-title" className="journey-headline">Your idea.<br />A clear next step.</h2><p>A work request starts the conversation. The lab team helps coordinate what comes next.</p><Link className="button" href="/sign-in">Start a work request <ArrowUpRight size={18} aria-hidden="true" /></Link></div><ol className="journey-steps" aria-label="The next steps"><li data-reveal="timeline-step" data-stagger="0"><span>01</span><div><h3>Tell us what you have in mind.</h3><p>Sign in, choose Machine or Operations support, and describe the work. Add your preferred date and time.</p></div></li><li data-reveal="timeline-step" data-stagger="1"><span>02</span><div><h3>The responsible head reviews it.</h3><p>Your preferred time is a request. The assigned head reviews the details and confirms a time or proposes a change for you to accept.</p></div></li><li data-reveal="timeline-step" data-stagger="2"><span>03</span><div><h3>Let’s get making. Safely.</h3><p>Machine operation stays with trained, assigned staff. Follow the confirmed instructions and track your request.</p></div></li></ol></div></section>
     <section className="section container about-section" aria-labelledby="about-title"><div className="about-mark" data-reveal="section" aria-hidden="true"><span className="about-word-idea">IDEA</span><span className="about-word-lab">LAB<span className="about-asterisk">✳</span></span><small>MODEL ENGINEERING COLLEGE</small></div><div className="about-copy" data-reveal="section"><p className="eyebrow">AICTE × COGNICOR × MEC</p><h2 id="about-title" className="about-headline">A lab for the<br /><span className="about-title-cutout">way you think.</span></h2><p>Supported by AICTE and CogniCor, MEC’s IDEA Lab brings engineering, design and hands-on learning together. Workshops and training help students and faculty turn ideas into prototypes, explore STEM across disciplines and build practical skills.</p><Link className="text-link" href="/explore">Get to know IDEA Lab <ArrowUpRight size={18} aria-hidden="true" /></Link></div></section>
     <section className="container final-cta" data-reveal="section"><DoodleTrail className="cta-trail" /><div><p className="eyebrow">THERE’S SOMETHING IN THAT IDEA.</p><h2>Give it a place to grow.</h2></div><Link className="button button-ink" href="/sign-up">Get started <ArrowUpRight size={20} aria-hidden="true" /></Link></section>
-  </main><HomeTickerBottom /><footer className="site-footer"><div className="container footer-top"><div><Brand /><p>For curious minds.<br />And the things they’ll make.</p></div><div><h2>Find your way</h2><Link href="/lab">The lab</Link><Link href="/projects">Projects</Link><Link href="/events">Events</Link></div><div><h2>Say hello</h2><a href="mailto:idealab@mec.ac.in">idealab@mec.ac.in <ArrowUpRight size={15} aria-hidden="true" /></a><p>Model Engineering College<br />Thrikkakara, Kochi<br />Kerala 682021</p></div><Image className="college-logo" src="/brand/mec.png" width={76} height={84} alt="Model Engineering College crest" /></div><div className="container footer-bottom"><span>IDEALAB MEC · Model Engineering College</span><AutomaticMotionControl /><a href="/?intro=replay">Replay animated intro</a><a href="https://idealab.mec.ac.in/">Official lab website <ArrowUpRight size={14} aria-hidden="true" /></a></div></footer></div>;
+  </main><HomeTickerBottom /><PublicFooter showReplay showMotionControl /></div>;
 }

@@ -1570,6 +1570,32 @@ try {
   await page.goto(base + '/events');
   assert.equal(await page.getByText('TRIAD', { exact: true }).count(), 0, 'Individual event records remain outside the public page');
   assert(await page.getByRole('heading', { name: 'A culture of hands-on learning.' }).isVisible());
+  const sitemapResponse = await fetch(`${base}/sitemap.xml`);
+  assert.equal(sitemapResponse.status, 200, 'Public sitemap route responds');
+  const sitemapXml = await sitemapResponse.text();
+  assert.deepEqual([...sitemapXml.matchAll(/<loc>(.*?)<\/loc>/g)].map(match => match[1]), [
+    'https://idealab-mec-web.vercel.app/',
+    'https://idealab-mec-web.vercel.app/explore',
+    'https://idealab-mec-web.vercel.app/lab',
+    'https://idealab-mec-web.vercel.app/projects',
+    'https://idealab-mec-web.vercel.app/events',
+  ], 'Sitemap contains only approved public routes');
+  const robotsResponse = await fetch(`${base}/robots.txt`);
+  assert.equal(robotsResponse.status, 200, 'Robots route responds');
+  assert.match(await robotsResponse.text(), /Sitemap: https:\/\/idealab-mec-web\.vercel\.app\/sitemap\.xml/);
+  for (const [route, titlePart] of [['/', 'IDEALAB MEC — A place to make things happen'], ['/explore', 'Curiosity belongs here.'], ['/lab', 'Meet your making space.'], ['/projects', 'Ideas grow together.'], ['/events', 'Keep learning. Keep making.']]) {
+    await page.goto(base + route);
+    assert((await page.title()).includes(titlePart), `${route} has route-specific title`);
+    assert.equal(await page.locator('meta[name="description"]').count(), 1, `${route} has a description`);
+    assert.equal(await page.locator('meta[property="og:url"]').getAttribute('content'), route === '/' ? 'https://idealab-mec-web.vercel.app' : `https://idealab-mec-web.vercel.app${route}`, `${route} has its canonical share URL`);
+    assert.equal(await page.locator('footer.site-footer').count(), 1, `${route} has the shared public footer`);
+  }
+  const notFoundResponse = await page.goto(base + '/not-a-published-route');
+  assert.equal(notFoundResponse?.status(), 404, 'Unknown route remains an actual 404');
+  assert.equal(await page.locator('.site-header').count(), 1, '404 includes public navigation');
+  assert.equal(await page.locator('footer.site-footer').count(), 1, '404 includes shared public footer');
+  const notFoundRobots = await page.locator('meta[name="robots"]').evaluateAll(elements => elements.map(element => element.getAttribute('content') ?? ''));
+  assert(notFoundRobots.length > 0 && notFoundRobots.every(content => /(^|,\s*)noindex(,|$)/.test(content)), '404 is excluded from indexing');
   await page.setViewportSize({ width: 375, height: 900 });
   await page.goto(base + '/app/requests/new');
   assert.match(page.url(), /\/sign-in\?notice=configuration$/);

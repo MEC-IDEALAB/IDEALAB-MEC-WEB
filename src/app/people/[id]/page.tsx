@@ -1,4 +1,5 @@
 import Link from 'next/link';
+import '../../public-profile.css';
 import { notFound } from 'next/navigation';
 import { PublicProfileContent } from '@/features/profile/public-profile-content';
 import { loadPublicProfile } from '@/features/profile/public-profile-data';

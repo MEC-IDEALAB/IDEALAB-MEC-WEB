@@ -19,7 +19,7 @@ import { rehearseSharedFkIndexes } from './shared-fk-index-rehearsal.mjs';
 
 const execute = promisify(execFile);
 assert.equal(Number(process.versions.node.split('.')[0]), 24, 'Use the project\'s Node 24 runtime.');
-const rehearsalModes = ['--shared-fk-indexes', '--recovery-consumption', '--preprofile-metadata-rehearsal', '--shared-profile-function-parity', '--default-acl-probe', '--profile-ecosystem-parity', '--project-admission', '--shared-ledger-replay', '--restore-drill', '--staff-scope', '--staff-scope-shared', '--lab-presence', '--event-drafts', '--lab-opening'].filter(mode => process.argv.includes(mode));
+const rehearsalModes = ['--maker-publication', '--shared-fk-indexes', '--recovery-consumption', '--preprofile-metadata-rehearsal', '--shared-profile-function-parity', '--default-acl-probe', '--profile-ecosystem-parity', '--project-admission', '--shared-ledger-replay', '--restore-drill', '--staff-scope', '--staff-scope-shared', '--lab-presence', '--event-drafts', '--lab-opening'].filter(mode => process.argv.includes(mode));
 assert(rehearsalModes.length <= 1, 'Run each schema rehearsal in its own disposable cluster.');
 const project = await realpath(fileURLToPath(new URL('../', import.meta.url)));
 
@@ -318,6 +318,35 @@ try {
   const transaction = (await sql('begin; create temporary table idealab_runtime_probe(value integer); insert into idealab_runtime_probe values (19),(23); select sum(value) from idealab_runtime_probe; rollback; select to_regclass(\'pg_temp.idealab_runtime_probe\') is null;')).stdout.trim();
   assert.equal(transaction.replaceAll('\r', ''), '42\nt', 'Real SQL runs and the temporary table creation rolls back.');
   summary.checks.transactionRollback = true;
+  if (process.argv.includes('--maker-publication')) {
+    stage = 'maker-publication';
+    assert.equal(Number(identity.version.split('.')[0]), 17, 'Maker profile rehearsal requires PostgreSQL 17.');
+    const grow = await realpath(resolve(project, '../Grow'));
+    const sqlSources = await Promise.all([
+      readFile(join(grow, 'supabase/tests/shared_profile_contract_v1_fixture.sql'), 'utf8'),
+      readFile(join(grow, 'supabase/migrations/20261102130200_shared_profile_contract_v1.sql'), 'utf8'),
+      readFile(new URL('../supabase/validation/mec_maker_publication_candidate.sql', import.meta.url), 'utf8'),
+      readFile(new URL('../supabase/tests/database/mec_maker_publication.test.sql', import.meta.url), 'utf8'),
+    ]);
+    await sql(['BEGIN; SET LOCAL plpgsql.check_asserts = on;', ...sqlSources, 'ROLLBACK;'].join('\n'));
+    assert.equal((await sql("SELECT to_regnamespace('idealab_private') IS NULL AND to_regnamespace('auth') IS NULL")).stdout.trim(), 't');
+    summary.scope = 'Disposable PostgreSQL with synthetic accounts, maker draft/publication transitions and legacy row sentinel.';
+    summary.checks.makerPublicationTransitions = true;
+    summary.checks.makerPublicationFixtureRolledBack = true;
+
+    await sql(['BEGIN;', ...sqlSources.slice(0, 3), 'COMMIT;'].join('\n'));
+    const actor = '00000000-0000-4000-8000-000000000005';
+    const draft = '{"display_name":"Race fixture","bio":"Race fixture","interests":["Art"],"skills":[],"links":[]}';
+    const command = async (body) => JSON.parse((await sql(
+      "BEGIN; SET LOCAL ROLE authenticated; SET LOCAL request.jwt.claim.sub='" + actor + "';" + body + 'COMMIT;'
+    )).stdout.trim());
+    assert.equal((await command("SELECT public.mutate_maker_profile_v1('save_draft','0','" + draft + "'::jsonb);")).revision, '1');
+    const publish = "SELECT public.mutate_maker_profile_v1('publish','1');";
+    const results = await Promise.all([command(publish), command(publish)]);
+    assert.deepEqual(results.map(result => result.status).sort(), ['conflict', 'saved']);
+    assert.equal((await sql('SELECT count(*) FROM idealab_private.maker_publication_history_v1;')).stdout.trim(), '1');
+    summary.checks.concurrentPublishCreatesOneTransition = true;
+  }
   if (process.argv.includes('--shared-fk-indexes')) {
     stage = 'shared-fk-indexes';
     summary.sharedFkIndexes = await rehearseSharedFkIndexes(sql);
@@ -1037,7 +1066,7 @@ try {
   // sensitive process context. This harness handles only its synthetic cluster.
   failure = error instanceof assert.AssertionError ? error.message : 'Native runtime probe failed; no application or shared database was changed.';
   summary.failure = { stage, code: error.code ?? null, signal: error.signal ?? null };
-  if (stage === 'identity' || stage === 'shared-fk-indexes' || stage === 'staff-scope-rehearsal' || stage === 'project-admission' || stage === 'lab-opening-rehearsal' || stage === 'recovery-consumption') summary.failure.diagnostic = String(error.stderr ?? '').replaceAll(password, '[redacted]').replaceAll(username, '[scratch-user]').trim().slice(-1500);
+  if (stage === 'identity' || stage === 'maker-publication' || stage === 'shared-fk-indexes' || stage === 'staff-scope-rehearsal' || stage === 'project-admission' || stage === 'lab-opening-rehearsal' || stage === 'recovery-consumption') summary.failure.diagnostic = String(error.stderr ?? '').replaceAll(password, '[redacted]').replaceAll(username, '[scratch-user]').trim().slice(-1500);
 } finally {
   try {
     assert.equal(await realpath(clusterRoot), clusterReal);

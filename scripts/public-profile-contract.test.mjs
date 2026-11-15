@@ -1,3 +1,5 @@
+import { readFile } from 'node:fs/promises';
+import { stripTypeScriptTypes } from 'node:module';
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {
@@ -118,4 +120,83 @@ test('save responses allow only bounded saved/conflict profiles and never leak p
     assert.equal(state.status, 'error');
     assert.equal(JSON.stringify(state).includes('secret database detail'), false);
   }
+});
+
+async function draftAction({ enabled = true, own = profile, result, account = id } = {}) {
+  const path = new URL('../src/features/profile/public-profile-actions.ts', import.meta.url);
+  const source = stripTypeScriptTypes(await readFile(path, 'utf8'))
+    .replace(/^import .*;\r?$/gm, '').replace(/^export /gm, '');
+  const createAction = new Function('serverClient', 'hasVerifiedEmail', 'evaluateOwnProfile',
+    'matchesFormAccount', 'publicProfileEnabled', 'parsePublicProfileRead', 'parsePublicProfileSave',
+    'profilePayloadFromForm', source + '\nreturn savePrivateProfileDraft;');
+  const { hasVerifiedEmail } = await import('../src/lib/member-access.ts');
+  const { evaluateOwnProfile } = await import('../src/lib/member-profile.ts');
+  const { matchesFormAccount } = await import('../src/lib/form-account.ts');
+  const calls = [];
+  const client = {
+    auth: { getUser: async () => ({ data: { user: {
+      id: account, email: 'student@example.invalid', email_confirmed_at: '2026-11-15', is_anonymous: false,
+    } } }) },
+    async rpc(name, params) {
+      calls.push([name, params]);
+      if (name === 'get_own_profile_v1') return { data: [{
+        id: account, name: 'Fixture', phone: '+919000000000', college_roll: 'MDLFIXTURE',
+        institution: 'Model Engineering College', department: 'Engineering', study_year: 2,
+        role: 'student', is_active: true, profile_completed: true,
+        profile_contract_version: 1, profile_revision: '7', mec_admitted: true,
+      }] };
+      if (name === 'get_own_public_profile_v1') return { data: { status: 'ready', profile: own } };
+      return { data: result };
+    },
+  };
+  const action = createAction(async () => client, hasVerifiedEmail, evaluateOwnProfile, matchesFormAccount,
+    () => enabled, parsePublicProfileRead, parsePublicProfileSave, profilePayloadFromForm);
+  return { calls, save: data => action({ status: 'idle', message: '' }, data) };
+}
+
+function privateDraftForm(changes) {
+  const data = form(changes);
+  data.delete('visibility');
+  return data;
+}
+
+test('private drafts reject a submitted visibility and a stale account before database reads', async () => {
+  for (const [options, data] of [
+    [{}, form()],
+    [{}, form({ visibility: 'private' })],
+    [{ account: otherId }, privateDraftForm()],
+    [{ enabled: false }, privateDraftForm()],
+  ]) {
+    const fixture = await draftAction(options);
+    assert.equal((await fixture.save(data)).status, 'error');
+    assert.deepEqual(fixture.calls, []);
+  }
+});
+
+test('private draft save preserves a published revision and rejects stale draft revisions', async () => {
+  const published = await draftAction();
+  assert.equal((await published.save(privateDraftForm())).status, 'error');
+  assert.deepEqual(published.calls.map(([name]) => name), ['get_own_profile_v1', 'get_own_public_profile_v1']);
+  const stale = await draftAction({ own: { ...profile, visibility: 'private', revision: '2' } });
+  assert.equal((await stale.save(privateDraftForm())).status, 'conflict');
+  assert.deepEqual(stale.calls.map(([name]) => name), ['get_own_profile_v1', 'get_own_public_profile_v1']);
+});
+
+test('private draft saves force private visibility and verify the resulting draft revision and ID', async () => {
+  const own = { ...profile, visibility: 'private' };
+  const returned = { ...own, revision: '2' };
+  for (const [receipt, status] of [
+    [returned, 'saved'],
+    [{ ...returned, visibility: 'public' }, 'error'],
+    [{ ...returned, revision: '3' }, 'error'],
+    [{ ...returned, public_id: otherId }, 'error'],
+  ]) {
+    const fixture = await draftAction({ own, result: { status: 'saved', profile: receipt } });
+    assert.equal((await fixture.save(privateDraftForm())).status, status);
+    assert.deepEqual(fixture.calls.at(-1), ['save_own_public_profile_v1', {
+      p_payload: { ...payload, visibility: 'private' }, p_expected_revision: '1',
+    }]);
+  }
+  const first = await draftAction({ own: emptyPublicProfile, result: { status: 'saved', profile: own } });
+  assert.equal((await first.save(privateDraftForm({ revision: '0' }))).status, 'saved');
 });

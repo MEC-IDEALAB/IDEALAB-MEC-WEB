@@ -1,7 +1,7 @@
 import { loadOwnPublicProfile } from './public-profile-data';
 import { publicProfileEnabled } from './public-profile-config';
 import { PublicProfileEditor } from './public-profile-editor';
-import { savePublicProfile } from './public-profile-actions';
+import { savePrivateProfileDraft } from './public-profile-actions';
 import { ProfileQrCard } from './profile-qr-card';
 
 export async function PublicProfilePanel({ accountId, identity }: { accountId: string; identity: { name: string; detail: string } }) {
@@ -14,5 +14,5 @@ export async function PublicProfilePanel({ accountId, identity }: { accountId: s
     <ProfileQrCard path={null} memberName={identity.name} memberDetail={identity.detail} />
     <p role="status">Profile details are unavailable.</p>
   </div>;
-  return <PublicProfileEditor key={`${accountId}:${profile.revision}`} initial={profile} accountId={accountId} identity={identity} action={savePublicProfile} />;
+  return <PublicProfileEditor key={`${accountId}:${profile.revision}`} initial={profile} accountId={accountId} identity={identity} action={savePrivateProfileDraft} />;
 }

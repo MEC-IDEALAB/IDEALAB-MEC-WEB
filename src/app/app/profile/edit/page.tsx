@@ -13,7 +13,7 @@ import { Suspense } from 'react';
 import { publicProfileEnabled } from '@/features/profile/public-profile-config';
 import { loadOwnPublicProfile } from '@/features/profile/public-profile-data';
 import { PublicProfileEditor } from '@/features/profile/public-profile-editor';
-import { savePublicProfile } from '@/features/profile/public-profile-actions';
+import { savePrivateProfileDraft } from '@/features/profile/public-profile-actions';
 
 export const metadata = { title: 'Edit profile' };
 
@@ -66,7 +66,7 @@ export default async function EditProfilePage() {
 
     {optionalProfileReady && optionalProfile ? <div className="profile-edit-section profile-optional-editor" id="optional-profile" aria-label="Optional share profile settings">
       <div className="profile-edit-section-heading"><div><span className="workspace-pixel-label">02 / OPTIONAL PROFILE</span><h2>Profile settings</h2><p>Edit optional public-profile content separately from your private MEC account details.</p></div><span className="profile-edit-status profile-edit-status--ready">Connected</span></div>
-      <PublicProfileEditor initial={optionalProfile} accountId={user.id} action={savePublicProfile} identity={{ name: profile.name || 'IDEA MAKER', detail: memberDetail }} defaultOpen showCard={false} />
+      <PublicProfileEditor initial={optionalProfile} accountId={user.id} action={savePrivateProfileDraft} identity={{ name: profile.name || 'IDEA MAKER', detail: memberDetail }} defaultOpen showCard={false} />
     </div> : <>
       <NotReadySection id="social-links" number="02" title="Social links" message="Social links are not saved to your profile yet. This section will be available after the shared profile contract is ready." />
       <NotReadySection id="profile-settings" number="03" title="Profile settings" message="Public or private profile controls are not connected yet. Your account details remain private." />

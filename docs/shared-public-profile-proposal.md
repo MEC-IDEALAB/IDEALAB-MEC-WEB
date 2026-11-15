@@ -67,6 +67,21 @@ profile editor demonstrates a private draft, public-field review and a separate 
 Current backend evidence and the full list of acceptance gates are recorded in
 [member platform readiness](quality/member-platform-readiness-2026-11-03.md).
 
+## Website private draft boundary
+
+The website draft action rejects client-supplied visibility, checks the
+verified account and admission, and forces private visibility. It checks the
+current owned draft before writing, so a generic save cannot withdraw an existing
+publication. The RPC still checks the revision when committing. The website
+reports success only when the response confirms a private draft at the next
+revision, with the same opaque ID for an existing draft.
+
+This is a website boundary. The older shared candidate still uses one stored
+snapshot and permits setting public visibility through its generic RPC. Before
+activation, the shared contract needs separate draft and published snapshots,
+explicit publication of the reviewed revision, and audited withdrawal. The
+hosted feature remains source-disabled.
+
 ## Live read-only catalog checkpoint
 
 Supabase MCP metadata queries on 2 November 2026 confirmed all eight inspected

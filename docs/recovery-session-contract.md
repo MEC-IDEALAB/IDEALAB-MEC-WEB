@@ -1,7 +1,35 @@
-# Password recovery session contract — candidate
+# Password recovery session contract — source guard and candidate flow
 
-Website password recovery is disabled. This document is a design candidate, not
-an implemented or production-approved security boundary.
+Website password recovery remains disabled. The current source adds a
+fail-closed recovery-session guard to member access, onboarding actions and the
+direct password-update action. This source guard is not a complete or
+production-approved recovery boundary: there is no atomic, one-time recovery
+grant, and the verified provider claim shape has not been confirmed through a
+real recovery journey.
+
+## Current source boundary
+
+- `passwordRecoveryConfig()` returns `null`; request forms are disabled, and the
+  recovery callback returns 404. Do not enable it by changing a feature flag.
+- `inspectMemberSessionScope()` reads verified claims, checks the current user,
+  then re-reads claims to detect account/session changes. A recovery AMR keeps
+  the session out of member profile reads and onboarding mutations. Unknown or
+  inconsistent observations fail closed.
+- The password update server action repeats the recovery-scope check directly,
+  so calling the action outside the rendered page does not grant a normal login
+  password-change authority.
+- The reset page may offer a local sign-out for a matching recovery-marked
+  account. It does not update the password. Cookie cleanup must succeed before
+  the action reports sign-out completion.
+- These checks use the website server's Supabase Auth client. They do not
+  restrict a bearer token from using provider APIs directly, and do not replace
+  database/provider policy or the cross-client contract.
+
+Local tests exercise claim/session parsing, profile-action denial, direct
+password-action denial for normal and unverifiable sessions, and account-bound
+local sign-out. They do not establish live provider behavior, a real recovery
+claim, database replay protection, or production readiness. See the [recovery
+guard review](quality/recovery-session-guard-review-2026-11-18.md).
 
 ## Evidence
 
@@ -19,13 +47,13 @@ an implemented or production-approved security boundary.
 ## Candidate flow and trust boundaries
 
 1. A recovery link is requested and exchanged using the provider's supported
-   PKCE flow. The callback verifies the resulting user and a cryptographically
-   verified session claim. A client-supplied account ID or local redirect type
-   must never confer recovery authority.
+   PKCE flow. The callback verifies that the resulting user and cryptographically
+   verified session claim identify the same account. A client-supplied account
+   ID or local redirect type must never confer recovery authority.
 2. A private server-side or database operation checks that the verified JWT
-   identifies the current user and live session, and includes a fresh recovery
-   authentication method. Exactly one transaction atomically consumes the
-   session's recovery authority; ordinary login, expired, revoked, switched,
+   identifies the current user and live session and includes the intended
+   recovery authentication method. Exactly one transaction atomically consumes
+   the session's recovery authority; ordinary login, expired, revoked, switched,
    malformed and already-consumed sessions fail closed.
 3. Only after successful consumption does the site request the Auth password
    update. The database and Auth update are separate transactions: a rejected
@@ -37,8 +65,8 @@ an implemented or production-approved security boundary.
 The proposed website check alone does not prevent a bearer-token holder from
 calling Supabase Auth directly. Before release, inspect and test the provider's
 password-change policy and all enabled sign-in methods, including Google-only
-and password accounts, against the actual deployed Auth version. A setting
-must not be assumed to cover a method until it is verified.
+and password accounts, against the actual deployed Auth version. A setting must
+not be assumed to cover a method until it is verified.
 
 ## Acceptance before enabling recovery
 

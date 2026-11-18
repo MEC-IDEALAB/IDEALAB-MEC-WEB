@@ -51,15 +51,19 @@ writers remain, so this does not establish cross-client or production readiness.
 Profile-save and MEC declaration forms now compare their rendered account ID
 with the freshly verified session before making profile RPCs. Helper tests cover
 stale, missing, duplicate and malformed IDs; a real account-switch action test
-is still required. Separately, the current password-update action verifies a user
-but does not bind the update to a recovery-specific session. Website recovery is
-now disabled in all environments until a reviewed session-bound recovery grant and
-replay/concurrency tests are implemented. The public browser suite passed with
-the recovery forms disabled and the callback returning 404; this is not a live
-email or recovery acceptance test. This finding requires an existing
-authenticated session; it is not an unauthenticated takeover finding.
-The proposed trust boundaries and acceptance cases are recorded in the
-[recovery session contract](recovery-session-contract.md).
+is still required.
+
+The website now has a source-level recovery-session guard on member profile reads,
+onboarding mutations and the direct password-update action. Normal or
+unverifiable sessions cannot invoke the password update action; recovery-marked
+sessions are kept outside the member workspace. This is not a complete recovery
+boundary: `passwordRecoveryConfig()` remains disabled, and no atomic one-time
+grant or live recovery claim has been verified. The local browser journey with
+the recovery forms disabled and callback returning 404 does not establish a live
+email or recovery acceptance test. The finding concerns an existing
+authenticated session; it is not an unauthenticated takeover finding. See the
+[recovery session contract](recovery-session-contract.md) and
+[guard review](quality/recovery-session-guard-review-2026-11-18.md).
 
 The authenticated sign-out forms also compare the rendered account to a freshly
 verified user before signing out, preventing an old tab from ending a different

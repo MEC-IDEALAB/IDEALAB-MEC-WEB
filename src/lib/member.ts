@@ -4,6 +4,7 @@ import { cache } from 'react';
 import { serverClient } from './supabase';
 import { loadProfileForVerifiedUser } from './member-access';
 import { evaluateOwnProfile } from './member-profile';
+import { inspectMemberSessionScope } from './recovery-authority';
 
 // Account status is available outside the operational workspace so onboarding,
 // inactive and unavailable states never depend on rendering a protected child.
@@ -13,6 +14,9 @@ export const loadMemberAccount = cache(async () => {
   let user;
   try { const result = await client.auth.getUser(); if (!result.error) user = result.data.user; } catch { /* Fail closed when identity cannot be verified. */ }
   if (!user) redirect('/sign-in?notice=session');
+  const sessionScope = await inspectMemberSessionScope(client, user);
+  if (sessionScope === 'recovery') redirect('/reset-password');
+  if (sessionScope !== 'normal') return { user, profile: null, profileState: 'unavailable' as const };
   // A session alone is not proof of the verified-email identity required by
   // the member contract. The helper guarantees that unverified users do not
   // trigger a profile lookup.

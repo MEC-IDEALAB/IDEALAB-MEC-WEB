@@ -7,6 +7,7 @@ import { evaluateOwnProfile } from '@/lib/member-profile';
 import { matchesFormAccount } from '@/lib/form-account';
 import { buildRegistrationClaimPayload, parseRegistrationClaimResponse, confirmClaimedProfile, type RegistrationClaimState } from '@/features/profile/registration-claim';
 import { buildProfileSavePayload, parseProfileSaveResponse, type ProfileSaveState } from '@/features/profile/profile-save';
+import { inspectMemberSessionScope } from '@/lib/recovery-authority';
 
 // This action deliberately does not use requireMember: incomplete verified
 // owners must be able to save progress without entering the workspace.
@@ -20,6 +21,8 @@ export async function saveRequiredProfile(_previous: ProfileSaveState, formData:
     if (identity.error || !identity.data.user || !hasVerifiedEmail(identity.data.user)) {
       return { status: 'error', message: 'Sign in with your confirmed email before saving your profile.' };
     }
+    const sessionScope = await inspectMemberSessionScope(client, identity.data.user);
+    if (sessionScope !== 'normal') return { status: 'error', message: 'Finish account recovery before saving profile details.' };
     if (!matchesFormAccount(formData, identity.data.user.id)) return { status: 'error', message: 'Your signed-in account changed. Copy any details you need, then reload before saving.' };
     const current = await client.rpc('get_own_profile_v1');
     if (current.error) return { status: 'error', message: 'We couldn’t load your saved profile. Refresh and try again.' };
@@ -57,6 +60,8 @@ export async function claimMecRegistration(_previous: RegistrationClaimState, fo
     if (identity.error || !identity.data.user || !hasVerifiedEmail(identity.data.user)) {
       return { status: 'error', message: 'Confirm your email and sign in before declaring MEC student eligibility.' };
     }
+    const sessionScope = await inspectMemberSessionScope(client, identity.data.user);
+    if (sessionScope !== 'normal') return { status: 'error', message: 'Finish account recovery before submitting a student declaration.' };
     if (!matchesFormAccount(formData, identity.data.user.id)) return { status: 'error', message: 'Your signed-in account changed. Copy any details you need, then reload before submitting.' };
     const current = await client.rpc('get_own_profile_v1');
     if (current.error) return { status: 'error', message: 'We couldn’t load your saved profile. Keep your entries and reload before retrying.' };

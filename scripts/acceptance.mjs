@@ -988,7 +988,10 @@ try {
   await page.screenshot({ path: 'artifacts/acceptance/navigation-mobile-closed.png' });
   await page.goto(base + '/?error=invalid_request&error_code=bad_oauth_state&error_description=external-copy-must-not-render');
   await page.waitForURL(base + '/sign-in?notice=oauth-expired');
-  assert(await page.getByRole('status').getByText(/This Google sign-in attempt expired/).isVisible(), 'expired provider state offers a fresh sign-in instead of silently landing on Home');
+  const expiredProviderNotice = page.getByRole('status').getByText(/This Google sign-in attempt expired/);
+  await expiredProviderNotice.waitFor({ state: 'visible' });
+  assert(await expiredProviderNotice.isVisible(), 'expired provider state offers a fresh sign-in instead of silently landing on Home');
+  await page.waitForFunction(() => document.querySelectorAll('main').length === 1, null, { timeout: 5000 });
   assert.equal((await page.locator('main').innerText()).includes('external-copy-must-not-render'), false, 'external error descriptions are not reflected');
   await page.goto(base + '/sign-in');
   await page.getByRole('heading', { name: 'Sign in' }).waitFor();

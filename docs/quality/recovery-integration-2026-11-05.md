@@ -77,3 +77,31 @@ index and working branch were preserved. This is a scoped recovery checkpoint,
 not a full-worktree snapshot, published PR or release. Final current-source
 public browser acceptance also passed; real provider/member acceptance remains
 unverified.
+
+## Recovery-session workspace restriction — 15 November 2026
+
+The member-account loader now checks the signed session AMR against the current
+`auth.getUser()` identity before requesting `get_own_profile_v1`. Recovery-marked
+sessions are routed to `/reset-password`, including stale recovery markers whose
+ten-minute password-update authority has expired. Missing, expired, malformed or
+identity-mismatched claim observations do not load a member profile. The existing
+fresh recovery-authority and one-use receipt checks still control password update.
+
+Focused recovery authority/session/update tests passed 24/24; public-profile,
+recovery action and expired-session tests passed 17/17. The full
+`npm run test:boundaries` suite passed 218/218. The final local state also passed
+`npm run lint`, `npm run typecheck`, `npm run test:proxy`,
+`node scripts/check-docs.mjs` (109 files / 506 links),
+`npm run build:acceptance`, `npm run test:acceptance`, and `git diff --check`.
+Browser acceptance includes CSP, accessibility, reduced-motion and offline
+checks but uses no live account or recovery session. Real provider AMR shape,
+email delivery, PKCE exchange and password update remain unverified. Hosted
+recovery remains disabled; no shared or production database was modified.
+
+The final recovery-session change also guards onboarding profile-save and MEC
+claim actions, plus the optional public-profile draft action, before their first
+profile RPC. A stale reset session can clear only its currently verified local
+account cookies and continue to the fresh-link form. Direct action fixtures cover
+denied recovery reads/mutations and account-bound local cleanup. The current
+source verification results are recorded in
+`docs/quality/security-audit-review-2026-11-15.md`.

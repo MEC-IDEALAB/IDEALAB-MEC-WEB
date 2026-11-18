@@ -102,6 +102,23 @@ export async function updatePassword(form: FormData) {
   redirect('/sign-in?notice=password-updated');
 }
 
+/** Leave an expired reset session locally before requesting a fresh link. */
+export async function signOutExpiredRecovery(form: FormData) {
+  const client = await serverClient({ writable: true });
+  if (!client) redirect('/sign-in?notice=configuration');
+  let accountId: string | null = null;
+  try {
+    const identity = await client.auth.getUser();
+    if (!identity.error && identity.data.user?.id && matchesFormAccount(form, identity.data.user.id)) {
+      accountId = identity.data.user.id;
+    }
+  } catch { /* A changed or unavailable identity grants no sign-out authority. */ }
+  if (!accountId) redirect('/sign-in?notice=session');
+  const exit = await exitLocalAuthSession(() => client.auth.signOut({ scope: 'local' }), clearLocalAuthSession);
+  if (exit !== 'cleared') redirect('/reset-password?notice=cleanup');
+  redirect('/forgot-password');
+}
+
 export async function signOut(form: FormData) {
   const client = await serverClient({ writable: true });
   if (client) {

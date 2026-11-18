@@ -11,6 +11,7 @@ export type RecoveryAuthorityClient = {
 export type RecoveryAuthority = Readonly<{ accountId: string; sessionId: string }>;
 
 type RecoveryObservation = RecoveryAuthority & { recoveryAt: number; expiresAt: number };
+type SessionObservation = RecoveryAuthority & { recoveryAt?: number; expiresAt: number; issuedAt: number };
 const uuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/;
 const recoveryWindowSeconds = 600;
 
@@ -42,7 +43,7 @@ function validUser(value: unknown): string | null {
   return id;
 }
 
-function observeClaims(value: unknown, now: number): RecoveryObservation | null {
+function observeSessionClaims(value: unknown, now: number): SessionObservation | null {
   const claims = record(value);
   if (!claims) return null;
   const subject = own(claims, 'sub');
@@ -69,12 +70,24 @@ function observeClaims(value: unknown, now: number): RecoveryObservation | null 
     const at = own(method, 'timestamp');
     if (typeof name !== 'string' || !name || !timestamp(at) || at > now) return null;
     if (name !== 'recovery') continue;
-    // The detailed, timestamped AMR is required. Duplicate recovery entries are
-    // ambiguous for this reader and must not silently select a preferred one.
-    if (recoveryAt !== undefined || at <= now - recoveryWindowSeconds || at > issuedAt) return null;
+    // Duplicate recovery entries are ambiguous and must not silently select a
+    // preferred one. Session-scope checks retain old recovery markers so the
+    // session cannot age into ordinary workspace access without a password reset.
+    if (recoveryAt !== undefined || at > issuedAt) return null;
     recoveryAt = at;
   }
-  return recoveryAt === undefined ? null : { accountId: subject, sessionId: session, recoveryAt, expiresAt };
+  return { accountId: subject, sessionId: session, recoveryAt, expiresAt, issuedAt };
+}
+
+function observeClaims(value: unknown, now: number): RecoveryObservation | null {
+  const observation = observeSessionClaims(value, now);
+  if (!observation?.recoveryAt || observation.recoveryAt <= now - recoveryWindowSeconds) return null;
+  return {
+    accountId: observation.accountId,
+    sessionId: observation.sessionId,
+    recoveryAt: observation.recoveryAt,
+    expiresAt: observation.expiresAt,
+  };
 }
 
 /** Minimal recovery observation, not a consumption receipt or revocation check.
@@ -109,6 +122,42 @@ export async function inspectRecoveryAuthority(
     return Object.freeze({ accountId, sessionId: last.sessionId });
   } catch {
     // Provider errors, signature failures and malformed values grant nothing.
+    return null;
+  }
+}
+
+/**
+ * Distinguish ordinary member sessions from recovery sessions before any
+ * protected profile read. `getClaims` verifies the JWT; the independently
+ * verified `getUser` result binds it to the current account. Recovery AMR stays
+ * restricted until the reset flow clears the local session, even after the
+ * short window for submitting the reset has expired.
+ */
+export async function inspectMemberSessionScope(
+  client: RecoveryAuthorityClient,
+  userValue: unknown,
+  nowSeconds?: number,
+): Promise<'normal' | 'recovery' | null> {
+  const now = () => nowSeconds ?? Date.now() / 1000;
+  if (!Number.isFinite(now()) || now() < 0) return null;
+  const user = record(userValue);
+  const expectedAccountId = user && own(user, 'id');
+  if (typeof expectedAccountId !== 'string' || !uuid.test(expectedAccountId)) return null;
+
+  try {
+    const claimsResult = await client.auth.getClaims();
+    if (claimsResult?.error !== null) return null;
+    const checkedAt = now();
+    const observation = observeSessionClaims(claimsResult.data?.claims, checkedAt);
+    if (!observation || observation.accountId !== expectedAccountId || observation.expiresAt <= checkedAt) return null;
+
+    const identity = await client.auth.getUser();
+    if (identity?.error !== null) return null;
+    const currentUser = record(identity.data?.user);
+    if (!currentUser || own(currentUser, 'id') !== expectedAccountId) return null;
+
+    return observation.recoveryAt === undefined ? 'normal' : 'recovery';
+  } catch {
     return null;
   }
 }

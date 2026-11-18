@@ -1,7 +1,7 @@
 import '../auth-styles';
 import Link from 'next/link';
 import { ArrowLeft, ArrowUpRight, ShieldCheck } from 'lucide-react';
-import { updatePassword } from '@/app/auth/actions';
+import { signOutExpiredRecovery, updatePassword } from '@/app/auth/actions';
 import { AuthFeedback } from '@/components/auth-feedback';
 import { PasswordField } from '@/components/password-field';
 import { SubmitButton } from '@/components/submit-button';
@@ -18,12 +18,20 @@ const messages: Record<string, string> = {
   update: 'We could not update that password. Try another password or request a fresh recovery link.',
   configuration: 'Password recovery is not available right now. Contact the lab team for help.',
   session: 'This recovery form no longer matches your signed-in account or session. Request a fresh recovery link.',
+  cleanup: 'We could not safely clear this browser session. Try again or contact the lab team.',
 };
 
 export default async function ResetPassword({ searchParams }: { searchParams: Promise<{ notice?: string }> }) {
   const [{ notice }, configured] = await Promise.all([searchParams, Promise.resolve(!!passwordRecoveryConfig())]);
   const client = configured ? await serverClient() : null;
   const authority = client ? await inspectRecoveryAuthority(client) : null;
+  let signedInAccountId: string | null = null;
+  if (client && !authority) {
+    try {
+      const identity = await client.auth.getUser();
+      if (!identity.error && identity.data.user?.id) signedInAccountId = identity.data.user.id;
+    } catch { /* Keep the expired recovery state fail-closed. */ }
+  }
   const canUpdate = configured && authority !== null;
   const message = configured && notice ? messages[notice] : undefined;
   return <main id="main-content" className="auth-page reference-auth recovery-page reset-page">
@@ -32,7 +40,10 @@ export default async function ResetPassword({ searchParams }: { searchParams: Pr
       <section className="auth-story" aria-label="IDEALAB MEC account recovery"><span className="eyebrow auth-pill">ONE LAST STEP</span><h1>NEW KEY.<br /><span>NEW START.</span></h1><p className="handwritten">Choose a strong password you haven’t used before.</p><div className="auth-note"><ShieldCheck aria-hidden="true" /><p>Your password is handled by the shared IDEALAB MEC account service.</p></div></section>
       <section className="auth-card" aria-labelledby="reset-title"><span className="eyebrow">SECURE YOUR ACCOUNT</span><h2 id="reset-title">Choose a new password.</h2><p>Use at least 8 characters and a password you don’t use on another site.</p>
         {!configured && <AuthFeedback kind="status">Password updates are paused while the shared account platform is being secured.</AuthFeedback>}
-        {configured && !authority && <AuthFeedback kind="status">Open a fresh password-recovery link to choose a new password.</AuthFeedback>}
+        {configured && !authority && <>
+          <AuthFeedback kind="status">Open a fresh password-recovery link to choose a new password.</AuthFeedback>
+          {signedInAccountId && <form action={signOutExpiredRecovery} className="form-stack"><input type="hidden" name="expected_account" value={signedInAccountId} /><SubmitButton>Sign out to request a fresh link</SubmitButton></form>}
+        </>}
         {message && <AuthFeedback>{message}</AuthFeedback>}
         <form action={updatePassword} className="form-stack">
           {authority && <><input type="hidden" name="expected_account" value={authority.accountId} /><input type="hidden" name="expected_recovery_session" value={authority.sessionId} /></>}

@@ -36,6 +36,25 @@ Real provider acceptance and shared production approval remain outstanding.
 4. Clear the local session after a confirmed update and require sign-in again.
    Do not log session tokens, email addresses, recovery links or passwords.
 
+## Protected workspace session scope
+
+Before the member loader reads an account profile, it compares the signed session
+claims with the current user returned by `auth.getUser()`. A session whose AMR
+contains `recovery` is sent to `/reset-password`; an unavailable or mismatched
+claim observation does not load the member profile. This keeps recovery sessions
+out of `/app`, `/account-access` and their server actions even after the short
+window for submitting the password reset expires. Onboarding and public-profile
+draft actions independently reject non-normal sessions before reading profile
+data. An expired recovery session can use the account-bound local sign-out action
+on the reset page before requesting a fresh link. The reset form still requires
+the separate fresh recovery-authority check and one-use database receipt.
+
+This is a source-level guard with fixture coverage. The deployed provider's AMR
+shape and a real recovery session have not been accepted in the browser, and
+hosted recovery remains disabled. Public pages remain available; this rule
+restricts authenticated member access until the recovery flow finishes and clears
+the local session.
+
 The proposed website check alone does not prevent a bearer-token holder from
 calling Supabase Auth directly. Before release, inspect and test the provider's
 password-change policy and all enabled sign-in methods, including Google-only

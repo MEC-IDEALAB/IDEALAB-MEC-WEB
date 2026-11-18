@@ -4,6 +4,7 @@ import { serverClient } from '@/lib/supabase';
 import { hasVerifiedEmail } from '@/lib/member-access';
 import { evaluateOwnProfile } from '@/lib/member-profile';
 import { matchesFormAccount } from '@/lib/form-account';
+import { inspectMemberSessionScope } from '@/lib/recovery-authority';
 import { publicProfileEnabled } from './public-profile-config';
 import { parsePublicProfileRead, parsePublicProfileSave, profilePayloadFromForm, type PublicProfileState } from './public-profile-contract';
 
@@ -20,6 +21,7 @@ export async function savePrivateProfileDraft(_previous: PublicProfileState, for
   try {
     const identity = await client.auth.getUser();
     if (identity.error || !identity.data.user || !hasVerifiedEmail(identity.data.user)) return { status: 'error', message: 'Sign in with your confirmed email before editing your profile.' };
+    if (await inspectMemberSessionScope(client, identity.data.user) !== 'normal') return { status: 'error', message: 'Finish account recovery before editing your profile.' };
     if (!matchesFormAccount(form, identity.data.user.id)) return { status: 'error', message: 'Your signed-in account changed. Reload before saving this profile.' };
     const current = await client.rpc('get_own_profile_v1');
     if (current.error || evaluateOwnProfile(current.data, identity.data.user.id).profileState !== 'ready') return { status: 'error', message: 'An active member account with completed admission is needed before saving a draft.' };

@@ -5,23 +5,30 @@
 Task 1 remains active. The initial 20-file local PR #67 worktree snapshot is
 preserved on local branch `backup/idealab-phase0-snapshot-20261118` at
 `738e6bd0cb1e8f4c633b05d478e1f3e1125aa9f6`; the original branch and dirty
-worktree were restored. Phase 1 telemetry, rehearsal, test and audit-document
-updates have since been added locally and remain uncommitted; no original edits
-were discarded. A full follow-up snapshot of 35 changed paths is preserved on
+worktree were restored. A full follow-up snapshot of 35 changed paths is preserved on
 local branch `backup/idealab-phase0-snapshot-20261118-current` at
 `f01b4629fe4e46e6529bf25b22084cdf37490cfe`. Since then, the maker-publication
 validation record and sanitized runtime transcript were added, bringing the
 active worktree to 37 changed paths; the profile proposal also records the
 latest rehearsal. Those two new files and the later proposal edit are not in the
-35-path snapshot, but remain present in the active worktree. The active branch
-is still at the original HEAD; no original edits were discarded.
+35-path snapshot. All 37 paths are now committed locally in `4c698b6`, `d2edf64`
+and `bf728d9` on `codex/phase1-profile-publication-20261115`; the worktree is
+clean and no original edits were discarded. The commits are not pushed yet.
+
+`git rebase origin/main` was attempted and aborted after conflicts while
+replaying the older guarded-workspace commit in `scripts/acceptance.mjs` and
+`src/components/auth-experience.tsx`. The current PR history already contains
+`origin/main` through merge commit `7783464`; abort restored the original graph
+and no commit was rewritten. A fast-forward push can preserve that history.
 
 PR #67 is OPEN/DRAFT and mergeable at remote head
 `cb086fdb34bab9c9ee9f8dbb033c6c114e9efd3d`, based on
-`ef6c5bdb51b9e372cd6402e0314ad5a6e275da5d`. Website CI, Documentation CI,
-scoped staff SQL checks and Vercel preview pass on that committed head, with no
-submitted review. Those checks do not cover the dirty worktree. No rebase, push,
-merge or production deploy occurred.
+`ef6c5bdb51b9e372cd6402e0314ad5a6e275da5d`; local `bf728d9` is three commits
+ahead. Website CI, Documentation CI, scoped staff SQL checks and Vercel preview
+still pass only on the older remote head, with no submitted review. Current
+local typecheck, lint, 218/218 boundary tests, proxy E2E, acceptance build and
+browser suite, documentation links and diff check pass. No push, merge or
+production deployment occurred.
 
 P0-02 remains open. Fresh read-only telemetry on 18 November reported eight
 advisor findings; the stricter catalog check found nine FK coverage gaps because

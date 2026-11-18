@@ -136,11 +136,11 @@ The tables from Grow migrations 003–006 retain policies from their original de
 ## 4. Live Supabase Advisor Telemetry
 
 > [!WARNING]
-> **FK discrepancy resolved on 6 November.** Fresh read-only shared performance advisor output (observed at `2026-11-06T11:45:03.541Z`) and a separate `pg_catalog` query confirm the eight constraints below across six tables. The earlier evidence-register list naming `event_registrations`, `inventory_transactions` and `work_requests` was incorrect. Full sanitized advisor output, catalog definitions and existing indexes are retained in [captured telemetry](../../research/shared-fk-telemetry-2026-11-06.json). See the [Phase 1 execution record](../../quality/phase1-database-validation-2026-11-06.md) for rehearsal and limits. No shared DDL was executed.
+> **Fresh FK evidence captured on 18 November.** The read-only performance advisor reported eight unindexed foreign keys at `2026-11-18T09:35:52.100Z`. A stricter `pg_catalog` check at `2026-11-18T09:36:21.175729Z` found nine foreign keys without a valid, non-partial index covering the complete referencing key. The additional row is `tool_bookings(tool_id)`: its existing B-tree and GiST indexes are status-filtered partial indexes. The precise behavior of the project's deployed advisor version has not been independently verified, so the eight-versus-nine discrepancy is recorded without claiming a confirmed linter defect. See [fresh telemetry](../../research/shared-fk-telemetry-2026-11-18.json) and the [18 November candidate rehearsal record](../../quality/phase1-database-validation-2026-11-18.md). No shared DDL was executed.
 
-### 4.1 Unindexed Foreign Keys (Fresh Advisor and Catalog Verified)
+### 4.1 Advisor Findings and Strict Catalog Coverage
 
-The fresh advisor reports exactly eight unindexed FKs. Catalog inspection resolves its attribute numbers to these column names:
+The advisor reported these eight findings. Catalog inspection resolves the advisor's attribute numbers to the following columns:
 
 1. `public.events` → `events_club_id_fkey` (`club_id`)
 2. `public.events` → `events_created_by_fkey` (`created_by`)
@@ -151,7 +151,13 @@ The fresh advisor reports exactly eight unindexed FKs. Catalog inspection resolv
 7. `public.tool_bookings` → `tool_bookings_approved_by_fkey` (`approved_by`)
 8. `public.users` → `fk_users_club` (`club_id`)
 
-The dedicated [shared candidate](../../../supabase/validation/shared_fk_indexes_v1_candidate.sql) and [rollback](../../../supabase/validation/shared_fk_indexes_v1_rollback.sql) have a disposable PostgreSQL rehearsal. They remain uninstalled. Refresh telemetry and inspect the actual target again before any separately approved installation; the validation-only October index file remains inapplicable.
+The separate strict catalog query found one additional uncovered FK:
+
+9. `public.tool_bookings` → `tool_bookings_tool_id_fkey` (`tool_id`)
+
+`tool_bookings(tool_id)` has `idx_tool_bookings_tool_slot` (B-tree on `(tool_id, slot_start, slot_end)`) and `no_overlapping_tool_bookings` (GiST using `tool_id` and a time range); both are partial and filter by booking status. The strict check excludes partial indexes because they do not cover every referencing row. The advisor's exact deployed implementation/version has not been verified, so the count difference is an observed telemetry discrepancy, not a confirmed advisor bug.
+
+The dedicated [shared candidate](../../../supabase/validation/shared_fk_indexes_v1_candidate.sql) and [rollback](../../../supabase/validation/shared_fk_indexes_v1_rollback.sql) include all nine strict-coverage gaps and passed a disposable PostgreSQL 17.6 synthetic rehearsal. They remain uninstalled. The fresh [migration ledger output](../../research/shared-fk-telemetry-2026-11-18.json) contains four entries; this does not establish full schema provenance or migration parity. Recheck the live target before any separately approved installation. The validation-only October index file remains inapplicable.
 
 ### 4.2 Auth RLS Initialization Plan (59 Warnings)
 
@@ -193,7 +199,7 @@ This is a performance advisory, not a security vulnerability. No data is disclos
 
 | Item | Prerequisite | Proposed Action |
 |---|---|---|
-| **Index unindexed FKs** | Re-run advisor; author a new migration targeting confirmed shared FKs only (not the validation file) | Create and rehearse a `huftzhfqnnslvnfzvbex`-specific index migration |
+| **Index unindexed FKs** | Independent SQL/security review, full-schema disposable rehearsal, and separate owner/maintenance approval | Review the existing nine-index candidate and reconcile live schema provenance; install only through a separately approved operation |
 | **Wrap `auth.uid()` in subqueries** | Obtain full RLS policy source for affected tables; test in disposable cluster | Batch update affected policies in a reviewed migration |
 | **Legacy RLS policy review** | Direct `pg_policies` inspection for each legacy table | Determine which policies need replacement before candidates are installed |
 | **Operational candidates** | Owner sign-off + disposable rehearsal for each candidate | Apply individually with rollback scripts ready |

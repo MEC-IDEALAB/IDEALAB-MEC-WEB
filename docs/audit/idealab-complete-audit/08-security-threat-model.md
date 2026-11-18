@@ -132,9 +132,10 @@ flowchart TD
 ### 3.5 Denial of Service (D)
 
 - **TH-D-01: Foreign Key Concurrency Contention:**
-  - *Telemetric Finding:* Performance advisor detected unindexed foreign keys in shared production. Under concurrent updates/deletions on parent tables, unindexed FKs can trigger full table scans and lock contention.
-  - *Action:* Fresh advisor telemetry on the live shared database is required to establish the exact unindexed FK list and author a shared-specific indexing migration. (Note: validation candidate `20261023081307_validation_fk_indexes_v1.sql` targets validation-only tables and cannot be deployed to shared production).
-  - *Residual Risk:* **Medium.**
+  - *Telemetric Finding:* The 18 November read-only advisor reported 8 unindexed-FK findings; a stricter catalog check found 9 coverage gaps, including `tool_bookings(tool_id)` with only partial indexes. See the [captured telemetry](../../research/shared-fk-telemetry-2026-11-18.json).
+  - *Assessment:* This is a performance concern. No load test or production observation established lock contention, pool exhaustion, or user-visible impact.
+  - *Action:* A dedicated candidate and rollback passed a synthetic disposable PostgreSQL rehearsal. Independent SQL/security review and a broader schema rehearsal remain open; the candidate is not installed. The validation candidate `20261023081307_validation_fk_indexes_v1.sql` targets validation-only tables.
+  - *Residual Risk:* **Unmeasured performance concern.**
 - **TH-D-02: Hosted Backend Activation (Intentional Release Gate — Reclassified):**
   - *Context:* `src/lib/config.ts` restricts hosted backend initialization pending acceptance.
   - *Clarification:* This is an intentional release gate, not an attacker-induced denial of service. The 307 redirect on hosted `/app` is expected pre-activation behavior.
@@ -160,6 +161,6 @@ flowchart TD
 | **TH-R-01** | Repudiation | **Candidate Gap** | Staff opening/closing lab | Review, rehearse, and install `mec_lab_opening_candidate.sql` under approved operational deployment. |
 | **TH-I-01** | Information Disclosure | **Advisory Review** | Authenticated PostgREST client | Audit all RLS policies on `public.users` against approved column allowlist. |
 | **TH-I-02** | Policy Review | **Approval Dependency** | Signed-in user viewing presence | Finalize MEC privacy policy approval for member name display. |
-| **TH-D-01** | Performance | **Medium** | Concurrent usage with unindexed FKs | Obtain fresh advisor output on shared production; author and rehearse shared-specific index migration. |
+| **TH-D-01** | Performance | **Unmeasured** | Concurrent usage with uncovered FKs | Independently review the 18 November telemetry/candidate, reconcile schema provenance, and rehearse on a full disposable schema before separate approval. |
 | **TH-S-01** | Identity Attestation | **Policy Review** | Student signup | Determine institutional policy on `@mec.ac.in` domain requirement vs self-declaration. |
 | **TH-D-02** | Release Gate | **Informational** | Hosted pre-activation | Complete cross-client acceptance tests before opening hosted gate. |

@@ -1,5 +1,44 @@
 # IDEALAB MEC delivery plan
 
+## Current Phase 0 checkpoint — 18 November 2026
+
+Task 1 remains active. The initial 20-file local PR #67 worktree snapshot is
+preserved on local branch `backup/idealab-phase0-snapshot-20261118` at
+`738e6bd0cb1e8f4c633b05d478e1f3e1125aa9f6`; the original branch and dirty
+worktree were restored. Phase 1 telemetry, rehearsal, test and audit-document
+updates have since been added locally and remain uncommitted; no original edits
+were discarded. A full follow-up snapshot of 35 changed paths is preserved on
+local branch `backup/idealab-phase0-snapshot-20261118-current` at
+`f01b4629fe4e46e6529bf25b22084cdf37490cfe`. Since then, the maker-publication
+validation record and sanitized runtime transcript were added, bringing the
+active worktree to 37 changed paths; the profile proposal also records the
+latest rehearsal. Those two new files and the later proposal edit are not in the
+35-path snapshot, but remain present in the active worktree. The active branch
+is still at the original HEAD; no original edits were discarded.
+
+PR #67 is OPEN/DRAFT and mergeable at remote head
+`cb086fdb34bab9c9ee9f8dbb033c6c114e9efd3d`, based on
+`ef6c5bdb51b9e372cd6402e0314ad5a6e275da5d`. Website CI, Documentation CI,
+scoped staff SQL checks and Vercel preview pass on that committed head, with no
+submitted review. Those checks do not cover the dirty worktree. No rebase, push,
+merge or production deploy occurred.
+
+P0-02 remains open. Fresh read-only telemetry on 18 November reported eight
+advisor findings; the stricter catalog check found nine FK coverage gaps because
+the `tool_bookings(tool_id)` indexes are partial. The migration ledger query
+returned four entries. A nine-index candidate and rollback passed a disposable
+PostgreSQL 17.6 rehearsal; sanitized telemetry, hashes and the transcript are in
+the [database validation record](quality/phase1-database-validation-2026-11-18.md).
+The revised maker-publication candidate also passed its 18 November disposable
+PostgreSQL 17.6 rehearsal; its exact transcript and hashes are in the
+[maker-publication validation record](quality/maker-publication-validation-2026-11-18.md).
+Read-only source/SQL reviews found no concrete blocker in either candidate.
+Shared production was not modified. Full-schema/provenance reconciliation and
+live cross-client acceptance remain open; do not replay legacy Grow migrations
+003–008. The approved schedule remains Task 1 start 4 November, scope review
+25 November and pilot target 16 December. See the [current task board](task-list-2026-10-21.md)
+and [Project #1](https://github.com/orgs/MEC-IDEALAB/projects/1).
+
 ## Website audit follow-up — 15 November 2026
 
 The public-site metadata, sitemap, shared footer, 404 navigation, and member-list
@@ -24,7 +63,7 @@ Current checkpoint: [account delivery status](account-readiness.md). Older accou
 implementation-status paragraphs below are historical; release criteria and the
 remaining full-V1 scope still apply.
 
-## Current source and release check — 3 November 2026
+## Historical source and release check — 3 November 2026
 
 The standalone `idealab-mec-web` repository is public in `MEC-IDEALAB`. The local checkout is on `codex/member-platform-readiness-20261103` at commit `755b0d02f29c0b0bd34bdd42ce15e0be0b62a779`, with uncommitted application and documentation changes. Draft PR #67 is still open at that same older commit; its hosted checks do not cover the current working tree.
 

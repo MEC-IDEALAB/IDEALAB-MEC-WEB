@@ -3,11 +3,31 @@
 > **Project:** IDEALAB MEC Platform (`IDEALAB-MEC-WEB` & `Grow` Mobile Ecosystem)\\
 > **Institution:** Model Engineering College (MEC), Kerala, India (IDEA Lab & Fab Lab)\\
 > **Audit Period:** October – November 2026\\
-> **Updated:** 2026-11-06 (post-owner-review corrections)\\
+> **Updated:** 2026-11-18 (post-owner-review corrections and current checkpoint)\\
 > **Mode:** Read-Only Source Analysis & Database Telemetry. No code, database, or remote state was changed.\\
 
 > [!IMPORTANT]
 > **This document was revised after owner review on 2026-11-06.** The previous version contained several incorrect classifications. Specifically: the hosted login restriction is an intentional release gate, not an exploit; password recovery is correctly absent from production; the Flutter audit cited a non-existent file; "8 CVEs" and "100% verified" were unsupported claims; and the roadmap incorrectly described itself as approved. These have all been corrected. See individual audit documents for details.
+
+---
+
+## Current checkpoint — 18 November 2026
+
+The Projects navigation mismatch identified below is corrected in the current
+PR source (`cb086fdb34bab9c9ee9f8dbb033c6c114e9efd3d`): My projects is the
+default and Discover uses `?view=discover`. Current local TypeScript, lint and
+218 boundary tests pass; this does not establish an authenticated hosted
+journey, PR merge or deployment.
+
+Fresh read-only shared database telemetry now reports 8 advisor FK findings
+and 9 strict catalog coverage gaps, because `tool_bookings(tool_id)` has only
+partial indexes. The ledger query returned four migrations. A nine-index
+candidate/rollback passed a disposable PostgreSQL 17.6 rehearsal; it remains
+uninstalled and shared production was not changed. See [database telemetry](../../research/shared-fk-telemetry-2026-11-18.json),
+the [execution record](../../quality/phase1-database-validation-2026-11-18.md),
+and the [current delivery plan](../../delivery-plan.md). Older decision lists
+below are historical; confirmed owner decisions in the current delivery plan
+take precedence.
 
 ---
 
@@ -40,12 +60,11 @@ The audit's value is in surfacing the gaps between local candidates and shared p
 
 ## 3. Confirmed Finding: Projects Navigation Mismatch
 
-**This is the only finding from this audit with sufficient evidence to implement immediately.**
+**This was the only finding from the original audit with sufficient evidence to implement immediately.**
 
 - **Location:** `src/app/app/projects/page.tsx:11,20`
-- **What is confirmed:** Line 11 defaults `view` to `'discover'` when no query param is present. Line 20 makes `/app/projects` the Discover tab link, so the default and the Discover tab are identical URLs. The product specification requires "My Projects" first.
-- **Required change:** Default to `'mine'`; swap tab link URLs (`/app/projects` = My Projects; `/app/projects?view=discover` = Discover); verify pagination, search, and `aria-current` consistency.
-- **See:** Roadmap `Fix P-01`.
+- **What was confirmed:** At audit time, line 11 defaulted `view` to `'discover'`, and line 20 linked the base URL to Discover. The product specification requires My projects first.
+- **Current state:** The current PR source implements the correction and preserves view state in search, pagination and invalid-link recovery. See roadmap `Fix P-01` and the current checkpoint above.
 
 ---
 
@@ -67,9 +86,9 @@ These items are correctly gated in source and must not be unblocked without the 
 
 Before proposing any shared production database migrations:
 
-1. Re-run `grow-prod:get_advisors(type: "performance")` and record the full output with a timestamp — the FK list in the evidence register and database audit were inconsistent.
-2. Obtain the sanitized advisor output and author a new index migration targeting only confirmed shared production FKs (the existing validation file cannot be applied to shared production).
-3. Continue the ecosystem parity reconciliation under `docs/research/` before proposing replay of any legacy Grow migrations.
+1. The 18 November advisor/catalog and four-row ledger outputs are available in the evidence register and telemetry file; they must be refreshed again before any later production operation.
+2. Independently review the nine-index candidate/rollback and rehearse on a full disposable copy of the relevant shared schema; the current synthetic rehearsal is not a full restore.
+3. Reconcile migration provenance and continue the ecosystem parity work under `docs/research/`. Never replay legacy Grow migrations 003–008.
 
 ---
 
@@ -89,7 +108,7 @@ These decisions must come from the owner or institutional authority before proce
 
 **Does establish:**
 - The release gate on hosted access is working correctly and is intentional.
-- Projects navigation defaults to the wrong view.
+- Projects navigation was wrong in the original audit; the correction is present in the current PR source but is not merged/deployed.
 - Operational candidates (staff scopes, lab opening, etc.) are not installed in shared production.
 - The validation FK index migration cannot be applied to shared production.
 - The Grow shared account gateway in source calls the correct RPCs.

@@ -1,5 +1,73 @@
 # Phase 1 validation and parity checkpoint - 15 November 2026
 
+## Current addendum — 18 November 2026
+
+This addendum supersedes the historical Task 2 and current-status statements
+below where they describe the freshness of shared FK telemetry. The 15 November
+checkpoint remains as a record of the earlier blocked connection attempts.
+
+### Auth/recovery/session test rerun
+
+The four requested commands were rerun individually from the current website
+worktree on 18 November. All are deterministic local SDK-fixture tests; they do
+not connect to the validation Supabase project. Setting
+`ACCOUNT_ENVIRONMENT=validation` does not change that. The separate live
+validation-project acceptance remains unverified.
+
+| Command | Result on 18 November |
+| --- | ---: |
+| `node scripts/auth-entry.test.mjs` | 11 passed, 0 failed |
+| `node scripts/recovery-authority.test.mjs` | 8 passed, 0 failed |
+| `node scripts/recovery-update.test.mjs` | 7 passed, 0 failed |
+| `node scripts/active-session.test.mjs` | 3 passed, 0 failed |
+| `npm run test:boundaries` | 218 passed, 0 failed |
+
+Combined individual suites: 29 passed, 0 failed. Node emitted the
+`MODULE_TYPELESS_PACKAGE_JSON` and experimental type-stripping warnings; these
+did not fail the commands.
+
+### Shared FK telemetry and candidate
+
+Fresh read-only telemetry on 18 November reported 8 advisor findings and 9
+strict catalog coverage gaps. The extra `tool_bookings(tool_id)` FK is served
+only by status-filtered partial indexes. The migration ledger query returned
+four entries. A nine-index candidate/rollback passed the disposable PostgreSQL
+17.6 rehearsal; details and the raw output are in the [database validation
+record](phase1-database-validation-2026-11-18.md). No shared production writes
+were made. The exact deployed advisor implementation/version and full schema
+provenance remain unverified.
+
+### Grow direct-write scan — read-only, 18 November
+
+The inspected Grow repository root is
+`F:/kannan/projects/IDEALAB/Grow`; that checkout is dirty and was not modified.
+Current repository-wide source search under `lib/` found four direct
+`public.users` write statements below (paths are relative to that root). It
+found no direct `insert` or `delete`, and no additional `from("users")` writes.
+
+| Source path and line | Direct write | Observed route/call path |
+| --- | --- | --- |
+| `lib/features/auth/data/auth_repository.dart:151` | `upsert` | `ensureUserProfileExists`; called by signup (`:88`), email sign-in (`:111`), Google sign-in (`:125`), and the missing-row `getCurrentUser` fallback (`:241`), also reached by splash (`lib/features/auth/presentation/screens/splash_screen.dart:56-57`). |
+| `lib/features/auth/data/auth_repository.dart:293` | `update` | `updateProfile`; called by avatar saving (`lib/features/profile/presentation/screens/profile_screen.dart:52-54`) and basic-profile editing (`lib/features/profile/presentation/screens/edit_subpages/rc5_edit_basic_profile_screen.dart:73-76`). |
+| `lib/features/auth/presentation/screens/rc5_onboarding_screen.dart:143` | `update` | Writes `profile_completed`; routed from `/profile-setup` (`lib/core/router/app_router.dart:228-230`) and opened by splash for incomplete profiles (`lib/features/auth/presentation/screens/splash_screen.dart:89-90`). |
+| `lib/features/auth/presentation/screens/profile_setup_screen.dart:45` | `update` | Direct write exists; current source search found no route or other instantiation of `ProfileSetupScreen`. |
+
+The current source still defines `save_own_profile_v1` in
+`lib/features/auth/data/shared_account_gateway.dart:180` and
+`claim_mec_registration_v1` at `:214`. `lib/features/auth/domain/shared_account_config.dart:28-36`
+reads the compile-time `bool.fromEnvironment` values
+`ENABLE_SHARED_ACCOUNT_FLOW`, `ENABLE_SHARED_PROFILE_READER`,
+`ENABLE_SHARED_PROFILE_WRITER`, `ENABLE_SHARED_REGISTRATION_CLAIM`, and
+`ENABLE_VALIDATION_ACCOUNT_FLOW`. Its `enabled` gate requires the shared flow,
+reader, writer and claim flags, the exact shared target, a public client key,
+and validation mode off. The three write-path flags are flow, writer and
+registration claim; the reader is additionally required by the overall gate.
+
+These flags route guarded operations through the shared gateway but do not
+remove the direct-write statements from the current source tree. Cross-client
+build routing and deployed runtime behavior remain unverified. No Grow files or
+build flags were changed.
+
 This checkpoint records execution of the remaining local Phase 1 tasks. It is
 not a production release or a shared database migration approval.
 

@@ -2,7 +2,7 @@
 
 > **Target:** IDEALAB MEC Platform (`idealab-mec-web` & `Grow`)\\
 > **Status:** PROPOSED — Pending owner authorization. Items marked [PROPOSED] have not been approved for execution.\\
-> **Updated:** 2026-11-06 (post-owner-review corrections)\\
+> **Updated:** 2026-11-18 (post-owner-review corrections and fresh database evidence)\\
 
 > [!IMPORTANT]
 > This roadmap is a proposed remediation order based on audit findings. It is not an approved action plan. No item in this document authorizes a database migration, configuration change, code deployment, or Grow mobile update without an explicit, separate owner decision. The roadmap header "APPROVED ACTION PLAN READY FOR EXECUTION" in the previous draft was incorrect and has been removed.
@@ -13,7 +13,22 @@
 > - The FK index migration (`20261023081307_validation_fk_indexes_v1.sql`) targets the validation environment only and would fail preflight on shared production. Do not deploy it to `huftzhfqnnslvnfzvbex`.
 > - The recovery RPC (`mec_recovery_consumption_candidate.sql`) is already installed on validation. Production installation requires separate acceptance testing.
 > - The localStorage fix referenced `request-storage.ts`, which does not exist. The correct file is `draft-storage.ts`. Unconditional deletion also conflicts with the submission-recovery contract.
-> - Only the **Projects navigation fix** remains safe to execute immediately. It was confirmed as a genuine mismatch.
+> - The **Projects navigation fix** was the only original quick fix safe to execute immediately. It is implemented in the current PR source; live member acceptance and deployment are not established.
+
+---
+
+## Current execution checkpoint — 18 November 2026
+
+Fresh read-only shared-project telemetry is recorded in the [18 November
+capture](../../research/shared-fk-telemetry-2026-11-18.json). The advisor
+reported 8 unindexed-FK findings; the strict catalog check found 9 uncovered
+FKs because `tool_bookings(tool_id)` has only status-filtered partial indexes.
+The four-row migration ledger was captured in the same read-only pass. A
+nine-index candidate and rollback passed a disposable synthetic PostgreSQL
+17.6 rehearsal, recorded in the [execution log](../../quality/phase1-database-validation-2026-11-18.md).
+Shared production remains unchanged. The candidate still requires independent
+SQL/security review and a broader schema/provenance reconciliation before any
+separately authorized installation.
 
 ---
 
@@ -34,32 +49,34 @@
 
 ### Fix P-01: Correct Projects Default View & Navigation Consistency
 
-Execution checkpoint, 6 November: the two-line source fix is implemented and
-staged in isolation. Native checks pass; real member-browser acceptance and
-deployment are not established by this source check. See the [Phase 1 record](../../quality/phase1-database-validation-2026-11-06.md).
+Execution checkpoint, 18 November: the current PR source at
+`cb086fdb34bab9c9ee9f8dbb033c6c114e9efd3d` defaults to My projects and uses
+consistent My projects/Discover URLs. Current local TypeScript, lint and
+218-test boundary checks pass. The PR remains draft; no authenticated live
+member journey or deployment is established. See the [Phase 1 record](../../quality/phase1-validation-and-parity-2026-11-15.md).
 
-- **Confirmed finding:** `src/app/app/projects/page.tsx:11` defaults the view to `'discover'` when no `view` param is present. Line 20 makes the base path `/app/projects` the Discover link, and `/app/projects?view=mine` the My Projects link. This means the default view and the Discover tab point to the same URL, while My Projects requires an explicit param.
-- **Required change:** Default to `'mine'`. Swap the tab link URLs so `/app/projects` renders My Projects and `/app/projects?view=discover` renders Discover. Update search/pagination `next` link construction and the `view` hidden input in the search form to be consistent with the new mapping.
-- **What to verify after:** Navigating to `/app/projects` shows the member's own projects. Clicking "Discover" navigates to `/app/projects?view=discover`. Pagination and search links pass the correct `view` param. The `aria-current` attributes on tabs remain correct.
+- **Historical finding:** The original audit found the default view and tab URLs mismatched.
+- **Implemented behavior:** The current source defaults to `'mine'`; `/app/projects` opens My projects and `/app/projects?view=discover` opens Discover. Search, pagination, error recovery and `aria-current` use the selected view.
+- **Remaining verification:** Run an authenticated live member journey after the shared account gate is eligible; do not infer hosted readiness from the local source checks.
 
 ---
 
 ## 3. Prerequisite Before Any Further Database Work
 
-### Pre-DB-01: Obtain Fresh Sanitized Advisor Output for `huftzhfqnnslvnfzvbex`
+### Pre-DB-01: Reconcile and Review Shared FK Coverage for `huftzhfqnnslvnfzvbex`
 
-Execution checkpoint, 6 November: fresh read-only advisor and catalog evidence
-now resolves the FK discrepancy. The dedicated candidate and rollback passed
-disposable PG17.6 rehearsal only. Shared production remains unchanged; this
-does not approve installation. See [telemetry](../../research/shared-fk-telemetry-2026-11-06.json)
-and [execution evidence](../../quality/phase1-database-validation-2026-11-06.md).
-
-The evidence register's FK list differs from the database migration audit's FK list. Before proposing any shared-production index migration:
-1. Run `grow-prod:get_advisors(type: "performance")` and record the full, sanitized output with a timestamp.
-2. Identify the exact unindexed FK column names on shared production.
-3. Author a new migration file targeting only the confirmed shared production FKs (not the validation tables).
-4. Run the migration against a disposable copy of the shared schema.
-5. Submit the migration for review before applying to `huftzhfqnnslvnfzvbex`.
+Fresh advisor, strict catalog, and ledger output are now captured for 18
+November. The dedicated nine-index candidate and rollback have only been
+rehearsed against a synthetic disposable PostgreSQL cluster, not a full restored
+copy of the shared schema. Before any shared-production install:
+1. Independently review the captured FK list, candidate, rollback, lock behavior,
+   and the advisor-versus-strict-catalog discrepancy.
+2. Reconcile the checked-in migration ledger with live schema provenance; do
+   not replay legacy Grow migrations 003–008.
+3. Rehearse against a disposable copy of the relevant shared schema and verify
+   rollback and privilege/RLS invariants.
+4. Obtain separate owner and maintenance approval before any production DDL.
+5. Recheck the target and index state immediately before an approved operation.
 
 ---
 
@@ -71,7 +88,7 @@ These items cannot proceed until their respective acceptance conditions are met.
 | :--- | :--- | :--- |
 | **Enable hosted member access** | Cross-client acceptance tests pass and are recorded | Widen `backendConfig()` gate in `src/lib/config.ts` |
 | **Grow mobile compatibility validation** | Build identifiers + runtime evidence of actual deployed behavior | Determine whether legacy paths in `auth_repository.dart` are reachable in production build |
-| **Shared production FK indexes** | Fresh advisor output + disposable rehearsal | Author new migration targeting actual shared production unindexed FKs |
+| **Shared production FK indexes** | Fresh advisor/catalog evidence + full-schema disposable rehearsal + independent SQL/security review + separate owner approval | Review the existing nine-index candidate and reconcile schema provenance; install only after a separately approved maintenance operation |
 | **Enable public profiles** | Shared public-profile migration reviewed and installed + both-client acceptance | Switch `publicProfileEnabled()` to read from env flag |
 | **Enable production password recovery** | Real provider/session acceptance and rollout review | Follow `docs/quality/recovery-integration-2026-11-05.md` checklist |
 

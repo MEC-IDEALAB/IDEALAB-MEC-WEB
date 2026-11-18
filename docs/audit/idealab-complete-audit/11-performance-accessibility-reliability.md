@@ -99,7 +99,7 @@ In `src/app/globals.css`:
 
 ### 3.3 Database Connection Health & Resilience
 - **PostgREST Connection Pooling:** Managed Supabase environment uses transaction-mode pooling (Supavisor) on port 6543.
-- **Vulnerability Identified:** The presence of 8 unindexed foreign keys in production risks exhausting the pool under heavy traffic spikes (e.g. college event registration rush), as queries holding table locks block pool connections from returning.
+- **FK coverage advisory:** The 18 November read-only advisor reported 8 findings; the stricter catalog check found 9 FK coverage gaps, because `tool_bookings(tool_id)` has only status-filtered partial indexes. No load test or production observation demonstrated pool exhaustion or measured user-visible impact. See the [fresh telemetry](../../research/shared-fk-telemetry-2026-11-18.json) and [candidate rehearsal limits](../../quality/phase1-database-validation-2026-11-18.md).
 
 ---
 

@@ -1,0 +1,14 @@
+{
+  "date": "2026-11-02",
+  "projectRef": "huftzhfqnnslvnfzvbex",
+  "source": "GET /auth/v1/settings using the ignored local public client configuration; only boolean settings emitted",
+  "googleEnabled": true,
+  "emailEnabled": true,
+  "disableSignup": false,
+  "emailAutoconfirm": false,
+  "phoneAutoconfirm": false,
+  "scope": "Owner enabled Confirm email; independently verified public Auth settings. Provider credentials, canonical redirects and SMTP delivery are not verified. No credentials or session fields read.",
+  "dashboardAccess": "Connected Firecrawl browser requires a private Supabase sign-in; local computer-use runtime unavailable in this chat. Remote browser stopped after read-only check.",
+  "confirmEmailRequired": true,
+  "checkedAt": "2026-11-02T11:32:17.4003532Z"
+}

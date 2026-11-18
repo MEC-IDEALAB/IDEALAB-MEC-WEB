@@ -1,0 +1,51 @@
+{
+  "capturedAt": "2026-11-02T11:32:51.858Z",
+  "nodeVersion": "v24.22.1",
+  "version": "postgres (PostgreSQL) 17.6",
+  "scope": "Disposable SQL-only fixture and candidate behavior; no Supabase Auth, PostgREST, Storage, provider or shared project accessed.",
+  "checks": {
+    "privateScratchDirectory": true,
+    "isolatedIdentity": true,
+    "wrongCredentialDenied": true,
+    "transactionRollback": true,
+    "profileSqlFixturesAndAssertions": true,
+    "applicationTransactionRolledBack": true,
+    "persistedBaselinePrivateAndOwnerBound": true,
+    "normalizedDuplicateMigrationRejected": true,
+    "pristineOperationalRollback": true,
+    "committedPristineOperationalRollback": true,
+    "reconnectedCommittedPersistedRollback": true,
+    "rollbackWithoutSnapshotRefused": true,
+    "rollbackAfterNewDataRefusedAndDataPreserved": true,
+    "concurrentProfileSavesObservedAndSerialized": true,
+    "concurrentClaimsObservedOneWinnerAndPreservedLoser": true,
+    "clusterStoppedAndRemoved": true
+  },
+  "database": {
+    "version": "17.6",
+    "encoding": "UTF8",
+    "locale": "C",
+    "icuVersion": "153.14"
+  },
+  "sqlFiles": [
+    "supabase/tests/shared_profile_contract_v1_fixture.sql",
+    "supabase/candidates/shared_profile_contract_v1.sql",
+    "supabase/tests/shared_profile_contract_v1_candidate_checks.sql",
+    "supabase/tests/shared_profile_contract_v1_legacy_fixture_checks.sql",
+    "supabase/tests/shared_profile_contract_v1_behavior_checks.sql",
+    "supabase/candidates/shared_profile_contract_v1_rollback.sql",
+    "supabase/tests/shared_profile_contract_v1_rollback_checks.sql"
+  ],
+  "sourceSha256": {
+    "supabase/tests/shared_profile_contract_v1_fixture.sql": "27f719c0ee9867dea2968a44b961d5f6719bfb3ecbecabc092aad413c7ae96f2",
+    "supabase/candidates/shared_profile_contract_v1.sql": "ed013ced6cb7ba8f77a9b341814f3ad533d85db338afb24e57e268a5334cdaad",
+    "supabase/tests/shared_profile_contract_v1_candidate_checks.sql": "c1f46f0bf3673fb0e2ecb90944286fb693deb2a986e7439486cdab186e1425f9",
+    "supabase/tests/shared_profile_contract_v1_legacy_fixture_checks.sql": "6db14a7a22bb87357e7d7a1350040c642edd645faf6818471eda95c8abca9734",
+    "supabase/tests/shared_profile_contract_v1_behavior_checks.sql": "cac8d2ea77568a00933132f335e991505295a4004b941b36be7046aa2d41716c",
+    "supabase/candidates/shared_profile_contract_v1_rollback.sql": "1910d96461f9432fa62d43c2bdc7e16d11d43c86b841790e268eeabd204b36b0",
+    "supabase/tests/shared_profile_contract_v1_rollback_checks.sql": "5064c71c4afb6cd1e348552e4edc79bb950a4919dcd908b786856cc3091efa71"
+  },
+  "runnerSha256": "ad9d285daee2913e3c4b2addc25ccaa2afb267ec3eecae2cfe4c99a500c7f93d",
+  "result": "passed",
+  "started": true
+}

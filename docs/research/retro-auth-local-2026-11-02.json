@@ -1,0 +1,483 @@
+{
+  "capturedAt": "2026-11-02T16:40:15.269343+00:00",
+  "scope": "Local public auth visuals/navigation + SDK-fixture session-entry regression tests; no private-account/provider acceptance.",
+  "checks": {
+    "lint": "passed",
+    "typecheck": "passed",
+    "boundaryTests": 159,
+    "optimizedBuild": "passed",
+    "configuredAndDisabledBrowserCases": 48,
+    "axeSnapshots": 8,
+    "ordinaryViewportOverflowCases": 0,
+    "motionFrameChangesAndFiniteStop": true,
+    "reducedMotionStable": true,
+    "navigationSkeletonVisibleAndReplaced": true,
+    "javascriptAndNoJavaScriptAuthNavigation": "passed",
+    "browserBackAndHomepageExit": "passed",
+    "anonymousWorkspaceAndOnboardingDenied": true,
+    "enlargedTextNoHorizontalOverflow": true,
+    "independentSourceReview": "no new blocker in reviewed delta",
+    "wholeSiteAcceptance": "passed: real optimized production Chromium public/configuration acceptance; live account journeys remain unverified",
+    "documentationFiles": 70,
+    "documentationLinks": 346
+  },
+  "sourceSha256": {
+    "src/components/auth-ascii.tsx": "fbaeefb0ef2b690dde736e33cd9686cdb7ed7db82592707af5b4069216038849",
+    "src/components/auth-poster.tsx": "fd80617cbb79a2ae94601ce1d14416b57f1510fe04fc72a58360ccadffffb4d2",
+    "src/components/auth-experience.tsx": "f9535425c43f9568aa0845ae54dd725a38972eb58bf2204b58a596605b63d0f8",
+    "src/components/auth-card-switcher.tsx": "63f49e00d23194fcb3f42a08ad930433cb6037a78a56969c09c9b82838ef7c66",
+    "src/components/auth-loading-skeleton.tsx": "1cb210b6868ebc067ce0832cde9bf69a46eaf7ad03a8d3fe4e6a6dd28eb57db8",
+    "src/components/google-sign-in.tsx": "34a0855a2a7a9cd023d1203677fe8aaf62d3b1d76632beb813a691348cb858d5",
+    "src/lib/auth-entry.ts": "362125be5981e09505dc4c1f0bec8c09070a942bddfc6b43a0e8d5f5228f7c9c",
+    "src/app/auth/actions.ts": "95ca985deb7ded1bf8738d0c6dce8cc19337c756603663c00c1719531d0452fa",
+    "src/app/auth/callback/route.ts": "06221f53a89150ebd4ebf1a5bec55796546701708610c631314d3f8531ba6357",
+    "src/app/auth/confirm/route.ts": "044049ed2e47fb88a64ec16f7ecb30560e9a4bbad1787e903699846086ad0097",
+    "src/app/auth-poster.css": "20512e6cae98aad47d5263ede27974c140912b817b7a68fa5538e734c1084d3a",
+    "src/app/auth-arcade.css": "f032665293bda4ca0a75ec28faea71d6491d7b224dc37f224c96e3765fc4e4c0",
+    "src/app/layout.tsx": "68856a039aa7fb9c9e97e0cefebc0818375d1e1f44d9581a26559c7a76b16405",
+    "scripts/auth-entry.test.mjs": "e9b36220cfa234db681a74317200c07255167ebc6f78e8decfca6148b2703d77",
+    "scripts/acceptance.mjs": "e9c1094e82bbc92371886696393bb9d0011532bb1904ec14ee4339ddb18ea8ab",
+    "package.json": "ef27791583a562edee5b2d22ca232364dc11013ead1a287276a13322188fd395"
+  },
+  "unverified": [
+    "Real signed-in continuation and explicit account switch",
+    "Genuine email/Google/signup/onboarding on this revision",
+    "Cross-client/device persistence",
+    "Concurrent HTTP/tab mutation coordination",
+    "Hosted deployment"
+  ],
+  "matrix": [
+    {
+      "mode": "disabled-production",
+      "r": "sign-in",
+      "t": "light",
+      "w": 1440,
+      "h": 900,
+      "scroll": 900,
+      "width": 1440
+    },
+    {
+      "mode": "disabled-production",
+      "r": "sign-in",
+      "t": "light",
+      "w": 1366,
+      "h": 768,
+      "scroll": 768,
+      "width": 1366
+    },
+    {
+      "mode": "disabled-production",
+      "r": "sign-in",
+      "t": "light",
+      "w": 390,
+      "h": 844,
+      "scroll": 844,
+      "width": 390
+    },
+    {
+      "mode": "disabled-production",
+      "r": "sign-in",
+      "t": "light",
+      "w": 375,
+      "h": 667,
+      "scroll": 667,
+      "width": 375
+    },
+    {
+      "mode": "disabled-production",
+      "r": "sign-in",
+      "t": "light",
+      "w": 320,
+      "h": 568,
+      "scroll": 568,
+      "width": 320
+    },
+    {
+      "mode": "disabled-production",
+      "r": "sign-in",
+      "t": "light",
+      "w": 1000,
+      "h": 680,
+      "scroll": 680,
+      "width": 1000
+    },
+    {
+      "mode": "disabled-production",
+      "r": "sign-in",
+      "t": "dark",
+      "w": 1440,
+      "h": 900,
+      "scroll": 900,
+      "width": 1440
+    },
+    {
+      "mode": "disabled-production",
+      "r": "sign-in",
+      "t": "dark",
+      "w": 1366,
+      "h": 768,
+      "scroll": 768,
+      "width": 1366
+    },
+    {
+      "mode": "disabled-production",
+      "r": "sign-in",
+      "t": "dark",
+      "w": 390,
+      "h": 844,
+      "scroll": 844,
+      "width": 390
+    },
+    {
+      "mode": "disabled-production",
+      "r": "sign-in",
+      "t": "dark",
+      "w": 375,
+      "h": 667,
+      "scroll": 667,
+      "width": 375
+    },
+    {
+      "mode": "disabled-production",
+      "r": "sign-in",
+      "t": "dark",
+      "w": 320,
+      "h": 568,
+      "scroll": 568,
+      "width": 320
+    },
+    {
+      "mode": "disabled-production",
+      "r": "sign-in",
+      "t": "dark",
+      "w": 1000,
+      "h": 680,
+      "scroll": 680,
+      "width": 1000
+    },
+    {
+      "mode": "disabled-production",
+      "r": "sign-up",
+      "t": "light",
+      "w": 1440,
+      "h": 900,
+      "scroll": 900,
+      "width": 1440
+    },
+    {
+      "mode": "disabled-production",
+      "r": "sign-up",
+      "t": "light",
+      "w": 1366,
+      "h": 768,
+      "scroll": 768,
+      "width": 1366
+    },
+    {
+      "mode": "disabled-production",
+      "r": "sign-up",
+      "t": "light",
+      "w": 390,
+      "h": 844,
+      "scroll": 844,
+      "width": 390
+    },
+    {
+      "mode": "disabled-production",
+      "r": "sign-up",
+      "t": "light",
+      "w": 375,
+      "h": 667,
+      "scroll": 667,
+      "width": 375
+    },
+    {
+      "mode": "disabled-production",
+      "r": "sign-up",
+      "t": "light",
+      "w": 320,
+      "h": 568,
+      "scroll": 568,
+      "width": 320
+    },
+    {
+      "mode": "disabled-production",
+      "r": "sign-up",
+      "t": "light",
+      "w": 1000,
+      "h": 680,
+      "scroll": 680,
+      "width": 1000
+    },
+    {
+      "mode": "disabled-production",
+      "r": "sign-up",
+      "t": "dark",
+      "w": 1440,
+      "h": 900,
+      "scroll": 900,
+      "width": 1440
+    },
+    {
+      "mode": "disabled-production",
+      "r": "sign-up",
+      "t": "dark",
+      "w": 1366,
+      "h": 768,
+      "scroll": 768,
+      "width": 1366
+    },
+    {
+      "mode": "disabled-production",
+      "r": "sign-up",
+      "t": "dark",
+      "w": 390,
+      "h": 844,
+      "scroll": 844,
+      "width": 390
+    },
+    {
+      "mode": "disabled-production",
+      "r": "sign-up",
+      "t": "dark",
+      "w": 375,
+      "h": 667,
+      "scroll": 667,
+      "width": 375
+    },
+    {
+      "mode": "disabled-production",
+      "r": "sign-up",
+      "t": "dark",
+      "w": 320,
+      "h": 568,
+      "scroll": 568,
+      "width": 320
+    },
+    {
+      "mode": "disabled-production",
+      "r": "sign-up",
+      "t": "dark",
+      "w": 1000,
+      "h": 680,
+      "scroll": 680,
+      "width": 1000
+    },
+    {
+      "mode": "configured-development",
+      "r": "sign-in",
+      "t": "light",
+      "w": 1440,
+      "h": 900,
+      "scroll": 900,
+      "width": 1440
+    },
+    {
+      "mode": "configured-development",
+      "r": "sign-in",
+      "t": "light",
+      "w": 1366,
+      "h": 768,
+      "scroll": 768,
+      "width": 1366
+    },
+    {
+      "mode": "configured-development",
+      "r": "sign-in",
+      "t": "light",
+      "w": 390,
+      "h": 844,
+      "scroll": 844,
+      "width": 390
+    },
+    {
+      "mode": "configured-development",
+      "r": "sign-in",
+      "t": "light",
+      "w": 375,
+      "h": 667,
+      "scroll": 667,
+      "width": 375
+    },
+    {
+      "mode": "configured-development",
+      "r": "sign-in",
+      "t": "light",
+      "w": 320,
+      "h": 568,
+      "scroll": 568,
+      "width": 320
+    },
+    {
+      "mode": "configured-development",
+      "r": "sign-in",
+      "t": "light",
+      "w": 1000,
+      "h": 680,
+      "scroll": 680,
+      "width": 1000
+    },
+    {
+      "mode": "configured-development",
+      "r": "sign-in",
+      "t": "dark",
+      "w": 1440,
+      "h": 900,
+      "scroll": 900,
+      "width": 1440
+    },
+    {
+      "mode": "configured-development",
+      "r": "sign-in",
+      "t": "dark",
+      "w": 1366,
+      "h": 768,
+      "scroll": 768,
+      "width": 1366
+    },
+    {
+      "mode": "configured-development",
+      "r": "sign-in",
+      "t": "dark",
+      "w": 390,
+      "h": 844,
+      "scroll": 844,
+      "width": 390
+    },
+    {
+      "mode": "configured-development",
+      "r": "sign-in",
+      "t": "dark",
+      "w": 375,
+      "h": 667,
+      "scroll": 667,
+      "width": 375
+    },
+    {
+      "mode": "configured-development",
+      "r": "sign-in",
+      "t": "dark",
+      "w": 320,
+      "h": 568,
+      "scroll": 568,
+      "width": 320
+    },
+    {
+      "mode": "configured-development",
+      "r": "sign-in",
+      "t": "dark",
+      "w": 1000,
+      "h": 680,
+      "scroll": 680,
+      "width": 1000
+    },
+    {
+      "mode": "configured-development",
+      "r": "sign-up",
+      "t": "light",
+      "w": 1440,
+      "h": 900,
+      "scroll": 900,
+      "width": 1440
+    },
+    {
+      "mode": "configured-development",
+      "r": "sign-up",
+      "t": "light",
+      "w": 1366,
+      "h": 768,
+      "scroll": 768,
+      "width": 1366
+    },
+    {
+      "mode": "configured-development",
+      "r": "sign-up",
+      "t": "light",
+      "w": 390,
+      "h": 844,
+      "scroll": 844,
+      "width": 390
+    },
+    {
+      "mode": "configured-development",
+      "r": "sign-up",
+      "t": "light",
+      "w": 375,
+      "h": 667,
+      "scroll": 667,
+      "width": 375
+    },
+    {
+      "mode": "configured-development",
+      "r": "sign-up",
+      "t": "light",
+      "w": 320,
+      "h": 568,
+      "scroll": 568,
+      "width": 320
+    },
+    {
+      "mode": "configured-development",
+      "r": "sign-up",
+      "t": "light",
+      "w": 1000,
+      "h": 680,
+      "scroll": 680,
+      "width": 1000
+    },
+    {
+      "mode": "configured-development",
+      "r": "sign-up",
+      "t": "dark",
+      "w": 1440,
+      "h": 900,
+      "scroll": 900,
+      "width": 1440
+    },
+    {
+      "mode": "configured-development",
+      "r": "sign-up",
+      "t": "dark",
+      "w": 1366,
+      "h": 768,
+      "scroll": 768,
+      "width": 1366
+    },
+    {
+      "mode": "configured-development",
+      "r": "sign-up",
+      "t": "dark",
+      "w": 390,
+      "h": 844,
+      "scroll": 844,
+      "width": 390
+    },
+    {
+      "mode": "configured-development",
+      "r": "sign-up",
+      "t": "dark",
+      "w": 375,
+      "h": 667,
+      "scroll": 667,
+      "width": 375
+    },
+    {
+      "mode": "configured-development",
+      "r": "sign-up",
+      "t": "dark",
+      "w": 320,
+      "h": 568,
+      "scroll": 568,
+      "width": 320
+    },
+    {
+      "mode": "configured-development",
+      "r": "sign-up",
+      "t": "dark",
+      "w": 1000,
+      "h": 680,
+      "scroll": 680,
+      "width": 1000
+    }
+  ]
+}

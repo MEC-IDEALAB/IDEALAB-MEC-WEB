@@ -1,0 +1,70 @@
+{
+  "projectRef": "huftzhfqnnslvnfzvbex",
+  "scope": "Read-only advisor, pg_catalog, and migration-ledger observations. No shared database writes.",
+  "database": {
+    "healthObserved": "ACTIVE_HEALTHY",
+    "postgresVersion": "17.11.0.003"
+  },
+  "advisor": {
+    "observedAt": "2026-11-18T09:35:52.100Z",
+    "finding": "unindexed_foreign_keys",
+    "count": 8,
+    "rows": [
+      { "table": "public.events", "constraint": "events_club_id_fkey", "column": "club_id", "attributeNumbers": [5] },
+      { "table": "public.events", "constraint": "events_created_by_fkey", "column": "created_by", "attributeNumbers": [12] },
+      { "table": "public.knowledge_articles", "constraint": "knowledge_articles_author_id_fkey", "column": "author_id", "attributeNumbers": [5] },
+      { "table": "public.project_members", "constraint": "project_members_user_id_fkey", "column": "user_id", "attributeNumbers": [3] },
+      { "table": "public.projects", "constraint": "projects_club_id_fkey", "column": "club_id", "attributeNumbers": [4] },
+      { "table": "public.tool_bookings", "constraint": "fk_bookings_project", "column": "project_id", "attributeNumbers": [4] },
+      { "table": "public.tool_bookings", "constraint": "tool_bookings_approved_by_fkey", "column": "approved_by", "attributeNumbers": [8] },
+      { "table": "public.users", "constraint": "fk_users_club", "column": "club_id", "attributeNumbers": [7] }
+    ]
+  },
+  "strictCatalog": {
+    "observedAt": "2026-11-18T09:36:21.175729+00:00",
+    "rule": "Validated foreign keys without a valid, ready, live, non-partial index whose leading key columns cover the referencing columns.",
+    "uncoveredCount": 9,
+    "additionalComparedWithAdvisor": {
+      "table": "public.tool_bookings",
+      "constraint": "tool_bookings_tool_id_fkey",
+      "column": "tool_id",
+      "references": "public.tools(id)",
+      "constraintValidated": true,
+      "deleteActionCode": "a",
+      "updateActionCode": "a"
+    },
+    "existingPartialIndexes": [
+      {
+        "name": "idx_tool_bookings_tool_slot",
+        "method": "btree",
+        "keyColumns": ["tool_id", "slot_start", "slot_end"],
+        "predicate": "status-filtered partial predicate",
+        "validReadyLive": true
+      },
+      {
+        "name": "no_overlapping_tool_bookings",
+        "method": "gist",
+        "keyExpression": "tool_id, tstzrange(...) ",
+        "predicate": "status-filtered partial predicate",
+        "validReadyLive": true
+      }
+    ],
+    "candidateIndexNameWasAvailableAt": "2026-11-18T09:39:43.057643+00:00",
+    "catalogDetailObservedAt": "2026-11-18T09:36:58.981226+00:00",
+    "constraintDetailObservedAt": "2026-11-18T09:39:07.113004+00:00"
+  },
+  "migrationLedger": {
+    "observedAt": "2026-11-18T09:36:19.796921+00:00",
+    "rows": [
+      { "version": "20260503073726", "name": "create_initial_schema", "statementCount": 1, "rollbackCount": null },
+      { "version": "20260503073744", "name": "add_rls_policies", "statementCount": 1, "rollbackCount": null },
+      { "version": "20261102083307", "name": "shared_access_hardening_v1", "statementCount": 1, "rollbackCount": null },
+      { "version": "20261102130200", "name": "shared_profile_contract_v1", "statementCount": 1, "rollbackCount": null }
+    ]
+  },
+  "interpretation": {
+    "advisorVersusCatalog": "The advisor reported eight rows while the strict non-partial catalog rule found nine. The tool_id FK has only partial indexes in the captured catalog. The exact advisor implementation/version deployed for this project was not verified; do not treat the count difference as a confirmed advisor defect.",
+    "migrationProvenance": "Four ledger rows were observed. This does not establish that the ledger fully represents the live schema or explain historical objects without ledger entries.",
+    "productionMutation": false
+  }
+}

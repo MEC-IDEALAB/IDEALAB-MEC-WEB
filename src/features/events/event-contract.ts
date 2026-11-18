@@ -13,9 +13,9 @@ export const eventFilter = (v: unknown): v is EventFilter => v === 'all' || type
 export type EventPageParams = { filter: EventFilter; cursor: EventCursor | null; version: 1 | 2 };
 /** Old cursor links retain v1 ordering; new cursor links bind v2 to their filter. */
 export function eventPageParams(p: Record<string, string | string[] | undefined>): EventPageParams | null {
-  const filter = p.status === undefined ? 'all' : p.status;
-  if (!eventFilter(filter)) return null;
   const hasCursor = p.before !== undefined || p.cursor !== undefined;
+  const filter = p.status === undefined ? hasCursor ? 'all' : 'upcoming' : p.status;
+  if (!eventFilter(filter)) return null;
   if (!hasCursor) return p.order === undefined ? { filter, cursor: null, version: 2 } : null;
   if (!eventTime(p.before) || !eventId(p.cursor)) return null;
   const version = p.order === undefined ? 1 : p.order === `2:${filter}` ? 2 : null;

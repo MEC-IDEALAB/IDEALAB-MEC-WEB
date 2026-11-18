@@ -76,12 +76,18 @@ BEGIN
       v_status := 'checked_in';
     END IF;
   ELSE
+    -- Share the authoritative Lab-state lock before taking a session row lock.
+    -- A close-first operation will already have stamped this visit; a
+    -- checkout-first operation completes before a competing close can proceed.
+    SELECT last_action INTO STRICT v_opening FROM idealab_private.lab_opening_state_v1
+      WHERE singleton=1 FOR SHARE;
     SELECT id,checkin_time,checkout_time INTO v_visit FROM public.lab_sessions WHERE id=p_visit_id AND user_id=v_owner FOR UPDATE;
     IF NOT FOUND THEN RETURN jsonb_build_object('status','conflict'); END IF;
     IF v_visit.checkin_time IS NULL THEN RETURN jsonb_build_object('status','unavailable'); END IF;
     v_id := v_visit.id;
     IF v_visit.checkout_time IS NOT NULL THEN v_status := 'already_out';
     ELSE
+      IF v_opening IS DISTINCT FROM 'open' THEN RETURN jsonb_build_object('status','unavailable'); END IF;
       UPDATE public.lab_sessions SET checkout_time=greatest(clock_timestamp(),v_visit.checkin_time) WHERE id=v_id AND user_id=v_owner;
       v_status := 'checked_out';
     END IF;

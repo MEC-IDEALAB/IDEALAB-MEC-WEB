@@ -34,6 +34,13 @@ const layouts = [
   },
 ] as const;
 
+const machineReviewSteps = [
+  ['Prepare estimate', 'Enter expected material and service quantities. The estimate uses the approved rates for the assignment.'],
+  ['Wait for student approval', 'Start work only after the student accepts this estimate. If they decline, revise or reject the request.'],
+  ['Record actual usage', 'Enter the actual quantities after work. If the final bill is higher, wait for the student to approve that bill.'],
+  ['Verify payment and close', 'Check the submitted transaction ID against the payment received through IDEALAB’s official QR, then close the request.'],
+] as const;
+
 export function StaffWorkspacePreview() {
   const [activeId, setActiveId] = useState<(typeof layouts)[number]['id']>('machine');
   const activeLayout = layouts.find(layout => layout.id === activeId) ?? layouts[0];
@@ -113,6 +120,25 @@ export function StaffWorkspacePreview() {
           <p className="staff-permission-note"><ShieldCheck size={18} aria-hidden="true" /> Actions must be authorized against the current server-side assignment.</p>
         </section>
       </div>
+
+      {activeId === 'machine' && <section className="staff-flow-notes" aria-labelledby="staff-machine-flow">
+        <div className="staff-flow-heading"><p className="eyebrow">MACHINE REQUEST WIREFRAME</p><h3 id="staff-machine-flow">From estimate to close</h3></div>
+        <ol className="staff-machine-steps">
+          {machineReviewSteps.map(([title, description], index) => <li className="staff-flow-note staff-flow-note-yellow" key={title}>
+            <span aria-hidden="true">{String(index + 1).padStart(2, '0')}</span>
+            <p><strong>{title}.</strong> {description}</p>
+          </li>)}
+        </ol>
+      </section>}
+
+      {activeId === 'events' && <section className="staff-flow-notes" aria-labelledby="staff-event-flow">
+        <div className="staff-flow-heading"><p className="eyebrow">EVENT WIREFRAME</p><h3 id="staff-event-flow">From draft to registration</h3></div>
+        <ol className="staff-machine-steps">
+          <li className="staff-flow-note"><span aria-hidden="true">01</span><p><strong>Create an event draft.</strong> An Event Head can start a draft within their assigned scope.</p></li>
+          <li className="staff-flow-note"><span aria-hidden="true">02</span><p><strong>Set registration rules.</strong> Choose capacity, open or invite-only registration, and who can see the attendee list. The list defaults to registered attendees.</p></li>
+          <li className="staff-flow-note"><span aria-hidden="true">03</span><p><strong>Publish and manage places.</strong> Free registration can open after publication. Paid registration needs an approved payment route before members can RSVP.</p></li>
+        </ol>
+      </section>}
 
       <section className="staff-flow-notes" aria-labelledby="staff-rules-title">
         <div className="staff-flow-heading"><p className="eyebrow">BEHAVIORAL GUARANTEES TO IMPLEMENT</p><h3 id="staff-rules-title">Clear decisions. Accountable history.</h3></div>

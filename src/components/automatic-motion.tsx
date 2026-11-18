@@ -85,7 +85,7 @@ export function useAutomaticMotion() {
   return context;
 }
 
-export function AutomaticMotionControl() {
+export function AutomaticMotionControl({ controls = 'maker-ticker past-events-carousel quote-ticker' }: { controls?: string } = {}) {
   const { ready, allowed, paused, toggle } = useAutomaticMotion();
   if (!ready || !allowed) return null;
 
@@ -95,7 +95,7 @@ export function AutomaticMotionControl() {
       className="automatic-motion-control"
       onClick={toggle}
       aria-label={paused ? 'Resume automatic motion' : 'Pause automatic motion'}
-      aria-controls="maker-ticker past-events-carousel quote-ticker"
+      aria-controls={controls || undefined}
       aria-describedby="automatic-motion-description"
       title={paused ? 'Resume automatic motion' : 'Pause automatic motion'}
     >

@@ -1,8 +1,94 @@
 # IDEALAB MEC delivery plan
 
+## Current Phase 0 checkpoint — 18 November 2026
+
+Task 1 remains active. The initial 20-file local PR #67 worktree snapshot is
+preserved on local branch `backup/idealab-phase0-snapshot-20261118` at
+`738e6bd0cb1e8f4c633b05d478e1f3e1125aa9f6`; the original branch and dirty
+worktree were restored. A full follow-up snapshot of 35 changed paths is preserved on
+local branch `backup/idealab-phase0-snapshot-20261118-current` at
+`f01b4629fe4e46e6529bf25b22084cdf37490cfe`. Since then, the maker-publication
+validation record and sanitized runtime transcript were added, bringing the
+active worktree to 37 changed paths; the profile proposal also records the
+latest rehearsal. Those two new files and the later proposal edit are not in the
+35-path snapshot. All 37 paths are now committed locally in `4c698b6`, `d2edf64`
+and `bf728d9` on `codex/phase1-profile-publication-20261115`; the worktree is
+clean and no original edits were discarded. The commits are not pushed yet.
+
+`git rebase origin/main` was attempted and aborted after conflicts while
+replaying the older guarded-workspace commit in `scripts/acceptance.mjs` and
+`src/components/auth-experience.tsx`. The current PR history already contains
+`origin/main` through merge commit `7783464`; abort restored the original graph
+and no commit was rewritten. A fast-forward push can preserve that history.
+
+PR #67 is OPEN/DRAFT and mergeable at remote head
+`cb086fdb34bab9c9ee9f8dbb033c6c114e9efd3d`, based on
+`ef6c5bdb51b9e372cd6402e0314ad5a6e275da5d`; local `bf728d9` is three commits
+ahead. Website CI, Documentation CI, scoped staff SQL checks and Vercel preview
+still pass only on the older remote head, with no submitted review. Current
+local typecheck, lint, 218/218 boundary tests, proxy E2E, acceptance build and
+browser suite, documentation links and diff check pass. No push, merge or
+production deployment occurred.
+
+P0-02 remains open. Fresh read-only telemetry on 18 November reported eight
+advisor findings; the stricter catalog check found nine FK coverage gaps because
+the `tool_bookings(tool_id)` indexes are partial. The migration ledger query
+returned four entries. A nine-index candidate and rollback passed a disposable
+PostgreSQL 17.6 rehearsal; sanitized telemetry, hashes and the transcript are in
+the [database validation record](quality/phase1-database-validation-2026-11-18.md).
+The revised maker-publication candidate also passed its 18 November disposable
+PostgreSQL 17.6 rehearsal; its exact transcript and hashes are in the
+[maker-publication validation record](quality/maker-publication-validation-2026-11-18.md).
+Read-only source/SQL reviews found no concrete blocker in either candidate.
+Shared production was not modified. Full-schema/provenance reconciliation and
+live cross-client acceptance remain open; do not replay legacy Grow migrations
+003–008. The approved schedule remains Task 1 start 4 November, scope review
+25 November and pilot target 16 December. See the [current task board](task-list-2026-10-21.md)
+and [Project #1](https://github.com/orgs/MEC-IDEALAB/projects/1).
+
+## Website audit follow-up — 15 November 2026
+
+The public-site metadata, sitemap, shared footer, 404 navigation, and member-list
+recovery controls received source-level follow-up. Local verification and the
+standalone maker-publication scratch evidence are recorded in the [audit
+follow-up](quality/website-audit-follow-up-2026-11-15.md). This work does not
+enable hosted member access, change shared database state, or satisfy live
+provider/Grow acceptance. PR #67 and deployment remain subject to the current
+release gates below.
+
+The same follow-up now records the route-level CSS split and before/after local
+build asset measurements; public, auth, member, design-preview and shared-profile
+routes passed the current browser acceptance suite.
+
+Phase 1 task evidence, including the blocked shared-project advisor read and
+the local-only auth/recovery test results, is recorded in the [validation and
+parity checkpoint](quality/phase1-validation-and-parity-2026-11-15.md). The
+existing task scripts are fixture tests; they do not establish a session with
+the isolated validation database.
+
 Current checkpoint: [account delivery status](account-readiness.md). Older account
 implementation-status paragraphs below are historical; release criteria and the
 remaining full-V1 scope still apply.
+
+## Historical source and release check — 3 November 2026
+
+The standalone `idealab-mec-web` repository is public in `MEC-IDEALAB`. The local checkout is on `codex/member-platform-readiness-20261103` at commit `755b0d02f29c0b0bd34bdd42ce15e0be0b62a779`, with uncommitted application and documentation changes. Draft PR #67 is still open at that same older commit; its hosted checks do not cover the current working tree.
+
+The member interface now uses Home, Lab and Profile, with desktop top navigation and a rounded mobile bottom bar through 850 px. Lab quick access is Make & borrow, Events and Projects. Home and Lab include upcoming event cards; the Lab page keeps the check-in action, recorded session times and history in one card. A saved active visit displays an app-wide elapsed timer and checkout button, with an in-app reminder after two hours. This is not an operating-system notification. The live “who is here” list and service status writes are not connected, so the interface does not invent presence or availability.
+
+Current local checks on Node 24.22.1: lint, TypeScript, 183 boundary tests, optimized acceptance build, the member preview browser suite (42 responsive layouts and 12 accessibility snapshots), documentation validation (73 files / 359 local links), and the full public Chromium acceptance suite pass. Chromium covered the public journey, responsive light/dark layouts, auth/recovery form layouts, contrast, no-JavaScript content, motion/reduced motion, keyboard focus, route accessibility snapshots, gated onboarding/staff previews, member Home/Lab skeletons, request drafts, security headers and offline-shell behavior. It did not create a member session or write attendance.
+
+The check-in and checkout actions remain available only under the isolated validation feature gate. No live attendance row or production migration was written. Real signed-in check-in → navigation → timer → checkout/history verification, concurrent duplicate-command checks, shared Grow compatibility and production operational permissions remain release gates. Authentication and email delivery also remain gated. See [member platform readiness](quality/member-platform-readiness-2026-11-03.md) and the updated tracker issues [#3](https://github.com/MEC-IDEALAB/IDEALAB-MEC-WEB/issues/3) and [#10](https://github.com/MEC-IDEALAB/IDEALAB-MEC-WEB/issues/10).
+
+The 3 November event/project/request follow-up confirmed the existing Home/Lab
+upcoming carousel, paginated Events list/detail, Projects Discover/My projects,
+create/join flow, and combined Make & borrow draft form. The requested RSVP,
+Event Head create/settings, project-linked resources/material usage/cost/report,
+and production request submission are not connected. GitHub issues [#7](https://github.com/MEC-IDEALAB/IDEALAB-MEC-WEB/issues/7), [#8](https://github.com/MEC-IDEALAB/IDEALAB-MEC-WEB/issues/8), and [#9](https://github.com/MEC-IDEALAB/IDEALAB-MEC-WEB/issues/9) and their Project #1 cards now contain this scope and acceptance work; all three are In Progress with verification Blocked.
+
+Read-only Supabase metadata review identified the active project as `IDEALAB MEC` (`huftzhfqnnslvnfzvbex`). Its migration ledger contains the initial schema, access hardening, and shared profile contract. Legacy event/RSVP/project/tool tables exist, but the inspected public schema has no event/project RPCs. Existing direct-write policies do not enforce atomic event capacity, invitation/attendee settings, creator-approved project membership, or scoped head approval. No member rows or schema were changed. The new operational features must remain unavailable until their reviewed migration, RLS and concurrency/negative-permission tests pass. Event attendee visibility defaults to registered attendees, as selected by the owner; paid registration stays gated until official payment and refund details are approved.
+
+PR #67 remains a draft at its older source revision. Current hosted CI, independent PR review and real member acceptance are still required before pushing or merging the updated application. The GitHub Project #1 next actions now reflect these gates. No application push, merge, database write or deployment occurred in this checkpoint.
 
 ## Latest delivery state — 31 October 2026
 
@@ -197,7 +283,7 @@ Read-only Supabase access is available for `grow-idealab` (`huftzhfqnnslvnfzvbex
 | 2. Shared identity | Signup/verification/sign-in/recovery, session management, minimum profile | Real existing accounts work; confirmation/recovery/link edge cases, route protection and private responses tested on a safe environment. |
 | 3. Read-only member surfaces | Real approved projects/events/notifications/profile/catalog reads | Individual records require sign-in; field visibility, ownership, failure states and cross-account denial verified. Demo catalog visibly labeled and isolated. |
 | 4. Operational contract foundation | Roles/positions, request lifecycle, scheduling, storage/payment contracts | Live schema reconciliation, reviewed migrations/rollback, approved matrix and meaningful negative/concurrency tests on a faithful non-production baseline. |
-| 5. Request vertical slice | Real Machine/Operations submission, scoped head review, edits, confirmed time, cancellation/history | Machine/room assignment enforced; only Super Admin assigns/revokes heads and manages active-work handover; requester accepts changed time; declined proposals stay open without automatic expiry; browser-to-data journey; claim/cancel race; cross-user/role denial; truthful receipts. |
+| 5. Request vertical slice | Real Machine/Operations submission, scoped head review, edits, confirmed time, cancellation/history | Machine/room assignment enforced; Student Ambassador and Super Admin retain equal in-app administrative authority through the audited roster path; requester accepts changed time; declined proposals stay open without automatic expiry; browser-to-data journey; claim/cancel race; cross-user/role denial; truthful receipts. |
 | 6. Remaining documented V1 | Manufacturing/queue, inventory/borrowing, events/payments, reports/admin | Each requirement passes its real end-to-end journey, financial/capacity rules and audit checks. Deferred inputs block only dependent behavior. |
 | 7. Pilot and release | Reviewed release on Vercel with operational ownership | Current revision gates, hosted evidence, accessibility, support, backup/restore and pilot acceptance; explicit production authorization where required. |
 
@@ -215,7 +301,7 @@ Finish one real vertical slice at a time. A navigable unavailable module is a tr
 
 **Operational E2E:** member submits a real request, authorized head reviews, member accepts material edits, head confirms preferred time, task progresses, user sees accountable history; cancel before/after claim and race conditions; project join request/creator approval; free/paid event capacity under concurrent verification; borrowing return/Operations verification; report authorization/audit. Follow each journey through browser, server, data and returned UI. Missing backend gates mean skipped/blocked, never passed.
 
-Additionally verify changed proposed time is not treated as agreed until explicit requester acceptance, declining keeps the request open for another proposal, and no automatic expiry occurs; verify only Super Admin can assign/revoke scoped heads and manage active-work handover/reassignment. Detailed action permissions, automatic reassignment rules, handover mechanics and in-flight transaction effects remain unresolved and must be specified before dependent implementation. Machine/room-specific assignments must reject out-of-scope head actions; anonymous visitors cannot read individual project/event records; demo catalog labels remain obvious and no demo stock/prices flow into operational submissions, billing or reservation claims. Current browser-only drafts must remain account-scoped and explicitly unsubmitted. The `/design/request` preview is enabled only by `ENABLE_DESIGN_PREVIEW=true`; verify its disabled state returns not found, its sample draft is separate, and `/app` remains protected. This local preview is not evidence of authenticated backend acceptance.
+Additionally verify changed proposed time is not treated as agreed until explicit requester acceptance, declining keeps the request open for another proposal, and no automatic expiry occurs; verify both top roles act only through the audited trusted-roster path, with infrastructure ownership separate. Detailed action permissions, automatic reassignment rules, handover mechanics and in-flight transaction effects remain unresolved and must be specified before dependent implementation. Machine/room-specific assignments must reject out-of-scope head actions; anonymous visitors cannot read individual project/event records; demo catalog labels remain obvious and no demo stock/prices flow into operational submissions, billing or reservation claims. Current browser-only drafts must remain account-scoped and explicitly unsubmitted. The `/design/request` preview is enabled only by `ENABLE_DESIGN_PREVIEW=true`; verify its disabled state returns not found, its sample draft is separate, and `/app` remains protected. This local preview is not evidence of authenticated backend acceptance.
 
 **Security:** verify real deployed grants/RLS and ownership, cross-user reads/writes, client-supplied identity/role/position rejection, restricted staff scope, payment verification authority, private profile fields/media, anonymous publication, safe redirects and cache boundaries. Keep service-role/secret keys out of browser/public environment. File uploads stay disabled until storage path/MIME/size/access/retention policy is approved and tested.
 
@@ -301,3 +387,12 @@ behavior, gated previews, request drafts, the disabled recovery callback and
 security headers. This fixture-based run does not verify real account creation,
 email delivery, sign-in, recovery, authenticated drafts, database permissions
 or operational backend workflows. It does not establish production readiness.
+
+
+## Approved V1 execution — 4 November 2026
+
+Task 1 started on 4 November IST. Scope review is 25 November and the pilot target is 16 December. Cut GitHub linking, then heatmap, then optional portfolio steps. Disable public Profile and QR independently if privacy or takedown checks fail. Preserve drafts and the verified Lab path.
+
+Release order is MEC pilot, member operations, then MEC-approved payments. Shared identity and STAFF-01A precede Lab; UX-01 and CONTENT-01 run alongside baseline work. OPS-01A precedes OPS-01B. STAFF-01B follows the authorization foundation.
+
+See the [canonical task board](task-list-2026-10-21.md) and [Project #1](https://github.com/orgs/MEC-IDEALAB/projects/1).

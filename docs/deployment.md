@@ -1,5 +1,29 @@
 # Vercel delivery
 
+## Production baseline — 14 November 2026
+
+Vercel reports Ready for production deployment
+`dpl_2pvdM2fNidAdXpXw5KQRDLSDMQfA` under the personal hosting scope
+`navaneethvvinods-projects`. The GitHub Vercel status for
+`ef6c5bdb51b9e372cd6402e0314ad5a6e275da5d` points to the same deployment,
+and GitHub reports successful required, documentation and public acceptance
+checks for that commit. This is the baseline deployment to record in the
+production rollback plan.
+[Deployment](https://vercel.com/navaneethvvinods-projects/idealab-mec-web/2pvdM2fNidAdXpXw5KQRDLSDMQfA)
+
+The primary alias returned 200 for the homepage, web manifest and offline
+page. The member route returned 307 to `/sign-in?notice=configuration` with
+`Cache-Control: private, no-store` and `Vary: Cookie`. The member design
+preview returned 404. The project dashboard still reports the Other
+framework preset. The repository sets Next.js explicitly in
+[vercel.json](../vercel.json), and the deployment lists dynamic page handlers.
+
+P0-05 still needs production sender and callback acceptance, approved
+institutional hosting and incident ownership, and a faithful disposable
+restore. The public production baseline is healthy. The integrated pilot
+revision remains in the local reconciliation checkout and PR #67 remains draft.
+
+
 Current production check — 31 October 2026: `main` is at `7e4891ff1f7e40e4af51623d20ac0cb7c334fbfb` after PR #29. The public repository `MEC-IDEALAB/IDEALAB-MEC-WEB` is connected to the Vercel project `idealab-mec-web` on the personal Hobby team `navaneethvvinods-projects`. The latest production deployment `dpl_287xsdd3daiiywUPwXiHfRa5krtA` is Ready, and its primary alias `https://idealab-mec-web.vercel.app/` serves the website. This is a personal-team project; no IDEALAB-owned Vercel team is available to the connected account.
 
 ## 404 root cause and fix
@@ -18,7 +42,16 @@ The preview workflow pins Vercel CLI `65.4.0`, matching the CLI recorded in the 
 
 ## Analytics and privacy
 
-The application includes the pinned `@vercel/analytics` and `@vercel/speed-insights` packages in the current branch. The telemetry component runs only in Production and only on `/`, `/lab`, `/projects`, `/events`, and `/explore`; it drops private, unknown, dynamic, malformed and cross-origin events, removes query strings and fragments, and sanitizes route labels. The site also uses `Referrer-Policy: origin`, preventing full same-origin paths or queries from being sent as analytics referrers. Authentication, onboarding, member paths, local development and Preview deployments are excluded. The test suite covers these filters.
+The pinned `@vercel/analytics` and `@vercel/speed-insights` packages, telemetry
+component, and route-sanitizing helper exist in the current branch, but the
+component has no caller in `src/` and is not mounted. This source does not
+currently emit telemetry through that component. Its helper/component tests
+cover the public-route allowlist and removal of query strings/fragments if it is
+mounted later. Before enabling it, record MEC approval for the privacy notice
+and consent behavior; package presence and unit tests do not establish
+collection or consent compliance. The site also uses `Referrer-Policy: origin`,
+which prevents full same-origin paths or queries from being sent as analytics
+referrers. Dashboard activation and data collection remain unverified.
 
 Web Analytics and Speed Insights dashboard activation and data collection have not been verified. Enable the features, visit a public page, and check the Network panel and Vercel dashboard before reporting metrics. Vercel documents that data appears only after the feature is enabled, the component is deployed, and visitors generate page views or performance measurements: [Web Analytics setup](https://vercel.com/docs/analytics/quickstart), [Analytics privacy](https://vercel.com/docs/analytics/privacy-policy), [Speed Insights setup](https://vercel.com/docs/speed-insights/quickstart), and [Speed Insights privacy](https://vercel.com/docs/speed-insights/privacy-policy).
 

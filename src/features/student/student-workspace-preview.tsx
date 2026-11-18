@@ -30,6 +30,7 @@ export type StudentPreviewScreen =
   | 'lab'
   | 'profile'
   | 'projects'
+  | 'make-borrow'
   | 'events'
   | 'requests'
   | 'notifications'
@@ -46,6 +47,7 @@ const screens: Array<{
   { id: 'lab', label: 'Lab', icon: FlaskConical },
   { id: 'profile', label: 'Profile', icon: UserRound },
   { id: 'projects', label: 'Projects', icon: FolderKanban },
+  { id: 'make-borrow', label: 'Make & borrow', icon: Wrench },
   { id: 'events', label: 'Events', icon: CalendarDays },
   { id: 'requests', label: 'Requests', icon: ClipboardList },
   { id: 'notifications', label: 'Notifications', icon: Bell },
@@ -74,6 +76,11 @@ const screenCopy: Record<StudentPreviewScreen, { title: string; eyebrow: string;
     title: 'Projects take shape together.',
     eyebrow: 'PROJECTS',
     intro: 'A signed-in space to discover work and ask to join a team.',
+  },
+  'make-borrow': {
+    title: 'Make something. Borrow what helps.',
+    eyebrow: 'MAKE & BORROW',
+    intro: 'One place for a work request and shared lab tools. No live inventory or reservation is shown in this preview.',
   },
   events: {
     title: 'Make room for what is next.',
@@ -172,12 +179,11 @@ function HomeScreen() {
           <span className="student-preview-section-aside">DESIGN MAP · NOT CONNECTED</span>
         </div>
         <div className="student-preview-module-grid">
-          <ModuleLink screen="requests" title="Work requests" detail="Ask for Machine or Operations support" icon={Wrench} tone="yellow" stagger={0} />
+          <ModuleLink screen="make-borrow" title="Make & borrow" detail="Request support or explore shared tools" icon={Wrench} tone="yellow" stagger={0} />
           <ModuleLink screen="projects" title="Projects" detail="Discover work and join a team" icon={FolderKanban} tone="purple" stagger={1} />
           <ModuleLink screen="events" title="Events & workshops" detail="Explore learning opportunities" icon={CalendarDays} tone="pink" stagger={2} />
           <ModuleLink screen="notifications" title="Notifications" detail="Return to an update or next step" icon={Bell} tone="blue" stagger={0} />
           <ModuleLink screen="visits" title="Lab visits" detail="See visit guidance and history" icon={DoorOpen} tone="green" stagger={1} />
-          <ModuleLink screen="borrowing" title="Borrowing" detail="Browse tools and track a return" icon={Package} tone="blue" stagger={2} />
           <ModuleLink screen="profile" title="Your profile" detail="Review planned fields and privacy status" icon={UserRound} tone="red" stagger={2} />
         </div>
       </section>
@@ -258,6 +264,20 @@ function RequestsScreen() {
     <ModuleUnavailable title="Online request submission" detail="This design preview cannot create, submit, reserve or track a real request. The linked draft screen is isolated from operations." /><article className="student-preview-rule-note" data-reveal="card"><Clock3 size={19} aria-hidden="true" /><p><strong>If timing changes:</strong> the requester accepts a new proposed time. Declining keeps the request open for another proposal.</p></article></>;
 }
 
+function MakeBorrowScreen() {
+  return <>
+    <section className="student-preview-feature student-preview-feature-requests student-preview-panel" data-reveal="section">
+      <div><p className="student-preview-kicker">MAKE · SHARE · RETURN</p><h2>One place to move your idea.</h2><p>Prepare Machine or Operations support, or check the approved shared-tool catalogue when it is available.</p></div>
+      <span className="student-preview-feature-art" aria-hidden="true"><Wrench size={42} strokeWidth={1.5} /><span>IDEA<br />TOOL</span></span>
+    </section>
+    <div className="student-preview-two-column" data-reveal="section">
+      <article className="student-preview-panel student-preview-content-card"><p className="student-preview-kicker">MAKE</p><h3>Request lab support.</h3><p>Choose a service, explain what you want to make and add technical details if you have them.</p><Link className="student-preview-text-link" href={screenHref('requests')}>Request flow preview <ArrowRight size={17} aria-hidden="true" /></Link></article>
+      <article className="student-preview-panel student-preview-content-card"><p className="student-preview-kicker">BORROW</p><h3>Shared lab tools.</h3><p>Live stock, reservations and return tracking are not connected. No item is shown as available.</p><Link className="student-preview-text-link" href={screenHref('borrowing')}>Borrowing flow preview <ArrowRight size={17} aria-hidden="true" /></Link></article>
+    </div>
+    <ModuleUnavailable title="Requests and borrowing are not live in this preview" detail="This page shows the combined layout only. It does not submit a request, reserve equipment or record a return." />
+  </>;
+}
+
 function NotificationsScreen() {
   return <><section className="student-preview-panel student-preview-notification-intro" data-reveal="section"><span className="student-preview-notification-art" aria-hidden="true"><Bell size={34} strokeWidth={1.5} /></span><div><p className="student-preview-kicker">A LITTLE LESS GUESSING</p><h2>Updates with a useful next step.</h2><p>Notifications should say what changed, who needs to act and where to continue.</p></div></section><ModuleUnavailable title="Your notification feed" detail="No message, request update or event reminder is connected to this preview." /><article className="student-preview-panel student-preview-content-card" data-reveal="card"><p className="student-preview-kicker">DESIGN PRINCIPLE</p><h3>Keep actions understandable.</h3><p>Messages should be private to the signed-in account and link to the exact place where the next step can happen.</p></article></>;
 }
@@ -295,6 +315,7 @@ function ScreenContent({ screen }: { screen: StudentPreviewScreen }) {
     case 'lab': return <LabScreen />;
     case 'profile': return <ProfileScreen />;
     case 'projects': return <ProjectsScreen />;
+    case 'make-borrow': return <MakeBorrowScreen />;
     case 'events': return <EventsScreen />;
     case 'requests': return <RequestsScreen />;
     case 'notifications': return <NotificationsScreen />;
@@ -311,7 +332,7 @@ export function StudentWorkspacePreview({ activeScreen }: { activeScreen: Studen
 
   return (
     <MemberWorkspaceShell variant="preview" activeScreen={active.id} activeLabel={active.label} signOutControl={null}>
-      <HomeMotion />
+      {(active.id === 'profile' || active.id === 'settings') && <HomeMotion />}
       <div className="student-preview-content" id="student-preview-content" tabIndex={-1}>
           <div className="student-preview-banner" role="status">
             <CircleHelp size={18} aria-hidden="true" />

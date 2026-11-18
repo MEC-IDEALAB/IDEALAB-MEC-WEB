@@ -24,8 +24,7 @@
   height: 100%;
 }
 
-.hero-vector-tag,
-.hero-vector-index {
+.hero-vector-tag {
   position: absolute;
   z-index: 3;
   display: inline-flex;
@@ -44,13 +43,6 @@
   left: 2%;
   background: var(--signal-lime);
   transform: rotate(-5deg);
-}
-
-.hero-vector-index {
-  right: 3%;
-  bottom: 10%;
-  background: var(--signal-magenta);
-  transform: rotate(3deg);
 }
 
 .playful-site .hero-art-wrap .maker-art {
@@ -223,7 +215,6 @@ html[data-theme=dark] .playful-site .hero-highlight {
 }
 
 .playful-site .poster-annotation-one { top: 24%; right: 7%; }
-.playful-site .poster-annotation-two { bottom: 20%; left: 7%; background: var(--signal-magenta); transform: rotate(2deg); }
 
 .playful-site .try-poster .poster-headline {
   position: absolute;
@@ -457,7 +448,6 @@ html[data-theme=dark] .playful-site .hero-highlight {
   .playful-site .try-poster .poster-line-pink { transform: rotate(1deg) translate(3%, -2%); }
   .playful-site .poster-side-label-right { right: 2%; }
   .playful-site .poster-annotation-one { top: 19%; }
-  .playful-site .poster-annotation-two { bottom: 23%; }
   .playful-site .poster-footnote { max-width: 70%; }
   .playful-site .pixel-poster { width: min(100%, 440px); margin-inline: auto; aspect-ratio: .83; }
   .playful-site .pixel-poster h3 { font-size: clamp(4.4rem, 20vw, 6.8rem); }
@@ -775,8 +765,7 @@ html[data-theme=dark] .playful-site .hero-highlight {
     aspect-ratio: auto;
   }
   .playful-site .hero-art-wrap .maker-art { width: 80%; }
-  .playful-site .hero-vector-tag,
-  .playful-site .hero-vector-index { font-size: 0.44rem; }
+  .playful-site .hero-vector-tag { font-size: 0.44rem; }
   .playful-site .poster-headline { font-size: clamp(2rem, 4.8vw, 3.25rem); }
 }
 
@@ -801,15 +790,13 @@ html[data-theme=dark] .playful-site .hero-highlight {
     padding: 7px;
   }
 
-  .playful-site .hero-vector-tag,
-  .playful-site .hero-vector-index {
+  .playful-site .hero-vector-tag {
     min-height: 30px;
     padding-inline: 8px;
     font-size: 0.38rem;
   }
 
   .playful-site .hero-vector-tag { left: 1%; }
-  .playful-site .hero-vector-index { right: 1%; bottom: 8%; }
   .playful-site .hero-scribble { font-size: 0.84rem; }
   .playful-site .hero-machine-photo img { max-height: clamp(112px, 36vw, 150px); }
   .playful-site .poster-headline { font-size: clamp(1.7rem, 8vw, 3.2rem); }
@@ -822,7 +809,6 @@ html[data-theme=dark] .playful-site .hero-highlight {
 
 @media (max-width: 380px) {
   .playful-site .hero-scribble,
-  .playful-site .hero-vector-index,
   .playful-site .maker-art .art-note,
   .playful-site .maker-art .art-sticker,
   .playful-site .maker-art .art-bottom {

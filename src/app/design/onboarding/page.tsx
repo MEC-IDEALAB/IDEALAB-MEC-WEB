@@ -1,8 +1,11 @@
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
-import { ArrowLeft, ShieldCheck } from 'lucide-react';
+import { ArrowLeft, ArrowUpRight, ShieldCheck } from 'lucide-react';
 import { ThemePicker } from '@/components/theme-picker';
 import { OnboardingPreviewForm } from '@/features/onboarding/onboarding-preview-form';
+import { ProfileSetupForm } from '@/components/profile-setup-form';
+import { buildProfileSavePayload, type ProfileSaveState } from '@/features/profile/profile-save';
+import type { OwnProfile } from '@/lib/member-profile';
 
 export const dynamic = 'force-dynamic';
 export const metadata = {
@@ -10,8 +13,36 @@ export const metadata = {
   robots: { index: false, follow: false },
 };
 
-export default function OnboardingDesignPreview() {
+const sampleProfile: OwnProfile = {
+  id: '00000000-0000-4000-8000-000000000001',
+  name: '', phone: null, college_roll: null, institution: null,
+  department: null, study_year: null, role: 'student', is_active: true,
+  profile_completed: false, profile_contract_version: 1,
+  profile_revision: '0', mec_admitted: false,
+};
+
+async function checkSampleProfile(_state: ProfileSaveState, fields: FormData): Promise<ProfileSaveState> {
+  'use server';
   if (process.env.ENABLE_DESIGN_PREVIEW !== 'true') notFound();
+  const input = buildProfileSavePayload(fields);
+  if (!input.ok) return input.state;
+  return { status: 'saved', message: 'Preview check complete. Nothing was sent to the database.', revision: '0' };
+}
+
+export default async function OnboardingDesignPreview({ searchParams }: {
+  searchParams: Promise<{ layout?: string | string[] }>;
+}) {
+  if (process.env.ENABLE_DESIGN_PREVIEW !== 'true') notFound();
+  if ((await searchParams).layout === 'wizard') {
+    return <main id="main-content" className="auth-page account-setup-page">
+      <div className="auth-toolbar"><Link className="text-link" href="/design/onboarding"><ArrowLeft size={18} aria-hidden="true" /> Onboarding preview</Link><ThemePicker /></div>
+      <section className="account-setup-card" aria-labelledby="wizard-preview-title">
+        <header className="account-setup-intro"><h1 id="wizard-preview-title">Profile setup preview</h1></header>
+        <ProfileSetupForm profile={sampleProfile} action={checkSampleProfile} />
+        <p className="account-setup-next-note">Use sample details only. This preview does not save a profile.</p>
+      </section>
+    </main>;
+  }
 
   return (
     <main id="main-content" className="playful-site onboarding-preview-page">
@@ -42,8 +73,14 @@ export default function OnboardingDesignPreview() {
             <p>Use sample details to try the layout and basic format feedback. The registration examples are not an exhaustive official course or number-format catalog.</p>
           </div>
           <OnboardingPreviewForm />
+          <Link className="text-link" href="/design/onboarding?layout=wizard">Try the step-by-step setup <ArrowUpRight size={16} aria-hidden="true" /></Link>
         </section>
       </div>
+      <section className="onboarding-next-profile" aria-labelledby="onboarding-next-profile-title">
+        <span className="workspace-pixel-label">AFTER THE MEC ACCOUNT</span>
+        <div><h2 id="onboarding-next-profile-title">Keep building your profile.</h2><p>Review the required private MEC details first. Optional interests, social links and portfolio history are separate profile sections; saving those needs more shared-backend support.</p></div>
+        <Link className="button button-primary" href="/design/member-profile-edit">Preview profile sections <ArrowUpRight size={17} aria-hidden="true" /></Link>
+      </section>
     </main>
   );
 }

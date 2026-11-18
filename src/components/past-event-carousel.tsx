@@ -104,7 +104,7 @@ export function PastEventCarousel({ variant = 'feature' }: { variant?: 'feature'
                   alt={event.alt}
                   fill
                   sizes="(max-width: 700px) 100vw, (max-width: 1000px) 48vw, 580px"
-                  loading="eager"
+                  loading={isVisible && index === active ? 'eager' : 'lazy'}
                 />
                 <span className="event-image-index" aria-hidden="true">/ {String(index + 1).padStart(2, '0')}</span>
                 <div className="event-pixel-mask" aria-hidden="true">
@@ -118,7 +118,7 @@ export function PastEventCarousel({ variant = 'feature' }: { variant?: 'feature'
                 <p className="event-slide-date">{event.date}</p>
                 <h3>{event.title}</h3>
                 <span className="event-slide-rule" aria-hidden="true" />
-                <p className="event-slide-note">A moment from the lab’s workshop and learning history.</p>
+                <p className="event-slide-note">{'photoCaption' in event ? event.photoCaption : 'A moment from the lab’s workshop and learning history.'}</p>
               </div>
             </article>
           ))}

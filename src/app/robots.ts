@@ -1,2 +1,7 @@
 import type { MetadataRoute } from 'next';
-export default function robots(): MetadataRoute.Robots { return { rules: { userAgent: '*', allow: '/', disallow: ['/app/', '/sign-in', '/auth/', '/design/'] } }; }
+export default function robots(): MetadataRoute.Robots {
+  return {
+    rules: { userAgent: '*', allow: '/', disallow: ['/app/', '/sign-in', '/auth/', '/design/'] },
+    sitemap: 'https://idealab-mec-web.vercel.app/sitemap.xml',
+  };
+}

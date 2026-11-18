@@ -1,0 +1,1186 @@
+{
+  "capturedAt": "2026-11-06T11:51:47.827Z",
+  "projectRef": "huftzhfqnnslvnfzvbex",
+  "scope": "Read-only performance advisor and pg_catalog metadata. No account rows or credentials.",
+  "advisor": {
+    "lints": [
+      {
+        "name": "unindexed_foreign_keys",
+        "title": "Unindexed foreign keys",
+        "level": "INFO",
+        "facing": "EXTERNAL",
+        "categories": [
+          "PERFORMANCE"
+        ],
+        "description": "Identifies foreign key constraints without a covering index, which can impact database performance.",
+        "remediation": "https://supabase.com/docs/guides/database/database-linter?lint=0001_unindexed_foreign_keys",
+        "count": 8,
+        "findings": [
+          {
+            "detail": "Table \\`public.events\\` has a foreign key \\`events_club_id_fkey\\` without a covering index. This can lead to suboptimal query performance.",
+            "metadata": {
+              "name": "events",
+              "type": "table",
+              "schema": "public",
+              "fkey_name": "events_club_id_fkey",
+              "fkey_columns": [
+                5
+              ]
+            },
+            "observed_at": "2026-11-06T11:45:03.541Z"
+          },
+          {
+            "detail": "Table \\`public.events\\` has a foreign key \\`events_created_by_fkey\\` without a covering index. This can lead to suboptimal query performance.",
+            "metadata": {
+              "name": "events",
+              "type": "table",
+              "schema": "public",
+              "fkey_name": "events_created_by_fkey",
+              "fkey_columns": [
+                12
+              ]
+            },
+            "observed_at": "2026-11-06T11:45:03.541Z"
+          },
+          {
+            "detail": "Table \\`public.knowledge_articles\\` has a foreign key \\`knowledge_articles_author_id_fkey\\` without a covering index. This can lead to suboptimal query performance.",
+            "metadata": {
+              "name": "knowledge_articles",
+              "type": "table",
+              "schema": "public",
+              "fkey_name": "knowledge_articles_author_id_fkey",
+              "fkey_columns": [
+                5
+              ]
+            },
+            "observed_at": "2026-11-06T11:45:03.541Z"
+          },
+          {
+            "detail": "Table \\`public.project_members\\` has a foreign key \\`project_members_user_id_fkey\\` without a covering index. This can lead to suboptimal query performance.",
+            "metadata": {
+              "name": "project_members",
+              "type": "table",
+              "schema": "public",
+              "fkey_name": "project_members_user_id_fkey",
+              "fkey_columns": [
+                3
+              ]
+            },
+            "observed_at": "2026-11-06T11:45:03.541Z"
+          },
+          {
+            "detail": "Table \\`public.projects\\` has a foreign key \\`projects_club_id_fkey\\` without a covering index. This can lead to suboptimal query performance.",
+            "metadata": {
+              "name": "projects",
+              "type": "table",
+              "schema": "public",
+              "fkey_name": "projects_club_id_fkey",
+              "fkey_columns": [
+                4
+              ]
+            },
+            "observed_at": "2026-11-06T11:45:03.541Z"
+          },
+          {
+            "detail": "Table \\`public.tool_bookings\\` has a foreign key \\`fk_bookings_project\\` without a covering index. This can lead to suboptimal query performance.",
+            "metadata": {
+              "name": "tool_bookings",
+              "type": "table",
+              "schema": "public",
+              "fkey_name": "fk_bookings_project",
+              "fkey_columns": [
+                4
+              ]
+            },
+            "observed_at": "2026-11-06T11:45:03.541Z"
+          },
+          {
+            "detail": "Table \\`public.tool_bookings\\` has a foreign key \\`tool_bookings_approved_by_fkey\\` without a covering index. This can lead to suboptimal query performance.",
+            "metadata": {
+              "name": "tool_bookings",
+              "type": "table",
+              "schema": "public",
+              "fkey_name": "tool_bookings_approved_by_fkey",
+              "fkey_columns": [
+                8
+              ]
+            },
+            "observed_at": "2026-11-06T11:45:03.541Z"
+          },
+          {
+            "detail": "Table \\`public.users\\` has a foreign key \\`fk_users_club\\` without a covering index. This can lead to suboptimal query performance.",
+            "metadata": {
+              "name": "users",
+              "type": "table",
+              "schema": "public",
+              "fkey_name": "fk_users_club",
+              "fkey_columns": [
+                7
+              ]
+            },
+            "observed_at": "2026-11-06T11:45:03.541Z"
+          }
+        ]
+      },
+      {
+        "name": "auth_rls_initplan",
+        "title": "Auth RLS Initialization Plan",
+        "level": "WARN",
+        "facing": "EXTERNAL",
+        "categories": [
+          "PERFORMANCE"
+        ],
+        "description": "Detects if calls to \\`current_setting()\\` and \\`auth.<function>()\\` in RLS policies are being unnecessarily re-evaluated for each row",
+        "remediation": "https://supabase.com/docs/guides/database/database-linter?lint=0003_auth_rls_initplan",
+        "count": 59,
+        "findings": [
+          {
+            "detail": "Table \\`public.tools\\` has a row level security policy \\`tools_select_auth\\` that re-evaluates current_setting() or auth.<function>() for each row. This produces suboptimal query performance at scale. Resolve the issue by replacing \\`auth.<function>()\\` with \\`(select auth.<function>())\\`. See [docs](https://supabase.com/docs/guides/database/postgres/row-level-security#call-functions-with-select) for more info.",
+            "metadata": {
+              "name": "tools",
+              "type": "table",
+              "schema": "public"
+            },
+            "observed_at": "2026-11-06T11:45:03.541Z"
+          },
+          {
+            "detail": "Table \\`public.clubs\\` has a row level security policy \\`clubs_select_auth\\` that re-evaluates current_setting() or auth.<function>() for each row. This produces suboptimal query performance at scale. Resolve the issue by replacing \\`auth.<function>()\\` with \\`(select auth.<function>())\\`. See [docs](https://supabase.com/docs/guides/database/postgres/row-level-security#call-functions-with-select) for more info.",
+            "metadata": {
+              "name": "clubs",
+              "type": "table",
+              "schema": "public"
+            },
+            "observed_at": "2026-11-06T11:45:03.541Z"
+          },
+          {
+            "detail": "Table \\`public.lab_sessions\\` has a row level security policy \\`sessions_select_own\\` that re-evaluates current_setting() or auth.<function>() for each row. This produces suboptimal query performance at scale. Resolve the issue by replacing \\`auth.<function>()\\` with \\`(select auth.<function>())\\`. See [docs](https://supabase.com/docs/guides/database/postgres/row-level-security#call-functions-with-select) for more info.",
+            "metadata": {
+              "name": "lab_sessions",
+              "type": "table",
+              "schema": "public"
+            },
+            "observed_at": "2026-11-06T11:45:03.541Z"
+          },
+          {
+            "detail": "Table \\`public.lab_sessions\\` has a row level security policy \\`sessions_insert_own\\` that re-evaluates current_setting() or auth.<function>() for each row. This produces suboptimal query performance at scale. Resolve the issue by replacing \\`auth.<function>()\\` with \\`(select auth.<function>())\\`. See [docs](https://supabase.com/docs/guides/database/postgres/row-level-security#call-functions-with-select) for more info.",
+            "metadata": {
+              "name": "lab_sessions",
+              "type": "table",
+              "schema": "public"
+            },
+            "observed_at": "2026-11-06T11:45:03.541Z"
+          },
+          {
+            "detail": "Table \\`public.lab_sessions\\` has a row level security policy \\`sessions_update_own\\` that re-evaluates current_setting() or auth.<function>() for each row. This produces suboptimal query performance at scale. Resolve the issue by replacing \\`auth.<function>()\\` with \\`(select auth.<function>())\\`. See [docs](https://supabase.com/docs/guides/database/postgres/row-level-security#call-functions-with-select) for more info.",
+            "metadata": {
+              "name": "lab_sessions",
+              "type": "table",
+              "schema": "public"
+            },
+            "observed_at": "2026-11-06T11:45:03.541Z"
+          },
+          {
+            "detail": "Table \\`public.events\\` has a row level security policy \\`events_select_auth\\` that re-evaluates current_setting() or auth.<function>() for each row. This produces suboptimal query performance at scale. Resolve the issue by replacing \\`auth.<function>()\\` with \\`(select auth.<function>())\\`. See [docs](https://supabase.com/docs/guides/database/postgres/row-level-security#call-functions-with-select) for more info.",
+            "metadata": {
+              "name": "events",
+              "type": "table",
+              "schema": "public"
+            },
+            "observed_at": "2026-11-06T11:45:03.541Z"
+          },
+          {
+            "detail": "Table \\`public.rsvps\\` has a row level security policy \\`rsvps_select_own\\` that re-evaluates current_setting() or auth.<function>() for each row. This produces suboptimal query performance at scale. Resolve the issue by replacing \\`auth.<function>()\\` with \\`(select auth.<function>())\\`. See [docs](https://supabase.com/docs/guides/database/postgres/row-level-security#call-functions-with-select) for more info.",
+            "metadata": {
+              "name": "rsvps",
+              "type": "table",
+              "schema": "public"
+            },
+            "observed_at": "2026-11-06T11:45:03.541Z"
+          },
+          {
+            "detail": "Table \\`public.rsvps\\` has a row level security policy \\`rsvps_insert_own\\` that re-evaluates current_setting() or auth.<function>() for each row. This produces suboptimal query performance at scale. Resolve the issue by replacing \\`auth.<function>()\\` with \\`(select auth.<function>())\\`. See [docs](https://supabase.com/docs/guides/database/postgres/row-level-security#call-functions-with-select) for more info.",
+            "metadata": {
+              "name": "rsvps",
+              "type": "table",
+              "schema": "public"
+            },
+            "observed_at": "2026-11-06T11:45:03.541Z"
+          },
+          {
+            "detail": "Table \\`public.projects\\` has a row level security policy \\`projects_select_public\\` that re-evaluates current_setting() or auth.<function>() for each row. This produces suboptimal query performance at scale. Resolve the issue by replacing \\`auth.<function>()\\` with \\`(select auth.<function>())\\`. See [docs](https://supabase.com/docs/guides/database/postgres/row-level-security#call-functions-with-select) for more info.",
+            "metadata": {
+              "name": "projects",
+              "type": "table",
+              "schema": "public"
+            },
+            "observed_at": "2026-11-06T11:45:03.541Z"
+          },
+          {
+            "detail": "Table \\`public.projects\\` has a row level security policy \\`projects_insert_auth\\` that re-evaluates current_setting() or auth.<function>() for each row. This produces suboptimal query performance at scale. Resolve the issue by replacing \\`auth.<function>()\\` with \\`(select auth.<function>())\\`. See [docs](https://supabase.com/docs/guides/database/postgres/row-level-security#call-functions-with-select) for more info.",
+            "metadata": {
+              "name": "projects",
+              "type": "table",
+              "schema": "public"
+            },
+            "observed_at": "2026-11-06T11:45:03.541Z"
+          },
+          {
+            "detail": "Table \\`public.project_members\\` has a row level security policy \\`members_select_own\\` that re-evaluates current_setting() or auth.<function>() for each row. This produces suboptimal query performance at scale. Resolve the issue by replacing \\`auth.<function>()\\` with \\`(select auth.<function>())\\`. See [docs](https://supabase.com/docs/guides/database/postgres/row-level-security#call-functions-with-select) for more info.",
+            "metadata": {
+              "name": "project_members",
+              "type": "table",
+              "schema": "public"
+            },
+            "observed_at": "2026-11-06T11:45:03.541Z"
+          },
+          {
+            "detail": "Table \\`public.project_members\\` has a row level security policy \\`members_insert_auth\\` that re-evaluates current_setting() or auth.<function>() for each row. This produces suboptimal query performance at scale. Resolve the issue by replacing \\`auth.<function>()\\` with \\`(select auth.<function>())\\`. See [docs](https://supabase.com/docs/guides/database/postgres/row-level-security#call-functions-with-select) for more info.",
+            "metadata": {
+              "name": "project_members",
+              "type": "table",
+              "schema": "public"
+            },
+            "observed_at": "2026-11-06T11:45:03.541Z"
+          },
+          {
+            "detail": "Table \\`public.tool_bookings\\` has a row level security policy \\`bookings_select_own\\` that re-evaluates current_setting() or auth.<function>() for each row. This produces suboptimal query performance at scale. Resolve the issue by replacing \\`auth.<function>()\\` with \\`(select auth.<function>())\\`. See [docs](https://supabase.com/docs/guides/database/postgres/row-level-security#call-functions-with-select) for more info.",
+            "metadata": {
+              "name": "tool_bookings",
+              "type": "table",
+              "schema": "public"
+            },
+            "observed_at": "2026-11-06T11:45:03.541Z"
+          },
+          {
+            "detail": "Table \\`public.tool_bookings\\` has a row level security policy \\`bookings_insert_own\\` that re-evaluates current_setting() or auth.<function>() for each row. This produces suboptimal query performance at scale. Resolve the issue by replacing \\`auth.<function>()\\` with \\`(select auth.<function>())\\`. See [docs](https://supabase.com/docs/guides/database/postgres/row-level-security#call-functions-with-select) for more info.",
+            "metadata": {
+              "name": "tool_bookings",
+              "type": "table",
+              "schema": "public"
+            },
+            "observed_at": "2026-11-06T11:45:03.541Z"
+          },
+          {
+            "detail": "Table \\`public.notifications\\` has a row level security policy \\`notif_select_own\\` that re-evaluates current_setting() or auth.<function>() for each row. This produces suboptimal query performance at scale. Resolve the issue by replacing \\`auth.<function>()\\` with \\`(select auth.<function>())\\`. See [docs](https://supabase.com/docs/guides/database/postgres/row-level-security#call-functions-with-select) for more info.",
+            "metadata": {
+              "name": "notifications",
+              "type": "table",
+              "schema": "public"
+            },
+            "observed_at": "2026-11-06T11:45:03.541Z"
+          },
+          {
+            "detail": "Table \\`public.knowledge_articles\\` has a row level security policy \\`articles_select_auth\\` that re-evaluates current_setting() or auth.<function>() for each row. This produces suboptimal query performance at scale. Resolve the issue by replacing \\`auth.<function>()\\` with \\`(select auth.<function>())\\`. See [docs](https://supabase.com/docs/guides/database/postgres/row-level-security#call-functions-with-select) for more info.",
+            "metadata": {
+              "name": "knowledge_articles",
+              "type": "table",
+              "schema": "public"
+            },
+            "observed_at": "2026-11-06T11:45:03.541Z"
+          },
+          {
+            "detail": "Table \\`public.knowledge_articles\\` has a row level security policy \\`articles_insert_auth\\` that re-evaluates current_setting() or auth.<function>() for each row. This produces suboptimal query performance at scale. Resolve the issue by replacing \\`auth.<function>()\\` with \\`(select auth.<function>())\\`. See [docs](https://supabase.com/docs/guides/database/postgres/row-level-security#call-functions-with-select) for more info.",
+            "metadata": {
+              "name": "knowledge_articles",
+              "type": "table",
+              "schema": "public"
+            },
+            "observed_at": "2026-11-06T11:45:03.541Z"
+          },
+          {
+            "detail": "Table \\`public.tools\\` has a row level security policy \\`tools_delete_admin\\` that re-evaluates current_setting() or auth.<function>() for each row. This produces suboptimal query performance at scale. Resolve the issue by replacing \\`auth.<function>()\\` with \\`(select auth.<function>())\\`. See [docs](https://supabase.com/docs/guides/database/postgres/row-level-security#call-functions-with-select) for more info.",
+            "metadata": {
+              "name": "tools",
+              "type": "table",
+              "schema": "public"
+            },
+            "observed_at": "2026-11-06T11:45:03.541Z"
+          },
+          {
+            "detail": "Table \\`public.notifications\\` has a row level security policy \\`notifications_update_own\\` that re-evaluates current_setting() or auth.<function>() for each row. This produces suboptimal query performance at scale. Resolve the issue by replacing \\`auth.<function>()\\` with \\`(select auth.<function>())\\`. See [docs](https://supabase.com/docs/guides/database/postgres/row-level-security#call-functions-with-select) for more info.",
+            "metadata": {
+              "name": "notifications",
+              "type": "table",
+              "schema": "public"
+            },
+            "observed_at": "2026-11-06T11:45:03.541Z"
+          },
+          {
+            "detail": "Table \\`public.notifications\\` has a row level security policy \\`notifications_select_own\\` that re-evaluates current_setting() or auth.<function>() for each row. This produces suboptimal query performance at scale. Resolve the issue by replacing \\`auth.<function>()\\` with \\`(select auth.<function>())\\`. See [docs](https://supabase.com/docs/guides/database/postgres/row-level-security#call-functions-with-select) for more info.",
+            "metadata": {
+              "name": "notifications",
+              "type": "table",
+              "schema": "public"
+            },
+            "observed_at": "2026-11-06T11:45:03.541Z"
+          },
+          {
+            "detail": "Table \\`public.tools\\` has a row level security policy \\`tools_insert_admin\\` that re-evaluates current_setting() or auth.<function>() for each row. This produces suboptimal query performance at scale. Resolve the issue by replacing \\`auth.<function>()\\` with \\`(select auth.<function>())\\`. See [docs](https://supabase.com/docs/guides/database/postgres/row-level-security#call-functions-with-select) for more info.",
+            "metadata": {
+              "name": "tools",
+              "type": "table",
+              "schema": "public"
+            },
+            "observed_at": "2026-11-06T11:45:03.541Z"
+          },
+          {
+            "detail": "Table \\`public.tools\\` has a row level security policy \\`tools_update_admin\\` that re-evaluates current_setting() or auth.<function>() for each row. This produces suboptimal query performance at scale. Resolve the issue by replacing \\`auth.<function>()\\` with \\`(select auth.<function>())\\`. See [docs](https://supabase.com/docs/guides/database/postgres/row-level-security#call-functions-with-select) for more info.",
+            "metadata": {
+              "name": "tools",
+              "type": "table",
+              "schema": "public"
+            },
+            "observed_at": "2026-11-06T11:45:03.541Z"
+          },
+          {
+            "detail": "Table \\`public.tool_bookings\\` has a row level security policy \\`tool_bookings_update_admin\\` that re-evaluates current_setting() or auth.<function>() for each row. This produces suboptimal query performance at scale. Resolve the issue by replacing \\`auth.<function>()\\` with \\`(select auth.<function>())\\`. See [docs](https://supabase.com/docs/guides/database/postgres/row-level-security#call-functions-with-select) for more info.",
+            "metadata": {
+              "name": "tool_bookings",
+              "type": "table",
+              "schema": "public"
+            },
+            "observed_at": "2026-11-06T11:45:03.541Z"
+          },
+          {
+            "detail": "Table \\`public.projects\\` has a row level security policy \\`projects_update_own\\` that re-evaluates current_setting() or auth.<function>() for each row. This produces suboptimal query performance at scale. Resolve the issue by replacing \\`auth.<function>()\\` with \\`(select auth.<function>())\\`. See [docs](https://supabase.com/docs/guides/database/postgres/row-level-security#call-functions-with-select) for more info.",
+            "metadata": {
+              "name": "projects",
+              "type": "table",
+              "schema": "public"
+            },
+            "observed_at": "2026-11-06T11:45:03.541Z"
+          },
+          {
+            "detail": "Table \\`public.projects\\` has a row level security policy \\`projects_delete_own\\` that re-evaluates current_setting() or auth.<function>() for each row. This produces suboptimal query performance at scale. Resolve the issue by replacing \\`auth.<function>()\\` with \\`(select auth.<function>())\\`. See [docs](https://supabase.com/docs/guides/database/postgres/row-level-security#call-functions-with-select) for more info.",
+            "metadata": {
+              "name": "projects",
+              "type": "table",
+              "schema": "public"
+            },
+            "observed_at": "2026-11-06T11:45:03.541Z"
+          },
+          {
+            "detail": "Table \\`public.tool_bookings\\` has a row level security policy \\`bookings_select_admin\\` that re-evaluates current_setting() or auth.<function>() for each row. This produces suboptimal query performance at scale. Resolve the issue by replacing \\`auth.<function>()\\` with \\`(select auth.<function>())\\`. See [docs](https://supabase.com/docs/guides/database/postgres/row-level-security#call-functions-with-select) for more info.",
+            "metadata": {
+              "name": "tool_bookings",
+              "type": "table",
+              "schema": "public"
+            },
+            "observed_at": "2026-11-06T11:45:03.541Z"
+          },
+          {
+            "detail": "Table \\`public.user_education\\` has a row level security policy \\`user_education_select\\` that re-evaluates current_setting() or auth.<function>() for each row. This produces suboptimal query performance at scale. Resolve the issue by replacing \\`auth.<function>()\\` with \\`(select auth.<function>())\\`. See [docs](https://supabase.com/docs/guides/database/postgres/row-level-security#call-functions-with-select) for more info.",
+            "metadata": {
+              "name": "user_education",
+              "type": "table",
+              "schema": "public"
+            },
+            "observed_at": "2026-11-06T11:45:03.541Z"
+          },
+          {
+            "detail": "Table \\`public.user_education\\` has a row level security policy \\`user_education_insert\\` that re-evaluates current_setting() or auth.<function>() for each row. This produces suboptimal query performance at scale. Resolve the issue by replacing \\`auth.<function>()\\` with \\`(select auth.<function>())\\`. See [docs](https://supabase.com/docs/guides/database/postgres/row-level-security#call-functions-with-select) for more info.",
+            "metadata": {
+              "name": "user_education",
+              "type": "table",
+              "schema": "public"
+            },
+            "observed_at": "2026-11-06T11:45:03.541Z"
+          },
+          {
+            "detail": "Table \\`public.user_education\\` has a row level security policy \\`user_education_update\\` that re-evaluates current_setting() or auth.<function>() for each row. This produces suboptimal query performance at scale. Resolve the issue by replacing \\`auth.<function>()\\` with \\`(select auth.<function>())\\`. See [docs](https://supabase.com/docs/guides/database/postgres/row-level-security#call-functions-with-select) for more info.",
+            "metadata": {
+              "name": "user_education",
+              "type": "table",
+              "schema": "public"
+            },
+            "observed_at": "2026-11-06T11:45:03.541Z"
+          },
+          {
+            "detail": "Table \\`public.user_education\\` has a row level security policy \\`user_education_delete\\` that re-evaluates current_setting() or auth.<function>() for each row. This produces suboptimal query performance at scale. Resolve the issue by replacing \\`auth.<function>()\\` with \\`(select auth.<function>())\\`. See [docs](https://supabase.com/docs/guides/database/postgres/row-level-security#call-functions-with-select) for more info.",
+            "metadata": {
+              "name": "user_education",
+              "type": "table",
+              "schema": "public"
+            },
+            "observed_at": "2026-11-06T11:45:03.541Z"
+          },
+          {
+            "detail": "Table \\`public.user_portfolio_projects\\` has a row level security policy \\`user_portfolio_projects_select\\` that re-evaluates current_setting() or auth.<function>() for each row. This produces suboptimal query performance at scale. Resolve the issue by replacing \\`auth.<function>()\\` with \\`(select auth.<function>())\\`. See [docs](https://supabase.com/docs/guides/database/postgres/row-level-security#call-functions-with-select) for more info.",
+            "metadata": {
+              "name": "user_portfolio_projects",
+              "type": "table",
+              "schema": "public"
+            },
+            "observed_at": "2026-11-06T11:45:03.541Z"
+          },
+          {
+            "detail": "Table \\`public.user_portfolio_projects\\` has a row level security policy \\`user_portfolio_projects_insert\\` that re-evaluates current_setting() or auth.<function>() for each row. This produces suboptimal query performance at scale. Resolve the issue by replacing \\`auth.<function>()\\` with \\`(select auth.<function>())\\`. See [docs](https://supabase.com/docs/guides/database/postgres/row-level-security#call-functions-with-select) for more info.",
+            "metadata": {
+              "name": "user_portfolio_projects",
+              "type": "table",
+              "schema": "public"
+            },
+            "observed_at": "2026-11-06T11:45:03.541Z"
+          },
+          {
+            "detail": "Table \\`public.user_portfolio_projects\\` has a row level security policy \\`user_portfolio_projects_update\\` that re-evaluates current_setting() or auth.<function>() for each row. This produces suboptimal query performance at scale. Resolve the issue by replacing \\`auth.<function>()\\` with \\`(select auth.<function>())\\`. See [docs](https://supabase.com/docs/guides/database/postgres/row-level-security#call-functions-with-select) for more info.",
+            "metadata": {
+              "name": "user_portfolio_projects",
+              "type": "table",
+              "schema": "public"
+            },
+            "observed_at": "2026-11-06T11:45:03.541Z"
+          },
+          {
+            "detail": "Table \\`public.events\\` has a row level security policy \\`events_insert_admin\\` that re-evaluates current_setting() or auth.<function>() for each row. This produces suboptimal query performance at scale. Resolve the issue by replacing \\`auth.<function>()\\` with \\`(select auth.<function>())\\`. See [docs](https://supabase.com/docs/guides/database/postgres/row-level-security#call-functions-with-select) for more info.",
+            "metadata": {
+              "name": "events",
+              "type": "table",
+              "schema": "public"
+            },
+            "observed_at": "2026-11-06T11:45:03.541Z"
+          },
+          {
+            "detail": "Table \\`public.notifications\\` has a row level security policy \\`notifications_insert_own\\` that re-evaluates current_setting() or auth.<function>() for each row. This produces suboptimal query performance at scale. Resolve the issue by replacing \\`auth.<function>()\\` with \\`(select auth.<function>())\\`. See [docs](https://supabase.com/docs/guides/database/postgres/row-level-security#call-functions-with-select) for more info.",
+            "metadata": {
+              "name": "notifications",
+              "type": "table",
+              "schema": "public"
+            },
+            "observed_at": "2026-11-06T11:45:03.541Z"
+          },
+          {
+            "detail": "Table \\`public.user_profiles\\` has a row level security policy \\`user_profiles_select\\` that re-evaluates current_setting() or auth.<function>() for each row. This produces suboptimal query performance at scale. Resolve the issue by replacing \\`auth.<function>()\\` with \\`(select auth.<function>())\\`. See [docs](https://supabase.com/docs/guides/database/postgres/row-level-security#call-functions-with-select) for more info.",
+            "metadata": {
+              "name": "user_profiles",
+              "type": "table",
+              "schema": "public"
+            },
+            "observed_at": "2026-11-06T11:45:03.541Z"
+          },
+          {
+            "detail": "Table \\`public.user_profiles\\` has a row level security policy \\`user_profiles_insert\\` that re-evaluates current_setting() or auth.<function>() for each row. This produces suboptimal query performance at scale. Resolve the issue by replacing \\`auth.<function>()\\` with \\`(select auth.<function>())\\`. See [docs](https://supabase.com/docs/guides/database/postgres/row-level-security#call-functions-with-select) for more info.",
+            "metadata": {
+              "name": "user_profiles",
+              "type": "table",
+              "schema": "public"
+            },
+            "observed_at": "2026-11-06T11:45:03.541Z"
+          },
+          {
+            "detail": "Table \\`public.user_profiles\\` has a row level security policy \\`user_profiles_update\\` that re-evaluates current_setting() or auth.<function>() for each row. This produces suboptimal query performance at scale. Resolve the issue by replacing \\`auth.<function>()\\` with \\`(select auth.<function>())\\`. See [docs](https://supabase.com/docs/guides/database/postgres/row-level-security#call-functions-with-select) for more info.",
+            "metadata": {
+              "name": "user_profiles",
+              "type": "table",
+              "schema": "public"
+            },
+            "observed_at": "2026-11-06T11:45:03.541Z"
+          },
+          {
+            "detail": "Table \\`public.user_profiles\\` has a row level security policy \\`user_profiles_delete\\` that re-evaluates current_setting() or auth.<function>() for each row. This produces suboptimal query performance at scale. Resolve the issue by replacing \\`auth.<function>()\\` with \\`(select auth.<function>())\\`. See [docs](https://supabase.com/docs/guides/database/postgres/row-level-security#call-functions-with-select) for more info.",
+            "metadata": {
+              "name": "user_profiles",
+              "type": "table",
+              "schema": "public"
+            },
+            "observed_at": "2026-11-06T11:45:03.541Z"
+          },
+          {
+            "detail": "Table \\`public.user_experience\\` has a row level security policy \\`user_experience_select\\` that re-evaluates current_setting() or auth.<function>() for each row. This produces suboptimal query performance at scale. Resolve the issue by replacing \\`auth.<function>()\\` with \\`(select auth.<function>())\\`. See [docs](https://supabase.com/docs/guides/database/postgres/row-level-security#call-functions-with-select) for more info.",
+            "metadata": {
+              "name": "user_experience",
+              "type": "table",
+              "schema": "public"
+            },
+            "observed_at": "2026-11-06T11:45:03.541Z"
+          },
+          {
+            "detail": "Table \\`public.user_experience\\` has a row level security policy \\`user_experience_insert\\` that re-evaluates current_setting() or auth.<function>() for each row. This produces suboptimal query performance at scale. Resolve the issue by replacing \\`auth.<function>()\\` with \\`(select auth.<function>())\\`. See [docs](https://supabase.com/docs/guides/database/postgres/row-level-security#call-functions-with-select) for more info.",
+            "metadata": {
+              "name": "user_experience",
+              "type": "table",
+              "schema": "public"
+            },
+            "observed_at": "2026-11-06T11:45:03.541Z"
+          },
+          {
+            "detail": "Table \\`public.user_experience\\` has a row level security policy \\`user_experience_update\\` that re-evaluates current_setting() or auth.<function>() for each row. This produces suboptimal query performance at scale. Resolve the issue by replacing \\`auth.<function>()\\` with \\`(select auth.<function>())\\`. See [docs](https://supabase.com/docs/guides/database/postgres/row-level-security#call-functions-with-select) for more info.",
+            "metadata": {
+              "name": "user_experience",
+              "type": "table",
+              "schema": "public"
+            },
+            "observed_at": "2026-11-06T11:45:03.541Z"
+          },
+          {
+            "detail": "Table \\`public.user_experience\\` has a row level security policy \\`user_experience_delete\\` that re-evaluates current_setting() or auth.<function>() for each row. This produces suboptimal query performance at scale. Resolve the issue by replacing \\`auth.<function>()\\` with \\`(select auth.<function>())\\`. See [docs](https://supabase.com/docs/guides/database/postgres/row-level-security#call-functions-with-select) for more info.",
+            "metadata": {
+              "name": "user_experience",
+              "type": "table",
+              "schema": "public"
+            },
+            "observed_at": "2026-11-06T11:45:03.541Z"
+          },
+          {
+            "detail": "Table \\`public.user_portfolio_projects\\` has a row level security policy \\`user_portfolio_projects_delete\\` that re-evaluates current_setting() or auth.<function>() for each row. This produces suboptimal query performance at scale. Resolve the issue by replacing \\`auth.<function>()\\` with \\`(select auth.<function>())\\`. See [docs](https://supabase.com/docs/guides/database/postgres/row-level-security#call-functions-with-select) for more info.",
+            "metadata": {
+              "name": "user_portfolio_projects",
+              "type": "table",
+              "schema": "public"
+            },
+            "observed_at": "2026-11-06T11:45:03.541Z"
+          },
+          {
+            "detail": "Table \\`public.user_volunteering\\` has a row level security policy \\`user_volunteering_select\\` that re-evaluates current_setting() or auth.<function>() for each row. This produces suboptimal query performance at scale. Resolve the issue by replacing \\`auth.<function>()\\` with \\`(select auth.<function>())\\`. See [docs](https://supabase.com/docs/guides/database/postgres/row-level-security#call-functions-with-select) for more info.",
+            "metadata": {
+              "name": "user_volunteering",
+              "type": "table",
+              "schema": "public"
+            },
+            "observed_at": "2026-11-06T11:45:03.541Z"
+          },
+          {
+            "detail": "Table \\`public.user_volunteering\\` has a row level security policy \\`user_volunteering_insert\\` that re-evaluates current_setting() or auth.<function>() for each row. This produces suboptimal query performance at scale. Resolve the issue by replacing \\`auth.<function>()\\` with \\`(select auth.<function>())\\`. See [docs](https://supabase.com/docs/guides/database/postgres/row-level-security#call-functions-with-select) for more info.",
+            "metadata": {
+              "name": "user_volunteering",
+              "type": "table",
+              "schema": "public"
+            },
+            "observed_at": "2026-11-06T11:45:03.541Z"
+          },
+          {
+            "detail": "Table \\`public.user_volunteering\\` has a row level security policy \\`user_volunteering_update\\` that re-evaluates current_setting() or auth.<function>() for each row. This produces suboptimal query performance at scale. Resolve the issue by replacing \\`auth.<function>()\\` with \\`(select auth.<function>())\\`. See [docs](https://supabase.com/docs/guides/database/postgres/row-level-security#call-functions-with-select) for more info.",
+            "metadata": {
+              "name": "user_volunteering",
+              "type": "table",
+              "schema": "public"
+            },
+            "observed_at": "2026-11-06T11:45:03.541Z"
+          },
+          {
+            "detail": "Table \\`public.user_volunteering\\` has a row level security policy \\`user_volunteering_delete\\` that re-evaluates current_setting() or auth.<function>() for each row. This produces suboptimal query performance at scale. Resolve the issue by replacing \\`auth.<function>()\\` with \\`(select auth.<function>())\\`. See [docs](https://supabase.com/docs/guides/database/postgres/row-level-security#call-functions-with-select) for more info.",
+            "metadata": {
+              "name": "user_volunteering",
+              "type": "table",
+              "schema": "public"
+            },
+            "observed_at": "2026-11-06T11:45:03.541Z"
+          },
+          {
+            "detail": "Table \\`public.user_social_links\\` has a row level security policy \\`user_social_links_select\\` that re-evaluates current_setting() or auth.<function>() for each row. This produces suboptimal query performance at scale. Resolve the issue by replacing \\`auth.<function>()\\` with \\`(select auth.<function>())\\`. See [docs](https://supabase.com/docs/guides/database/postgres/row-level-security#call-functions-with-select) for more info.",
+            "metadata": {
+              "name": "user_social_links",
+              "type": "table",
+              "schema": "public"
+            },
+            "observed_at": "2026-11-06T11:45:03.541Z"
+          },
+          {
+            "detail": "Table \\`public.user_social_links\\` has a row level security policy \\`user_social_links_insert\\` that re-evaluates current_setting() or auth.<function>() for each row. This produces suboptimal query performance at scale. Resolve the issue by replacing \\`auth.<function>()\\` with \\`(select auth.<function>())\\`. See [docs](https://supabase.com/docs/guides/database/postgres/row-level-security#call-functions-with-select) for more info.",
+            "metadata": {
+              "name": "user_social_links",
+              "type": "table",
+              "schema": "public"
+            },
+            "observed_at": "2026-11-06T11:45:03.541Z"
+          },
+          {
+            "detail": "Table \\`public.user_social_links\\` has a row level security policy \\`user_social_links_update\\` that re-evaluates current_setting() or auth.<function>() for each row. This produces suboptimal query performance at scale. Resolve the issue by replacing \\`auth.<function>()\\` with \\`(select auth.<function>())\\`. See [docs](https://supabase.com/docs/guides/database/postgres/row-level-security#call-functions-with-select) for more info.",
+            "metadata": {
+              "name": "user_social_links",
+              "type": "table",
+              "schema": "public"
+            },
+            "observed_at": "2026-11-06T11:45:03.541Z"
+          },
+          {
+            "detail": "Table \\`public.user_social_links\\` has a row level security policy \\`user_social_links_delete\\` that re-evaluates current_setting() or auth.<function>() for each row. This produces suboptimal query performance at scale. Resolve the issue by replacing \\`auth.<function>()\\` with \\`(select auth.<function>())\\`. See [docs](https://supabase.com/docs/guides/database/postgres/row-level-security#call-functions-with-select) for more info.",
+            "metadata": {
+              "name": "user_social_links",
+              "type": "table",
+              "schema": "public"
+            },
+            "observed_at": "2026-11-06T11:45:03.541Z"
+          },
+          {
+            "detail": "Table \\`public.user_skills\\` has a row level security policy \\`user_skills_select\\` that re-evaluates current_setting() or auth.<function>() for each row. This produces suboptimal query performance at scale. Resolve the issue by replacing \\`auth.<function>()\\` with \\`(select auth.<function>())\\`. See [docs](https://supabase.com/docs/guides/database/postgres/row-level-security#call-functions-with-select) for more info.",
+            "metadata": {
+              "name": "user_skills",
+              "type": "table",
+              "schema": "public"
+            },
+            "observed_at": "2026-11-06T11:45:03.541Z"
+          },
+          {
+            "detail": "Table \\`public.user_skills\\` has a row level security policy \\`user_skills_insert\\` that re-evaluates current_setting() or auth.<function>() for each row. This produces suboptimal query performance at scale. Resolve the issue by replacing \\`auth.<function>()\\` with \\`(select auth.<function>())\\`. See [docs](https://supabase.com/docs/guides/database/postgres/row-level-security#call-functions-with-select) for more info.",
+            "metadata": {
+              "name": "user_skills",
+              "type": "table",
+              "schema": "public"
+            },
+            "observed_at": "2026-11-06T11:45:03.541Z"
+          },
+          {
+            "detail": "Table \\`public.user_skills\\` has a row level security policy \\`user_skills_update\\` that re-evaluates current_setting() or auth.<function>() for each row. This produces suboptimal query performance at scale. Resolve the issue by replacing \\`auth.<function>()\\` with \\`(select auth.<function>())\\`. See [docs](https://supabase.com/docs/guides/database/postgres/row-level-security#call-functions-with-select) for more info.",
+            "metadata": {
+              "name": "user_skills",
+              "type": "table",
+              "schema": "public"
+            },
+            "observed_at": "2026-11-06T11:45:03.541Z"
+          },
+          {
+            "detail": "Table \\`public.user_skills\\` has a row level security policy \\`user_skills_delete\\` that re-evaluates current_setting() or auth.<function>() for each row. This produces suboptimal query performance at scale. Resolve the issue by replacing \\`auth.<function>()\\` with \\`(select auth.<function>())\\`. See [docs](https://supabase.com/docs/guides/database/postgres/row-level-security#call-functions-with-select) for more info.",
+            "metadata": {
+              "name": "user_skills",
+              "type": "table",
+              "schema": "public"
+            },
+            "observed_at": "2026-11-06T11:45:03.541Z"
+          },
+          {
+            "detail": "Table \\`public.user_interests\\` has a row level security policy \\`user_interests_select\\` that re-evaluates current_setting() or auth.<function>() for each row. This produces suboptimal query performance at scale. Resolve the issue by replacing \\`auth.<function>()\\` with \\`(select auth.<function>())\\`. See [docs](https://supabase.com/docs/guides/database/postgres/row-level-security#call-functions-with-select) for more info.",
+            "metadata": {
+              "name": "user_interests",
+              "type": "table",
+              "schema": "public"
+            },
+            "observed_at": "2026-11-06T11:45:03.541Z"
+          },
+          {
+            "detail": "Table \\`public.user_interests\\` has a row level security policy \\`user_interests_insert\\` that re-evaluates current_setting() or auth.<function>() for each row. This produces suboptimal query performance at scale. Resolve the issue by replacing \\`auth.<function>()\\` with \\`(select auth.<function>())\\`. See [docs](https://supabase.com/docs/guides/database/postgres/row-level-security#call-functions-with-select) for more info.",
+            "metadata": {
+              "name": "user_interests",
+              "type": "table",
+              "schema": "public"
+            },
+            "observed_at": "2026-11-06T11:45:03.541Z"
+          },
+          {
+            "detail": "Table \\`public.user_interests\\` has a row level security policy \\`user_interests_delete\\` that re-evaluates current_setting() or auth.<function>() for each row. This produces suboptimal query performance at scale. Resolve the issue by replacing \\`auth.<function>()\\` with \\`(select auth.<function>())\\`. See [docs](https://supabase.com/docs/guides/database/postgres/row-level-security#call-functions-with-select) for more info.",
+            "metadata": {
+              "name": "user_interests",
+              "type": "table",
+              "schema": "public"
+            },
+            "observed_at": "2026-11-06T11:45:03.541Z"
+          }
+        ]
+      },
+      {
+        "name": "unused_index",
+        "title": "Unused Index",
+        "level": "INFO",
+        "facing": "EXTERNAL",
+        "categories": [
+          "PERFORMANCE"
+        ],
+        "description": "Detects if an index has never been used and may be a candidate for removal.",
+        "remediation": "https://supabase.com/docs/guides/database/database-linter?lint=0005_unused_index",
+        "count": 21,
+        "findings": [
+          {
+            "detail": "Index \\`no_overlapping_tool_bookings\\` on table \\`public.tool_bookings\\` has not been used",
+            "metadata": {
+              "name": "tool_bookings",
+              "type": "table",
+              "schema": "public"
+            },
+            "observed_at": "2026-11-06T11:45:03.541Z"
+          },
+          {
+            "detail": "Index \\`idx_tool_bookings_tool_slot\\` on table \\`public.tool_bookings\\` has not been used",
+            "metadata": {
+              "name": "tool_bookings",
+              "type": "table",
+              "schema": "public"
+            },
+            "observed_at": "2026-11-06T11:45:03.541Z"
+          },
+          {
+            "detail": "Index \\`idx_user_profiles_user_id\\` on table \\`public.user_profiles\\` has not been used",
+            "metadata": {
+              "name": "user_profiles",
+              "type": "table",
+              "schema": "public"
+            },
+            "observed_at": "2026-11-06T11:45:03.541Z"
+          },
+          {
+            "detail": "Index \\`idx_user_experience_user_id\\` on table \\`public.user_experience\\` has not been used",
+            "metadata": {
+              "name": "user_experience",
+              "type": "table",
+              "schema": "public"
+            },
+            "observed_at": "2026-11-06T11:45:03.541Z"
+          },
+          {
+            "detail": "Index \\`idx_user_education_user_id\\` on table \\`public.user_education\\` has not been used",
+            "metadata": {
+              "name": "user_education",
+              "type": "table",
+              "schema": "public"
+            },
+            "observed_at": "2026-11-06T11:45:03.541Z"
+          },
+          {
+            "detail": "Index \\`idx_user_portfolio_projects_user_id\\` on table \\`public.user_portfolio_projects\\` has not been used",
+            "metadata": {
+              "name": "user_portfolio_projects",
+              "type": "table",
+              "schema": "public"
+            },
+            "observed_at": "2026-11-06T11:45:03.541Z"
+          },
+          {
+            "detail": "Index \\`idx_user_volunteering_user_id\\` on table \\`public.user_volunteering\\` has not been used",
+            "metadata": {
+              "name": "user_volunteering",
+              "type": "table",
+              "schema": "public"
+            },
+            "observed_at": "2026-11-06T11:45:03.541Z"
+          },
+          {
+            "detail": "Index \\`idx_user_social_links_user_id\\` on table \\`public.user_social_links\\` has not been used",
+            "metadata": {
+              "name": "user_social_links",
+              "type": "table",
+              "schema": "public"
+            },
+            "observed_at": "2026-11-06T11:45:03.541Z"
+          },
+          {
+            "detail": "Index \\`idx_user_skills_user_id\\` on table \\`public.user_skills\\` has not been used",
+            "metadata": {
+              "name": "user_skills",
+              "type": "table",
+              "schema": "public"
+            },
+            "observed_at": "2026-11-06T11:45:03.541Z"
+          },
+          {
+            "detail": "Index \\`idx_user_interests_user_id\\` on table \\`public.user_interests\\` has not been used",
+            "metadata": {
+              "name": "user_interests",
+              "type": "table",
+              "schema": "public"
+            },
+            "observed_at": "2026-11-06T11:45:03.541Z"
+          },
+          {
+            "detail": "Index \\`idx_tool_bookings_user_status\\` on table \\`public.tool_bookings\\` has not been used",
+            "metadata": {
+              "name": "tool_bookings",
+              "type": "table",
+              "schema": "public"
+            },
+            "observed_at": "2026-11-06T11:45:03.541Z"
+          },
+          {
+            "detail": "Index \\`idx_rsvps_user\\` on table \\`public.rsvps\\` has not been used",
+            "metadata": {
+              "name": "rsvps",
+              "type": "table",
+              "schema": "public"
+            },
+            "observed_at": "2026-11-06T11:45:03.541Z"
+          },
+          {
+            "detail": "Index \\`idx_notifications_user_created\\` on table \\`public.notifications\\` has not been used",
+            "metadata": {
+              "name": "notifications",
+              "type": "table",
+              "schema": "public"
+            },
+            "observed_at": "2026-11-06T11:45:03.541Z"
+          },
+          {
+            "detail": "Index \\`idx_notifications_user_unread\\` on table \\`public.notifications\\` has not been used",
+            "metadata": {
+              "name": "notifications",
+              "type": "table",
+              "schema": "public"
+            },
+            "observed_at": "2026-11-06T11:45:03.541Z"
+          },
+          {
+            "detail": "Index \\`idx_projects_creator\\` on table \\`public.projects\\` has not been used",
+            "metadata": {
+              "name": "projects",
+              "type": "table",
+              "schema": "public"
+            },
+            "observed_at": "2026-11-06T11:45:03.541Z"
+          },
+          {
+            "detail": "Index \\`idx_tool_bookings_user\\` on table \\`public.tool_bookings\\` has not been used",
+            "metadata": {
+              "name": "tool_bookings",
+              "type": "table",
+              "schema": "public"
+            },
+            "observed_at": "2026-11-06T11:45:03.541Z"
+          },
+          {
+            "detail": "Index \\`idx_tool_bookings_status\\` on table \\`public.tool_bookings\\` has not been used",
+            "metadata": {
+              "name": "tool_bookings",
+              "type": "table",
+              "schema": "public"
+            },
+            "observed_at": "2026-11-06T11:45:03.541Z"
+          },
+          {
+            "detail": "Index \\`idx_lab_sessions_user\\` on table \\`public.lab_sessions\\` has not been used",
+            "metadata": {
+              "name": "lab_sessions",
+              "type": "table",
+              "schema": "public"
+            },
+            "observed_at": "2026-11-06T11:45:03.541Z"
+          },
+          {
+            "detail": "Index \\`idx_events_date\\` on table \\`public.events\\` has not been used",
+            "metadata": {
+              "name": "events",
+              "type": "table",
+              "schema": "public"
+            },
+            "observed_at": "2026-11-06T11:45:03.541Z"
+          },
+          {
+            "detail": "Index \\`idx_rsvps_event\\` on table \\`public.rsvps\\` has not been used",
+            "metadata": {
+              "name": "rsvps",
+              "type": "table",
+              "schema": "public"
+            },
+            "observed_at": "2026-11-06T11:45:03.541Z"
+          },
+          {
+            "detail": "Index \\`idx_notifications_user\\` on table \\`public.notifications\\` has not been used",
+            "metadata": {
+              "name": "notifications",
+              "type": "table",
+              "schema": "public"
+            },
+            "observed_at": "2026-11-06T11:45:03.541Z"
+          }
+        ]
+      },
+      {
+        "name": "multiple_permissive_policies",
+        "title": "Multiple Permissive Policies",
+        "level": "WARN",
+        "facing": "EXTERNAL",
+        "categories": [
+          "PERFORMANCE"
+        ],
+        "description": "Detects if multiple permissive row level security policies are present on a table for the same \\`role\\` and \\`action\\` (e.g. insert). Multiple permissive policies are suboptimal for performance as each policy must be executed for every relevant query.",
+        "remediation": "https://supabase.com/docs/guides/database/database-linter?lint=0006_multiple_permissive_policies",
+        "count": 2,
+        "findings": [
+          {
+            "detail": "Table \\`public.notifications\\` has multiple permissive policies for role \\`authenticated\\` for action \\`SELECT\\`. Policies include \\`{notif_select_own,notifications_select_own}\\`",
+            "metadata": {
+              "name": "notifications",
+              "type": "table",
+              "schema": "public"
+            },
+            "observed_at": "2026-11-06T11:45:03.541Z"
+          },
+          {
+            "detail": "Table \\`public.tool_bookings\\` has multiple permissive policies for role \\`authenticated\\` for action \\`SELECT\\`. Policies include \\`{bookings_select_admin,bookings_select_own}\\`",
+            "metadata": {
+              "name": "tool_bookings",
+              "type": "table",
+              "schema": "public"
+            },
+            "observed_at": "2026-11-06T11:45:03.541Z"
+          }
+        ]
+      }
+    ]
+  },
+  "catalogQuery": "BEGIN READ ONLY;\nSELECT clock_timestamp() AS captured_at, current_database() AS database_name, version() AS version;\nSELECT c.conname, n.nspname AS table_schema, t.relname AS table_name,\n array(SELECT a.attname FROM unnest(c.conkey) WITH ORDINALITY x(num, ord) JOIN pg_attribute a ON a.attrelid=c.conrelid AND a.attnum=x.num ORDER BY ord) AS columns,\n array(SELECT format_type(a.atttypid,a.atttypmod) FROM unnest(c.conkey) WITH ORDINALITY x(num, ord) JOIN pg_attribute a ON a.attrelid=c.conrelid AND a.attnum=x.num ORDER BY ord) AS column_types,\n rn.nspname AS referenced_schema, rt.relname AS referenced_table,\n array(SELECT a.attname FROM unnest(c.confkey) WITH ORDINALITY x(num, ord) JOIN pg_attribute a ON a.attrelid=c.confrelid AND a.attnum=x.num ORDER BY ord) AS referenced_columns,\n pg_get_constraintdef(c.oid) AS definition,\n (SELECT jsonb_agg(jsonb_build_object('name',ic.relname,'definition',pg_get_indexdef(i.indexrelid),'valid',i.indisvalid,'ready',i.indisready)) FROM pg_index i JOIN pg_class ic ON ic.oid=i.indexrelid WHERE i.indrelid=c.conrelid) AS indexes\nFROM pg_constraint c JOIN pg_class t ON t.oid=c.conrelid JOIN pg_namespace n ON n.oid=t.relnamespace\nJOIN pg_class rt ON rt.oid=c.confrelid JOIN pg_namespace rn ON rn.oid=rt.relnamespace\nWHERE c.contype='f' AND n.nspname='public' AND c.conname IN ('events_club_id_fkey','events_created_by_fkey','knowledge_articles_author_id_fkey','project_members_user_id_fkey','projects_club_id_fkey','fk_bookings_project','tool_bookings_approved_by_fkey','fk_users_club')\nORDER BY t.relname,c.conname;\nCOMMIT;",
+  "catalog": [
+    {
+      "conname": "events_club_id_fkey",
+      "table_schema": "public",
+      "table_name": "events",
+      "columns": "{club_id}",
+      "column_types": [
+        "uuid"
+      ],
+      "referenced_schema": "public",
+      "referenced_table": "clubs",
+      "referenced_columns": "{id}",
+      "definition": "FOREIGN KEY (club_id) REFERENCES clubs(id)",
+      "indexes": [
+        {
+          "name": "idx_events_date",
+          "ready": true,
+          "valid": true,
+          "definition": "CREATE INDEX idx_events_date ON public.events USING btree (event_date)"
+        },
+        {
+          "name": "events_pkey",
+          "ready": true,
+          "valid": true,
+          "definition": "CREATE UNIQUE INDEX events_pkey ON public.events USING btree (id)"
+        }
+      ]
+    },
+    {
+      "conname": "events_created_by_fkey",
+      "table_schema": "public",
+      "table_name": "events",
+      "columns": "{created_by}",
+      "column_types": [
+        "uuid"
+      ],
+      "referenced_schema": "public",
+      "referenced_table": "users",
+      "referenced_columns": "{id}",
+      "definition": "FOREIGN KEY (created_by) REFERENCES users(id)",
+      "indexes": [
+        {
+          "name": "idx_events_date",
+          "ready": true,
+          "valid": true,
+          "definition": "CREATE INDEX idx_events_date ON public.events USING btree (event_date)"
+        },
+        {
+          "name": "events_pkey",
+          "ready": true,
+          "valid": true,
+          "definition": "CREATE UNIQUE INDEX events_pkey ON public.events USING btree (id)"
+        }
+      ]
+    },
+    {
+      "conname": "knowledge_articles_author_id_fkey",
+      "table_schema": "public",
+      "table_name": "knowledge_articles",
+      "columns": "{author_id}",
+      "column_types": [
+        "uuid"
+      ],
+      "referenced_schema": "public",
+      "referenced_table": "users",
+      "referenced_columns": "{id}",
+      "definition": "FOREIGN KEY (author_id) REFERENCES users(id)",
+      "indexes": [
+        {
+          "name": "knowledge_articles_pkey",
+          "ready": true,
+          "valid": true,
+          "definition": "CREATE UNIQUE INDEX knowledge_articles_pkey ON public.knowledge_articles USING btree (id)"
+        }
+      ]
+    },
+    {
+      "conname": "project_members_user_id_fkey",
+      "table_schema": "public",
+      "table_name": "project_members",
+      "columns": "{user_id}",
+      "column_types": [
+        "uuid"
+      ],
+      "referenced_schema": "public",
+      "referenced_table": "users",
+      "referenced_columns": "{id}",
+      "definition": "FOREIGN KEY (user_id) REFERENCES users(id)",
+      "indexes": [
+        {
+          "name": "project_members_pkey",
+          "ready": true,
+          "valid": true,
+          "definition": "CREATE UNIQUE INDEX project_members_pkey ON public.project_members USING btree (id)"
+        },
+        {
+          "name": "project_members_project_id_user_id_key",
+          "ready": true,
+          "valid": true,
+          "definition": "CREATE UNIQUE INDEX project_members_project_id_user_id_key ON public.project_members USING btree (project_id, user_id)"
+        }
+      ]
+    },
+    {
+      "conname": "projects_club_id_fkey",
+      "table_schema": "public",
+      "table_name": "projects",
+      "columns": "{club_id}",
+      "column_types": [
+        "uuid"
+      ],
+      "referenced_schema": "public",
+      "referenced_table": "clubs",
+      "referenced_columns": "{id}",
+      "definition": "FOREIGN KEY (club_id) REFERENCES clubs(id)",
+      "indexes": [
+        {
+          "name": "projects_pkey",
+          "ready": true,
+          "valid": true,
+          "definition": "CREATE UNIQUE INDEX projects_pkey ON public.projects USING btree (id)"
+        },
+        {
+          "name": "idx_projects_creator",
+          "ready": true,
+          "valid": true,
+          "definition": "CREATE INDEX idx_projects_creator ON public.projects USING btree (created_by)"
+        }
+      ]
+    },
+    {
+      "conname": "fk_bookings_project",
+      "table_schema": "public",
+      "table_name": "tool_bookings",
+      "columns": "{project_id}",
+      "column_types": [
+        "uuid"
+      ],
+      "referenced_schema": "public",
+      "referenced_table": "projects",
+      "referenced_columns": "{id}",
+      "definition": "FOREIGN KEY (project_id) REFERENCES projects(id)",
+      "indexes": [
+        {
+          "name": "idx_tool_bookings_status",
+          "ready": true,
+          "valid": true,
+          "definition": "CREATE INDEX idx_tool_bookings_status ON public.tool_bookings USING btree (status)"
+        },
+        {
+          "name": "tool_bookings_pkey",
+          "ready": true,
+          "valid": true,
+          "definition": "CREATE UNIQUE INDEX tool_bookings_pkey ON public.tool_bookings USING btree (id)"
+        },
+        {
+          "name": "idx_tool_bookings_user",
+          "ready": true,
+          "valid": true,
+          "definition": "CREATE INDEX idx_tool_bookings_user ON public.tool_bookings USING btree (user_id)"
+        },
+        {
+          "name": "no_overlapping_tool_bookings",
+          "ready": true,
+          "valid": true,
+          "definition": "CREATE INDEX no_overlapping_tool_bookings ON public.tool_bookings USING gist (tool_id, tstzrange(slot_start, slot_end, '[)'::text)) WHERE (status = ANY (ARRAY['pending'::text, 'approved'::text, 'active'::text]))"
+        },
+        {
+          "name": "idx_tool_bookings_tool_slot",
+          "ready": true,
+          "valid": true,
+          "definition": "CREATE INDEX idx_tool_bookings_tool_slot ON public.tool_bookings USING btree (tool_id, slot_start, slot_end) WHERE (status = ANY (ARRAY['pending'::text, 'approved'::text, 'active'::text]))"
+        },
+        {
+          "name": "idx_tool_bookings_user_status",
+          "ready": true,
+          "valid": true,
+          "definition": "CREATE INDEX idx_tool_bookings_user_status ON public.tool_bookings USING btree (user_id, status)"
+        }
+      ]
+    },
+    {
+      "conname": "tool_bookings_approved_by_fkey",
+      "table_schema": "public",
+      "table_name": "tool_bookings",
+      "columns": "{approved_by}",
+      "column_types": [
+        "uuid"
+      ],
+      "referenced_schema": "public",
+      "referenced_table": "users",
+      "referenced_columns": "{id}",
+      "definition": "FOREIGN KEY (approved_by) REFERENCES users(id)",
+      "indexes": [
+        {
+          "name": "idx_tool_bookings_status",
+          "ready": true,
+          "valid": true,
+          "definition": "CREATE INDEX idx_tool_bookings_status ON public.tool_bookings USING btree (status)"
+        },
+        {
+          "name": "tool_bookings_pkey",
+          "ready": true,
+          "valid": true,
+          "definition": "CREATE UNIQUE INDEX tool_bookings_pkey ON public.tool_bookings USING btree (id)"
+        },
+        {
+          "name": "idx_tool_bookings_user",
+          "ready": true,
+          "valid": true,
+          "definition": "CREATE INDEX idx_tool_bookings_user ON public.tool_bookings USING btree (user_id)"
+        },
+        {
+          "name": "no_overlapping_tool_bookings",
+          "ready": true,
+          "valid": true,
+          "definition": "CREATE INDEX no_overlapping_tool_bookings ON public.tool_bookings USING gist (tool_id, tstzrange(slot_start, slot_end, '[)'::text)) WHERE (status = ANY (ARRAY['pending'::text, 'approved'::text, 'active'::text]))"
+        },
+        {
+          "name": "idx_tool_bookings_tool_slot",
+          "ready": true,
+          "valid": true,
+          "definition": "CREATE INDEX idx_tool_bookings_tool_slot ON public.tool_bookings USING btree (tool_id, slot_start, slot_end) WHERE (status = ANY (ARRAY['pending'::text, 'approved'::text, 'active'::text]))"
+        },
+        {
+          "name": "idx_tool_bookings_user_status",
+          "ready": true,
+          "valid": true,
+          "definition": "CREATE INDEX idx_tool_bookings_user_status ON public.tool_bookings USING btree (user_id, status)"
+        }
+      ]
+    },
+    {
+      "conname": "fk_users_club",
+      "table_schema": "public",
+      "table_name": "users",
+      "columns": "{club_id}",
+      "column_types": [
+        "uuid"
+      ],
+      "referenced_schema": "public",
+      "referenced_table": "clubs",
+      "referenced_columns": "{id}",
+      "definition": "FOREIGN KEY (club_id) REFERENCES clubs(id)",
+      "indexes": [
+        {
+          "name": "users_pkey",
+          "ready": true,
+          "valid": true,
+          "definition": "CREATE UNIQUE INDEX users_pkey ON public.users USING btree (id)"
+        },
+        {
+          "name": "users_email_key",
+          "ready": true,
+          "valid": true,
+          "definition": "CREATE UNIQUE INDEX users_email_key ON public.users USING btree (email)"
+        },
+        {
+          "name": "users_college_roll_key",
+          "ready": true,
+          "valid": true,
+          "definition": "CREATE UNIQUE INDEX users_college_roll_key ON public.users USING btree (college_roll)"
+        },
+        {
+          "name": "users_qr_code_data_key",
+          "ready": true,
+          "valid": true,
+          "definition": "CREATE UNIQUE INDEX users_qr_code_data_key ON public.users USING btree (qr_code_data)"
+        },
+        {
+          "name": "users_college_roll_normalized_v1_uidx",
+          "ready": true,
+          "valid": true,
+          "definition": "CREATE UNIQUE INDEX users_college_roll_normalized_v1_uidx ON public.users USING btree (idealab_private.normalize_mec_registration_v1(college_roll) COLLATE idealab_private.mec_registration_ci) WHERE (college_roll IS NOT NULL)"
+        }
+      ]
+    }
+  ]
+}

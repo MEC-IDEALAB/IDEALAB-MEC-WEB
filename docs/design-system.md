@@ -94,16 +94,38 @@ keep decorative collage layers hidden from assistive technology. The enclosing
 poster provides one concise accessible description. Reference poster artwork
 is design inspiration only and is not copied into the site.
 
+The home hero and “Less what if” poster do not use the former terminal-style
+ASCII console or its “IDEA → OBJECT” stamp. The hero keeps the animated local
+vector study and machine poster. Use the same boxes mark for Projects in the
+public shortcut cards and member profile navigation. Profile Share and Settings
+remain round icon-only controls with accessible names and a minimum 48 px target;
+the profile card flips from either face, with reduced-motion support.
+
 The member workspace keeps one shared navigation component between its
 protected route shell and no-data design preview. Home, Lab and Profile form
-the top navigation at every width; there is no sidebar or member bottom bar.
-Lab groups Requests, Borrowing, Events, Visits and Projects, with an Overview
-link. Profile groups Your details and Settings, with sign out in that context.
-Notifications and the theme toggle remain top-right utilities. Context links
-wrap on phones rather than requiring horizontal scrolling or a More menu.
-Keep 44 px minimum interactive targets and visible focus outlines. Strong
-outlined cards, restrained shadows and colored icon plates follow Grow's
-hierarchy while using the website's Bricolage heading and notebook tokens.
+the primary navigation on desktop. Phones hide those links from the top bar
+and use a fixed, safe-area-aware bottom bar with three thumb-sized destinations;
+the branded header keeps only identity, theme and notifications. Lab quick
+access contains Make & borrow, Events and Projects in one responsive card.
+Requests and borrowing share the Make & borrow destination; visits remain
+inside the session card, not the quick-access list. Profile contains Your
+details and Settings. Keep 44 px minimum interactive targets and visible focus
+outlines. Strong outlined cards, restrained shadows, compact pixel labels and
+monochrome artwork follow the IDEALAB MEC neo-brutalist direction while keeping
+body text readable.
+
+Home and Lab use the same upcoming-events carousel. Published cards come only
+from the guarded events query; touch scrolling and snap points work without
+autoplay, arrow controls appear only when multiple records exist, and reduced
+motion disables smooth scrolling. A single real event fills the track. The
+no-data design preview uses an explicitly labeled empty placeholder, never a
+sample event. Check-in and private visit history share one compact session card.
+Check-in uses one button and a generic “Lab visit” label rather than asking for
+free text. A saved active session adds a pinned app-wide mobile reminder with
+an elapsed timer and checkout action; it becomes more prominent after two hours
+and stays until checkout is saved. The reminder is an in-app control, not an OS
+push notification. Current presence stays a separate compact card and reports
+its unavailable state without invented names or counts.
 
 ## Audit refinements
 

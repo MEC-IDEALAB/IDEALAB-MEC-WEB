@@ -1,0 +1,190 @@
+{
+  "capturedAt": "2026-11-06T12:07:12.384Z",
+  "nodeVersion": "v24.19.0",
+  "version": "postgres (PostgreSQL) 17.6",
+  "scope": "Disposable synthetic FK index forward/idempotence/rollback rehearsal. No shared database writes.",
+  "checks": {
+    "privateScratchDirectory": true,
+    "isolatedIdentity": true,
+    "wrongCredentialDenied": true,
+    "transactionRollback": true,
+    "clusterStoppedAndRemoved": true
+  },
+  "database": {
+    "version": "17.6",
+    "encoding": "UTF8",
+    "locale": "C"
+  },
+  "sharedFkIndexes": {
+    "verificationLevel": "Disposable PostgreSQL synthetic topology; not a full shared schema restore or performance benchmark.",
+    "candidateSha256": "ef320c94e3e9be594b1d06833084555cd2af773a9958976009d9d0712a85d8f2",
+    "rollbackSha256": "0585080da037fe4e2b777018f2ddaa066145d70864750426455ee45c361ee0c7",
+    "checks": {
+      "freshApply": true,
+      "idempotentApply": true,
+      "idempotentRollback": true,
+      "ownershipGuard": true,
+      "wrongBaselineGuard": true,
+      "nameCollisionGuard": true,
+      "staleTelemetryGuard": true,
+      "atomicFailure": true,
+      "unrelatedIndexesPreserved": true,
+      "grantsRlsConstraintsAndRowsUnchanged": true
+    },
+    "transcript": [
+      {
+        "label": "synthetic baseline",
+        "stdout": "",
+        "stderr": "",
+        "exitCode": 0
+      },
+      {
+        "label": "schema security fingerprint",
+        "stdout": "{\"acl\" : [[\"clubs\", null, false, false], [\"events\", null, false, false], [\"knowledge_articles\", null, false, false], [\"project_members\", null, false, false], [\"projects\", null, false, false], [\"tool_bookings\", null, false, false], [\"users\", [\"scratch_owner=arwdDxtm/scratch_owner\",\"phase1_reader=r/scratch_owner\"], true, true]], \"policies\" : [{\"schemaname\":\"public\",\"tablename\":\"users\",\"policyname\":\"own_fixture\",\"permissive\":\"PERMISSIVE\",\"roles\":[\"phase1_reader\"],\"cmd\":\"SELECT\",\"qual\":\"false\",\"with_check\":null}], \"constraints\" : [\"PRIMARY KEY (id)\", \"FOREIGN KEY (club_id) REFERENCES clubs(id)\", \"FOREIGN KEY (created_by) REFERENCES users(id)\", \"PRIMARY KEY (id)\", \"FOREIGN KEY (project_id) REFERENCES projects(id)\", \"FOREIGN KEY (club_id) REFERENCES clubs(id)\", \"FOREIGN KEY (author_id) REFERENCES users(id)\", \"PRIMARY KEY (id)\", \"PRIMARY KEY (id)\", \"FOREIGN KEY (user_id) REFERENCES users(id)\", \"FOREIGN KEY (club_id) REFERENCES clubs(id)\", \"PRIMARY KEY (id)\", \"FOREIGN KEY (approved_by) REFERENCES users(id)\", \"PRIMARY KEY (id)\", \"PRIMARY KEY (id)\"], \"users\" : [{\"id\":\"00000000-0000-4000-8000-000000000002\",\"club_id\":\"00000000-0000-4000-8000-000000000001\"}]}",
+        "stderr": "",
+        "exitCode": 0
+      },
+      {
+        "label": "missing intent marker",
+        "exitCode": 1,
+        "expectedRejection": "ERROR:  explicit reviewed shared-project intent is required\r\nCONTEXT:  PL/pgSQL function inline_code_block line 10 at RAISE"
+      },
+      {
+        "label": "create same-name collision",
+        "stdout": "",
+        "stderr": "",
+        "exitCode": 0
+      },
+      {
+        "label": "wrong index rejected atomically",
+        "exitCode": 1,
+        "expectedRejection": "ERROR:  index name/definition/ownership collision: idealab_fk_events_club_id_v1\r\nCONTEXT:  PL/pgSQL function inline_code_block line 55 at RAISE"
+      },
+      {
+        "label": "remove synthetic collision",
+        "stdout": "",
+        "stderr": "",
+        "exitCode": 0
+      },
+      {
+        "label": "remove expected FK",
+        "stdout": "",
+        "stderr": "",
+        "exitCode": 0
+      },
+      {
+        "label": "missing late FK rolls back earlier creates",
+        "exitCode": 1,
+        "expectedRejection": "ERROR:  FK baseline mismatch: public.users.fk_users_club\r\nCONTEXT:  PL/pgSQL function inline_code_block line 44 at RAISE"
+      },
+      {
+        "label": "no partial indexes",
+        "stdout": "0",
+        "stderr": "",
+        "exitCode": 0
+      },
+      {
+        "label": "restore expected FK",
+        "stdout": "",
+        "stderr": "",
+        "exitCode": 0
+      },
+      {
+        "label": "external covering index fixture",
+        "stdout": "",
+        "stderr": "",
+        "exitCode": 0
+      },
+      {
+        "label": "stale covering-index telemetry",
+        "exitCode": 1,
+        "expectedRejection": "ERROR:  covering index already exists for events.club_id; refresh telemetry\r\nCONTEXT:  PL/pgSQL function inline_code_block line 64 at RAISE"
+      },
+      {
+        "label": "remove external fixture",
+        "stdout": "",
+        "stderr": "",
+        "exitCode": 0
+      },
+      {
+        "label": "first apply",
+        "stdout": "",
+        "stderr": "",
+        "exitCode": 0
+      },
+      {
+        "label": "eight valid indexes",
+        "stdout": "8",
+        "stderr": "",
+        "exitCode": 0
+      },
+      {
+        "label": "idempotent second apply",
+        "stdout": "",
+        "stderr": "",
+        "exitCode": 0
+      },
+      {
+        "label": "schema security fingerprint",
+        "stdout": "{\"acl\" : [[\"clubs\", null, false, false], [\"events\", null, false, false], [\"knowledge_articles\", null, false, false], [\"project_members\", null, false, false], [\"projects\", null, false, false], [\"tool_bookings\", null, false, false], [\"users\", [\"scratch_owner=arwdDxtm/scratch_owner\",\"phase1_reader=r/scratch_owner\"], true, true]], \"policies\" : [{\"schemaname\":\"public\",\"tablename\":\"users\",\"policyname\":\"own_fixture\",\"permissive\":\"PERMISSIVE\",\"roles\":[\"phase1_reader\"],\"cmd\":\"SELECT\",\"qual\":\"false\",\"with_check\":null}], \"constraints\" : [\"PRIMARY KEY (id)\", \"FOREIGN KEY (club_id) REFERENCES clubs(id)\", \"FOREIGN KEY (created_by) REFERENCES users(id)\", \"PRIMARY KEY (id)\", \"FOREIGN KEY (project_id) REFERENCES projects(id)\", \"FOREIGN KEY (club_id) REFERENCES clubs(id)\", \"FOREIGN KEY (author_id) REFERENCES users(id)\", \"PRIMARY KEY (id)\", \"PRIMARY KEY (id)\", \"FOREIGN KEY (user_id) REFERENCES users(id)\", \"FOREIGN KEY (club_id) REFERENCES clubs(id)\", \"PRIMARY KEY (id)\", \"FOREIGN KEY (approved_by) REFERENCES users(id)\", \"PRIMARY KEY (id)\", \"PRIMARY KEY (id)\"], \"users\" : [{\"id\":\"00000000-0000-4000-8000-000000000002\",\"club_id\":\"00000000-0000-4000-8000-000000000001\"}]}",
+        "stderr": "",
+        "exitCode": 0
+      },
+      {
+        "label": "tamper ownership marker",
+        "stdout": "",
+        "stderr": "",
+        "exitCode": 0
+      },
+      {
+        "label": "rollback refuses changed index atomically",
+        "exitCode": 1,
+        "expectedRejection": "ERROR:  rollback refuses changed/unowned index: idealab_fk_users_club_id_v1\r\nCONTEXT:  PL/pgSQL function inline_code_block line 55 at RAISE"
+      },
+      {
+        "label": "failed rollback preserves all eight indexes",
+        "stdout": "8",
+        "stderr": "",
+        "exitCode": 0
+      },
+      {
+        "label": "restore synthetic marker",
+        "stdout": "",
+        "stderr": "",
+        "exitCode": 0
+      },
+      {
+        "label": "rollback",
+        "stdout": "",
+        "stderr": "",
+        "exitCode": 0
+      },
+      {
+        "label": "idempotent second rollback",
+        "stdout": "",
+        "stderr": "",
+        "exitCode": 0
+      },
+      {
+        "label": "candidate indexes absent",
+        "stdout": "0",
+        "stderr": "",
+        "exitCode": 0
+      },
+      {
+        "label": "unrelated index retained",
+        "stdout": "t",
+        "stderr": "",
+        "exitCode": 0
+      },
+      {
+        "label": "schema security fingerprint",
+        "stdout": "{\"acl\" : [[\"clubs\", null, false, false], [\"events\", null, false, false], [\"knowledge_articles\", null, false, false], [\"project_members\", null, false, false], [\"projects\", null, false, false], [\"tool_bookings\", null, false, false], [\"users\", [\"scratch_owner=arwdDxtm/scratch_owner\",\"phase1_reader=r/scratch_owner\"], true, true]], \"policies\" : [{\"schemaname\":\"public\",\"tablename\":\"users\",\"policyname\":\"own_fixture\",\"permissive\":\"PERMISSIVE\",\"roles\":[\"phase1_reader\"],\"cmd\":\"SELECT\",\"qual\":\"false\",\"with_check\":null}], \"constraints\" : [\"PRIMARY KEY (id)\", \"FOREIGN KEY (club_id) REFERENCES clubs(id)\", \"FOREIGN KEY (created_by) REFERENCES users(id)\", \"PRIMARY KEY (id)\", \"FOREIGN KEY (project_id) REFERENCES projects(id)\", \"FOREIGN KEY (club_id) REFERENCES clubs(id)\", \"FOREIGN KEY (author_id) REFERENCES users(id)\", \"PRIMARY KEY (id)\", \"PRIMARY KEY (id)\", \"FOREIGN KEY (user_id) REFERENCES users(id)\", \"FOREIGN KEY (club_id) REFERENCES clubs(id)\", \"PRIMARY KEY (id)\", \"FOREIGN KEY (approved_by) REFERENCES users(id)\", \"PRIMARY KEY (id)\", \"PRIMARY KEY (id)\"], \"users\" : [{\"id\":\"00000000-0000-4000-8000-000000000002\",\"club_id\":\"00000000-0000-4000-8000-000000000001\"}]}",
+        "stderr": "",
+        "exitCode": 0
+      }
+    ]
+  },
+  "result": "passed",
+  "started": true
+}

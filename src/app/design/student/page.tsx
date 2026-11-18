@@ -12,7 +12,7 @@ export const metadata: Metadata = {
 };
 
 const screens: StudentPreviewScreen[] = [
-  'home', 'lab', 'profile', 'projects', 'events', 'requests', 'notifications', 'visits', 'borrowing', 'settings',
+  'home', 'lab', 'profile', 'projects', 'make-borrow', 'events', 'requests', 'notifications', 'visits', 'borrowing', 'settings',
 ];
 
 export default async function StudentWorkspaceDesignPage({

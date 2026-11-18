@@ -1,0 +1,47 @@
+{
+  "capturedAt": "2026-11-15T13:19:48.675Z",
+  "nodeVersion": "v24.19.0",
+  "version": "postgres (PostgreSQL) 17.6",
+  "scope": "Disposable PostgreSQL 17 with synthetic shared-account, staff-roster and maker-profile fixtures; no Supabase API or shared project accessed.",
+  "checks": {
+    "privateScratchDirectory": true,
+    "isolatedIdentity": true,
+    "wrongCredentialDenied": true,
+    "transactionRollback": true,
+    "makerPublicationTransitions": true,
+    "makerPublicationFixtureRolledBack": true,
+    "noAnonymousProfileResolver": true,
+    "preuseRollbackAtomicAndSavepointRecoverable": true,
+    "missingRollbackMarkerFailsClosed": true,
+    "makerAclMatrixAndAuditIdentifiers": true,
+    "nullAdmissionHelperDenied": true,
+    "missingUseMarkerMutationDenied": true,
+    "concurrentPublishCreatesOneTransition": true,
+    "concurrentAccountLockOverlapObserved": true,
+    "rollbackRefusesAfterUseEvenAfterCascadeDeletion": true,
+    "clusterStoppedAndRemoved": true
+  },
+  "database": {
+    "version": "17.6",
+    "encoding": "UTF8",
+    "locale": "C"
+  },
+  "sources": {
+    "growFixtureSha256": "27f719c0ee9867dea2968a44b961d5f6719bfb3ecbecabc092aad413c7ae96f2",
+    "growMigrationSha256": "492fbccba41ac6db03836b2ab62b1a5e9d7349a278d0670f032e8b2daad297b0",
+    "fixtureExtrasSha256": "f9bc37937dab7d6ea147e97da8e9004d359c94d2325db4704b92d7f03c55bda7",
+    "staffCandidateSha256": "5f7ba7b62b079344c6168687050713614dbd4b4e3e707c335b397d0b9c9cf671",
+    "makerCandidateSha256": "9979a133c37e6d31caa0def54baf025cbb9bd675ba63560cf00307504932e3cf",
+    "acceptanceSqlSha256": "777c9b8ccf3e5c9d884e024f5acd79360b66a6cc305ef7b5cb9ddf1cc40ac86f",
+    "makerRollbackSha256": "832d112659e77584d05ed705edd1f2b032e9f247977081d806808030ff1b568b"
+  },
+  "observed": {
+    "concurrentLockWaiters": 2,
+    "concurrentPublishStatuses": [
+      "conflict",
+      "saved"
+    ]
+  },
+  "result": "passed",
+  "started": true
+}

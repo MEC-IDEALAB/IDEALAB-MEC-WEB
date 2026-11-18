@@ -1,0 +1,365 @@
+{
+  "projectId": "huftzhfqnnslvnfzvbex",
+  "retrievedDate": "2026-11-04",
+  "scope": "Read-only projection of retained migration metadata; excludes account/Auth fingerprints, internal IDs and all member rows. Stored metadata is not a data backup.",
+  "rls": {
+    "forced": false,
+    "enabled": true
+  },
+  "columns": [
+    {
+      "name": "id",
+      "type": "uuid",
+      "default": null,
+      "notnull": true,
+      "identity": "",
+      "generated": ""
+    },
+    {
+      "name": "name",
+      "type": "text",
+      "default": null,
+      "notnull": true,
+      "identity": "",
+      "generated": ""
+    },
+    {
+      "name": "email",
+      "type": "text",
+      "default": null,
+      "notnull": true,
+      "identity": "",
+      "generated": ""
+    },
+    {
+      "name": "phone",
+      "type": "text",
+      "default": null,
+      "notnull": false,
+      "identity": "",
+      "generated": ""
+    },
+    {
+      "name": "college_roll",
+      "type": "text",
+      "default": null,
+      "notnull": false,
+      "identity": "",
+      "generated": ""
+    },
+    {
+      "name": "role",
+      "type": "text",
+      "default": "'student'::text",
+      "notnull": true,
+      "identity": "",
+      "generated": ""
+    },
+    {
+      "name": "club_id",
+      "type": "uuid",
+      "default": null,
+      "notnull": false,
+      "identity": "",
+      "generated": ""
+    },
+    {
+      "name": "xp",
+      "type": "integer",
+      "default": "0",
+      "notnull": false,
+      "identity": "",
+      "generated": ""
+    },
+    {
+      "name": "level",
+      "type": "integer",
+      "default": "1",
+      "notnull": false,
+      "identity": "",
+      "generated": ""
+    },
+    {
+      "name": "reputation_score",
+      "type": "integer",
+      "default": "100",
+      "notnull": false,
+      "identity": "",
+      "generated": ""
+    },
+    {
+      "name": "qr_code_data",
+      "type": "text",
+      "default": null,
+      "notnull": false,
+      "identity": "",
+      "generated": ""
+    },
+    {
+      "name": "fcm_token",
+      "type": "text",
+      "default": null,
+      "notnull": false,
+      "identity": "",
+      "generated": ""
+    },
+    {
+      "name": "created_at",
+      "type": "timestamp with time zone",
+      "default": "now()",
+      "notnull": false,
+      "identity": "",
+      "generated": ""
+    },
+    {
+      "name": "updated_at",
+      "type": "timestamp with time zone",
+      "default": "now()",
+      "notnull": false,
+      "identity": "",
+      "generated": ""
+    },
+    {
+      "name": "profile_completed",
+      "type": "boolean",
+      "default": "false",
+      "notnull": false,
+      "identity": "",
+      "generated": ""
+    },
+    {
+      "name": "avatar_url",
+      "type": "text",
+      "default": null,
+      "notnull": false,
+      "identity": "",
+      "generated": ""
+    },
+    {
+      "name": "is_active",
+      "type": "boolean",
+      "default": "true",
+      "notnull": false,
+      "identity": "",
+      "generated": ""
+    },
+    {
+      "name": "ban_reason",
+      "type": "text",
+      "default": null,
+      "notnull": false,
+      "identity": "",
+      "generated": ""
+    },
+    {
+      "name": "banned_at",
+      "type": "timestamp with time zone",
+      "default": null,
+      "notnull": false,
+      "identity": "",
+      "generated": ""
+    }
+  ],
+  "indexes": [
+    "CREATE UNIQUE INDEX users_college_roll_key ON public.users USING btree (college_roll)",
+    "CREATE UNIQUE INDEX users_email_key ON public.users USING btree (email)",
+    "CREATE UNIQUE INDEX users_pkey ON public.users USING btree (id)",
+    "CREATE UNIQUE INDEX users_qr_code_data_key ON public.users USING btree (qr_code_data)"
+  ],
+  "policies": [
+    {
+      "name": "users_insert_own",
+      "check": "(auth.uid() = id)",
+      "roles": [
+        "PUBLIC"
+      ],
+      "using": null,
+      "command": "a",
+      "permissive": true
+    },
+    {
+      "name": "users_read_all",
+      "check": null,
+      "roles": [
+        "authenticated"
+      ],
+      "using": "true",
+      "command": "r",
+      "permissive": true
+    },
+    {
+      "name": "users_select_own",
+      "check": null,
+      "roles": [
+        "PUBLIC"
+      ],
+      "using": "(auth.uid() = id)",
+      "command": "r",
+      "permissive": true
+    },
+    {
+      "name": "users_update_own",
+      "check": null,
+      "roles": [
+        "PUBLIC"
+      ],
+      "using": "(auth.uid() = id)",
+      "command": "w",
+      "permissive": true
+    }
+  ],
+  "table_acl": [
+    {
+      "grantee": "postgres",
+      "grantable": false,
+      "privilege": "DELETE"
+    },
+    {
+      "grantee": "postgres",
+      "grantable": false,
+      "privilege": "INSERT"
+    },
+    {
+      "grantee": "postgres",
+      "grantable": false,
+      "privilege": "MAINTAIN"
+    },
+    {
+      "grantee": "postgres",
+      "grantable": false,
+      "privilege": "REFERENCES"
+    },
+    {
+      "grantee": "postgres",
+      "grantable": false,
+      "privilege": "SELECT"
+    },
+    {
+      "grantee": "postgres",
+      "grantable": false,
+      "privilege": "TRIGGER"
+    },
+    {
+      "grantee": "postgres",
+      "grantable": false,
+      "privilege": "TRUNCATE"
+    },
+    {
+      "grantee": "postgres",
+      "grantable": false,
+      "privilege": "UPDATE"
+    },
+    {
+      "grantee": "anon",
+      "grantable": false,
+      "privilege": "DELETE"
+    },
+    {
+      "grantee": "anon",
+      "grantable": false,
+      "privilege": "INSERT"
+    },
+    {
+      "grantee": "anon",
+      "grantable": false,
+      "privilege": "SELECT"
+    },
+    {
+      "grantee": "anon",
+      "grantable": false,
+      "privilege": "UPDATE"
+    },
+    {
+      "grantee": "authenticated",
+      "grantable": false,
+      "privilege": "DELETE"
+    },
+    {
+      "grantee": "authenticated",
+      "grantable": false,
+      "privilege": "INSERT"
+    },
+    {
+      "grantee": "authenticated",
+      "grantable": false,
+      "privilege": "SELECT"
+    },
+    {
+      "grantee": "authenticated",
+      "grantable": false,
+      "privilege": "UPDATE"
+    },
+    {
+      "grantee": "service_role",
+      "grantable": false,
+      "privilege": "DELETE"
+    },
+    {
+      "grantee": "service_role",
+      "grantable": false,
+      "privilege": "INSERT"
+    },
+    {
+      "grantee": "service_role",
+      "grantable": false,
+      "privilege": "MAINTAIN"
+    },
+    {
+      "grantee": "service_role",
+      "grantable": false,
+      "privilege": "REFERENCES"
+    },
+    {
+      "grantee": "service_role",
+      "grantable": false,
+      "privilege": "SELECT"
+    },
+    {
+      "grantee": "service_role",
+      "grantable": false,
+      "privilege": "TRIGGER"
+    },
+    {
+      "grantee": "service_role",
+      "grantable": false,
+      "privilege": "TRUNCATE"
+    },
+    {
+      "grantee": "service_role",
+      "grantable": false,
+      "privilege": "UPDATE"
+    }
+  ],
+  "column_acl": [],
+  "provenance": "shared-profile-contract-v1-reviewed-preinstall",
+  "constraints": [
+    {
+      "name": "fk_users_club",
+      "definition": "FOREIGN KEY (club_id) REFERENCES clubs(id)"
+    },
+    {
+      "name": "users_college_roll_key",
+      "definition": "UNIQUE (college_roll)"
+    },
+    {
+      "name": "users_email_key",
+      "definition": "UNIQUE (email)"
+    },
+    {
+      "name": "users_id_fkey",
+      "definition": "FOREIGN KEY (id) REFERENCES auth.users(id) ON DELETE CASCADE"
+    },
+    {
+      "name": "users_pkey",
+      "definition": "PRIMARY KEY (id)"
+    },
+    {
+      "name": "users_qr_code_data_key",
+      "definition": "UNIQUE (qr_code_data)"
+    },
+    {
+      "name": "users_role_check",
+      "definition": "CHECK ((role = ANY (ARRAY['student'::text, 'lab_admin'::text, 'super_admin'::text])))"
+    }
+  ]
+}

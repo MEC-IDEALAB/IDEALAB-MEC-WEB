@@ -3,7 +3,7 @@ import type { MetadataRoute } from 'next';
 export default function manifest(): MetadataRoute.Manifest {
   return {
     name: 'IDEALAB MEC',
-    short_name: 'IDEALAB',
+    short_name: 'IDEALAB MEC',
     description: 'Explore the IDEA Lab at Model Engineering College.',
     start_url: '/',
     scope: '/',

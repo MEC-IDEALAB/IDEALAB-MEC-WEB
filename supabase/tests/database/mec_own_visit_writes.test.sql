@@ -1,6 +1,6 @@
 SET LOCAL plpgsql.check_asserts = on;
 DO $catalog$
-DECLARE r text; f text;
+DECLARE r text; f text; definition text; state_lock_pos integer; checkout_state_lock_pos integer; checkout_lock_pos integer;
 BEGIN
   ASSERT (SELECT relrowsecurity AND relforcerowsecurity FROM pg_class WHERE oid='idealab_private.own_visit_commands_v1'::regclass), 'forced private RLS';
   FOREACH r IN ARRAY ARRAY['anon','authenticated','service_role'] LOOP
@@ -16,6 +16,13 @@ BEGIN
     ASSERT has_function_privilege('authenticated',f,'EXECUTE'), 'member endpoints guarded inside';
     ASSERT (SELECT proconfig=ARRAY['search_path=""']::text[] FROM pg_proc WHERE oid=f::regprocedure), 'empty function search path';
   END LOOP;
+  definition := pg_get_functiondef('idealab_private.change_own_visit_v1(text,text,uuid,uuid)'::regprocedure);
+  state_lock_pos := strpos(definition,'SELECT last_action INTO STRICT v_opening FROM idealab_private.lab_opening_state_v1');
+  checkout_state_lock_pos := state_lock_pos + strpos(substring(definition FROM state_lock_pos + 1),
+    'SELECT last_action INTO STRICT v_opening FROM idealab_private.lab_opening_state_v1');
+  checkout_lock_pos := strpos(definition,'SELECT id,checkin_time,checkout_time INTO v_visit FROM public.lab_sessions WHERE id=p_visit_id');
+  ASSERT state_lock_pos > 0 AND checkout_state_lock_pos > state_lock_pos AND checkout_lock_pos > checkout_state_lock_pos,
+    'checkout acquires the authoritative Lab-state share lock before the attendance row lock';
 END;
 $catalog$;
 SET LOCAL ROLE authenticated;
@@ -26,4 +33,4 @@ BEGIN
 END;
 $no_identity$;
 RESET ROLE;
-SELECT '22 own-visit catalog/sessionless-role assertions passed' AS result;
+SELECT '23 own-visit catalog/sessionless-role assertions passed' AS result;

@@ -1,6 +1,7 @@
 import Link from 'next/link';
-import { ArrowUpRight, Lightbulb, ShieldCheck } from 'lucide-react';
-import { signIn, signUp, finishPasswordResetSignOut } from '@/app/auth/actions';
+import { ArrowUpRight } from 'lucide-react';
+import { signIn, signUp, signOut, finishPasswordResetSignOut } from '@/app/auth/actions';
+import { redirect } from 'next/navigation';
 import { backendConfig } from '@/lib/config';
 import { signupAuthConfig } from '@/lib/auth-config';
 import { AuthCardSwitcher, type AuthView } from '@/components/auth-card-switcher';
@@ -8,7 +9,9 @@ import { GoogleSignIn } from '@/components/google-sign-in';
 import { PasswordField } from '@/components/password-field';
 import { SubmitButton } from '@/components/submit-button';
 import { ThemePicker } from '@/components/theme-picker';
-import { DoodleStar } from '@/components/doodles';
+import { AuthPoster } from '@/components/auth-poster';
+import { serverClient } from '@/lib/supabase';
+import { inspectAuthEntry } from '@/lib/auth-entry';
 import { AuthPixelBackground, AuthPixelMotionControl } from './auth-pixel-background';
 
 const notices: Record<string, string> = {
@@ -27,30 +30,48 @@ const notices: Record<string, string> = {
   resent: 'If this address needs confirmation, a new link has been requested. Check your inbox and spam folder.',
 };
 
-export function AuthExperience({ initialView, notice }: { initialView: AuthView; notice?: string }) {
-  const configured = !!backendConfig();
+export async function AuthExperience({ initialView, notice }: { initialView: AuthView; notice?: string }) {
+  const backendAvailable = !!backendConfig();
+  const client = backendAvailable ? await serverClient() : null;
+  const entry = client ? await inspectAuthEntry(client) : { state: 'signed-out' as const };
+  const configured = backendAvailable && entry.state !== 'unavailable';
   const validation = process.env.ACCOUNT_ENVIRONMENT === 'validation';
-  const signupConfigured = !!signupAuthConfig();
-  const activeNotice = notice ? notices[notice] : undefined;
+  const signupConfigured = !!signupAuthConfig() && entry.state !== 'unavailable';
+  const requestedNotice = notice && Object.hasOwn(notices, notice) ? notices[notice] : undefined;
+  const activeNotice = entry.state === 'unavailable' ? notices.connection : requestedNotice;
   const signInStory = <>
-    <span className="eyebrow auth-pill">STUDENT_PORTAL</span>
-    <h1>WELCOME<br /><span>BACK.</span></h1>
-    <p className="handwritten">Your next idea starts here.</p>
-    <DoodleStar className="auth-star" />
-    <div className="auth-terminal"><div className="auth-terminal-dots" aria-hidden="true"><i /><i /><i /></div><code aria-hidden="true">&gt; idea.start()<br />&gt; learn.by_making()<br />&gt; prototype.next()</code><p><ShieldCheck size={16} aria-hidden="true" /> {validation ? 'Isolated test accounts. Live Grow accounts are separate here.' : configured ? 'Use your current Grow account.' : 'Member sign-in will open after the shared account security review.'}</p></div>
+    <div className="auth-poster-topline"><span>IDEALAB / MEC</span><span>01 — RETURN</span></div>
+    <h1>YOUR NEXT<br /><span>LEVEL.</span></h1>
+    <AuthPoster />
+    <div className="auth-poster-bottomline"><span>A PLACE FOR YOUR NEXT IDEA.</span><span>↗</span></div>
   </>;
   const createStory = <>
-    <span className="eyebrow auth-pill">CURIOUS MINDS WELCOME</span>
-    <h1>MAKE.<br />LEARN.<br /><span>REPEAT.</span></h1>
-    <p className="handwritten">Big ideas start with a little curiosity.</p>
-    <DoodleStar className="auth-star" />
-    <div className="auth-note"><Lightbulb aria-hidden="true" /><p>Bring an idea. Find your next step with the lab team.</p></div>
+    <div className="auth-poster-topline"><span>IDEALAB / MEC</span><span>02 — BEGIN</span></div>
+    <h1>PRESS START.<br /><span>MAKE REAL.</span></h1>
+    <AuthPoster signup />
+    <div className="auth-poster-bottomline"><span>CURIOSITY LOOKS GOOD ON YOU.</span><span>↗</span></div>
   </>;
+  if (entry.state === 'signed-in') {
+    if (initialView !== 'sign-in' || notice !== 'password-updated-cleanup') redirect('/app');
+    return <main id="main-content" className="auth-page reference-auth poster-auth arcade-auth">
+      <div className="auth-grid" data-auth-view="sign-in">
+        <section className="auth-story" aria-label="Welcome back">{signInStory}</section>
+        <div className="auth-card-stage"><section className="auth-card auth-continuation" aria-labelledby="recovery-cleanup-title">
+          <h2 id="recovery-cleanup-title">Finish signing out</h2>
+          <p role="status">This browser still has an active session. Sign out of the current account to return to sign-in.</p>
+          <form action={signOut}>
+            <input type="hidden" name="expected_account" value={entry.accountId} />
+            <SubmitButton className="button button-primary" pendingText="Signing out…">Sign out of this account</SubmitButton>
+          </form>
+          <Link className="text-link" href="/app">Continue to IDEALAB MEC</Link>
+        </section></div>
+      </div>
+    </main>;
+  }
   const signInPanel = <>
-    <span className="eyebrow">WELCOME BACK</span>
+    <div className="auth-mini-art"><AuthPoster mini /></div>
     <h2 id="sign-in-title" tabIndex={-1}>Sign in</h2>
-    <p>Pick up where your next idea left off.</p>
-    {(!configured || activeNotice || validation) && <div className="notice" role="status">{activeNotice || (!configured ? notices.configuration : 'Test environment. Create a separate IDEALAB test account first.')}{configured && (notice === 'invalid' || notice === 'oauth' || validation) && <> <Link href="/sign-up">Create account</Link></>}</div>}
+    {(!configured || activeNotice || validation) && <div className="notice" role="status">{activeNotice || (!backendAvailable ? notices.configuration : 'Test environment. Create a separate IDEALAB test account first.')}{configured && (notice === 'invalid' || notice === 'oauth' || validation) && <> <Link href="/sign-up">Create account</Link></>}</div>}
     {configured && notice === 'password-updated-cleanup' && <form action={finishPasswordResetSignOut}><SubmitButton pendingText="Signing out…">Finish signing out</SubmitButton></form>}
     <form action={signIn} className="form-stack">
       <label htmlFor="email">Email address</label>
@@ -60,14 +81,13 @@ export function AuthExperience({ initialView, notice }: { initialView: AuthView;
       <SubmitButton disabled={!configured} pendingText="Signing in…">Sign in <ArrowUpRight size={18} aria-hidden="true" /></SubmitButton>
     </form>
     <div className="auth-divider">or</div>
-    <GoogleSignIn />
-    <p className="small-copy">For MEC students. Use any email you can verify. <Link href="/confirm-email">Need a confirmation link?</Link></p>
+    <GoogleSignIn disabled={entry.state === 'unavailable'} />
+    {configured && <p className="small-copy auth-confirm-link"><Link href="/confirm-email">Need a confirmation link?</Link></p>}
   </>;
   const createPanel = <>
-    <span className="eyebrow">NEW MAKER</span>
+    <div className="auth-mini-art"><AuthPoster signup mini /></div>
     <h2 id="create-account-title" tabIndex={-1}>Create your account</h2>
-    <p>Your first step into the lab.</p>
-    {(!signupConfigured || activeNotice || validation) && <div className="notice" id="signup-status" role="status">{!signupConfigured ? 'Student signup is being prepared.' : activeNotice || 'Test environment. Use your existing email and create a new IDEALAB test password.'}</div>}
+    {(!signupConfigured || activeNotice || validation) && <div className="notice" id="signup-status" role="status">{!signupConfigured ? entry.state === 'unavailable' ? notices.connection : 'Student signup is being prepared.' : activeNotice || 'Test environment. Use your existing email and create a new IDEALAB test password.'}</div>}
     <form action={signUp} className="form-stack auth-signup-preview" aria-label="Create account" aria-describedby={!signupConfigured || activeNotice || validation ? 'signup-status' : undefined}>
       <fieldset disabled={!signupConfigured}>
         <label htmlFor="signup-email">Email address</label>
@@ -79,11 +99,11 @@ export function AuthExperience({ initialView, notice }: { initialView: AuthView;
       </fieldset>
     </form>
     <div className="auth-divider">or</div>
-    <GoogleSignIn />
-    <p className="small-copy auth-create-note">Confirm your email next. Creating an account signs out this browser.</p>
+    <GoogleSignIn disabled={entry.state === 'unavailable'} />
+    {signupConfigured && <p className="small-copy auth-create-note">Confirm your email, then sign in.</p>}
   </>;
 
-  return <main id="main-content" className="auth-page reference-auth">
+  return <main id="main-content" className="auth-page reference-auth poster-auth arcade-auth">
     <AuthPixelBackground />
     <div className="auth-toolbar">
       <Link className="text-link" href="/"><ArrowUpRight className="auth-back-icon" size={18} aria-hidden="true" /> Back to IDEALAB MEC</Link>

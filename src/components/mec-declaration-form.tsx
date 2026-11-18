@@ -1,6 +1,7 @@
 'use client';
 
 import { useActionState, useEffect, useId, useRef, useState } from 'react';
+import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { evaluateOwnProfile, type OwnProfile } from '@/lib/member-profile';
 import {
@@ -44,6 +45,16 @@ function MecDeclarationFields({ profile, action }: Props) {
   useEffect(() => {
     if (state.status !== 'idle' && state.status !== 'claimed') summaryRef.current?.focus();
   }, [state]);
+
+  if (!profile.mec_admitted && state.status === 'claimed') {
+    return <section aria-label="Student setup complete">
+      <p role="status">{state.message}</p>
+      <div className="button-row">
+        <Link className="button button-primary" href="/app/profile">Review your profile</Link>
+        <Link className="button" href="/app">Go to Home</Link>
+      </div>
+    </section>;
+  }
 
   return <form className="onboarding-preview-form" action={formAction} onReset={event => event.preventDefault()} noValidate aria-busy={pending}
     aria-describedby={`${prefix}-purpose`} onSubmit={event => {

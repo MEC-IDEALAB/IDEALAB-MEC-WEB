@@ -57,15 +57,32 @@ export function HomeMotion() {
           }
         }
       }, { threshold: .12, rootMargin: '0px 0px -24px 0px' });
-      document.querySelectorAll('.playful-site [data-reveal], .playful-site .doodle, .member-shell--preview [data-reveal]').forEach(element => {
+      document.querySelectorAll('.playful-site [data-reveal], .playful-site .doodle, .member-main-content [data-reveal], .workspace-arcade-profile [data-reveal]').forEach(element => {
         observer?.observe(element);
       });
     }
 
     configure();
+    // Member panels can arrive after their Suspense skeletons.
+    const memberContent = document.querySelector('.member-main-content');
+    const streamedPanels = new MutationObserver(records => {
+      if (preference.matches) return;
+      for (const record of records) for (const node of record.addedNodes) {
+        if (!(node instanceof Element)) continue;
+        if (node.matches('[data-reveal]')) observer?.observe(node);
+        node.querySelectorAll('[data-reveal]').forEach(element => observer?.observe(element));
+      }
+      for (const record of records) for (const node of record.removedNodes) {
+        if (!(node instanceof Element)) continue;
+        observer?.unobserve(node);
+        node.querySelectorAll('[data-reveal]').forEach(element => observer?.unobserve(element));
+      }
+    });
+    if (memberContent) streamedPanels.observe(memberContent, { childList: true, subtree: true });
     preference.addEventListener('change', configure);
     return () => {
       observer?.disconnect();
+      streamedPanels.disconnect();
       preference.removeEventListener('change', configure);
       for (const animation of active) animation.cancel();
       active.clear();

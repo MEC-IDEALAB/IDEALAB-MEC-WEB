@@ -652,7 +652,7 @@ html[data-theme=dark] .event-slide-note { color: #d0d0d0; }
   .past-event-carousel--editorial .event-carousel-footer { margin-top: 8px; }
 }
 
-/* The homepage ticker advances right; keyboard focus pauses the motion. */
+/* The public-home ticker travels toward the right; the member strip keeps its leftward pass. */
 .playful-site .maker-ticker-band { transform: rotate(-1.2deg); }
 .playful-site .maker-ticker-content .ticker-track { animation-direction: reverse; }
 .playful-site .path-card .card-topline > svg { transition: transform 180ms ease; }

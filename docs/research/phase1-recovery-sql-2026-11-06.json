@@ -1,0 +1,28 @@
+{
+  "capturedAt": "2026-11-06T11:58:10.535Z",
+  "nodeVersion": "v24.19.0",
+  "version": "postgres (PostgreSQL) 17.6",
+  "scope": "Disposable synthetic recovery claims and receipt checks; no provider or live accounts.",
+  "checks": {
+    "privateScratchDirectory": true,
+    "isolatedIdentity": true,
+    "wrongCredentialDenied": true,
+    "transactionRollback": true,
+    "recoveryPrivateSchemaUsagePreflightDenied": true,
+    "recoveryOwnerPreflightDeniedMissingGrant": true,
+    "recoveryConsumption": true,
+    "recoveryFixtureRolledBack": true,
+    "recoverySingleWinner": true,
+    "recoveryExpiryWhileBlocked": true,
+    "recoveryPreUseRollback": true,
+    "recoveryRollbackPreservesReceipts": true,
+    "clusterStoppedAndRemoved": true
+  },
+  "database": {
+    "version": "17.6",
+    "encoding": "UTF8",
+    "locale": "C"
+  },
+  "result": "passed",
+  "started": true
+}

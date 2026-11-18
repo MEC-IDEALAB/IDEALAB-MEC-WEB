@@ -1,0 +1,8 @@
+{
+  "projectId": "huftzhfqnnslvnfzvbex",
+  "capturedDate": "2026-11-04",
+  "scope": "Read-only trigger helper definition after exact reviewed body hash guard; no user records.",
+  "body_md5": "75ee85bfb81cf640baf932f177bf1044",
+  "definition": "CREATE OR REPLACE FUNCTION public.set_updated_at()\n RETURNS trigger\n LANGUAGE plpgsql\n SET search_path TO 'pg_catalog'\nAS $function$ begin new.updated_at = now(); return new; end $function$\n",
+  "definition_md5": "af77b7b86ccf81c8d2d4968d58e9b372"
+}

@@ -1,0 +1,17 @@
+{
+  "projectId": "huftzhfqnnslvnfzvbex",
+  "scope": "Read-only function definition matching previously approved exact body fingerprint, plus extension metadata; no application rows.",
+  "extensions": [
+    {
+      "extension_name": "btree_gist",
+      "function_count": 188,
+      "extension_version": "1.7"
+    }
+  ],
+  "captured_at": "2026-11-04T15:33:03.20394+00:00",
+  "role_helper": {
+    "body_md5": "3f61846543a82ada7ed61459d2daea32",
+    "definition": "CREATE OR REPLACE FUNCTION public.get_user_role()\n RETURNS text\n LANGUAGE sql\n STABLE SECURITY DEFINER\n SET search_path TO 'pg_catalog'\nAS $function$\r\n  SELECT role\r\n  FROM public.users\r\n  WHERE id = auth.uid()\r\n$function$\n",
+    "definition_md5": "0ea15880cc3fd98b605818d9cf67ca43"
+  }
+}

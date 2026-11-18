@@ -1,0 +1,44 @@
+{
+  "capturedAt": "2026-11-02T13:00:05.903940+00:00",
+  "scope": "Local native account-client fixes and public website acceptance only; no live account/provider/storage mutation.",
+  "checks": {
+    "flutterFullTests": 355,
+    "flutterFullAnalyze": "passed",
+    "webBoundaryTests": 152,
+    "webLint": "passed",
+    "webTypecheck": "passed",
+    "webOptimizedAcceptanceBuild": "passed",
+    "webPublicChromiumAcceptance": "passed",
+    "documentationFiles": 67,
+    "documentationLinks": 331,
+    "independentNativeAuthSourceReview": "three findings addressed; no remaining concrete blocker in reviewed fixes",
+    "flutterFinalFocusedAuthTests": 112,
+    "latestDocumentationFiles": 69,
+    "latestDocumentationLinks": 343,
+    "sharedProfileInstallation": "Installed with owner approval; separate preservation/ACL/API-denial evidence",
+    "postInstallDeveloperConfigAndProviderPolicyTests": 4
+  },
+  "unverified": [
+    "Live signup and confirmation delivery",
+    "Shared Google login and callback",
+    "Real native device, persistence and restart acceptance",
+    "Storage privacy migration",
+    "Hosted deployment and signed Android release"
+  ],
+  "files": {
+    "Grow/lib/features/auth/data/validation_auth_actions.dart": "17301e5092aeebb991990a67ce399ea8f47bf8e5c976b49f000b4b75835900a0",
+    "Grow/lib/features/auth/data/validation_auth_pkce_lock.dart": "5bdccdfddfd4973edc3f5fc38fbfd29c77cff223ec63176d9097be21846ca458",
+    "Grow/lib/features/auth/data/validation_email_confirmation.dart": "030bf2573eb245eec998d33a7f49f2bf9f703012426cf3c88a49454d305f6b3a",
+    "Grow/lib/features/auth/presentation/validation_email_confirmation_screen.dart": "e193e05274a5a4e99cc7bdb128de64e26693177b5999882f0880848a506ee6c1",
+    "Grow/lib/core/constants/app_strings.dart": "52ff4e2917aa18affff7cae344cca10c5a59d5399fc4bde825385f85ee48fd2e",
+    "Grow/android/app/src/main/AndroidManifest.xml": "5556c27a4d230df4035a40eb0e15d06725bea43034ba62936aba7633ff504d71",
+    "Grow/test/features/auth/validation_auth_actions_test.dart": "cf81fcf5d620ae16a876f8951bede697a2cbbc1dcefaa56fccabf10207858b88",
+    "Grow/test/features/auth/validation_email_confirmation_test.dart": "79891eeede5f2eeb81dada473a113a7159a73dc247e152898467413f72ee67e0",
+    "Grow/test/rc5_home_screen_test.dart": "63e6822d43988981d3d2cd7eb004e3092b76973f85e8550ace6d51811002fde7",
+    "website/src/lib/signup-provider-policy.ts": "164d8301185df7d05eb76fd7380be0cf6c6dea7a6baca5c3be596ea72961fe56",
+    "website/src/lib/config.ts": "76b0d3772efee494ec608298e9d5d354d6e998501539720028404d15fea31bf5",
+    "website/src/app/auth/actions.ts": "fe040f701e34348ab0870e3bed89088aea62055093044a7f1e52b5cde1bc6edc",
+    "website/src/app/manifest.ts": "6a47960128e010027ae736cfb7379848e2388ca00b078ce0c708f7775fffe8a9",
+    "website/src/components/auth-experience.tsx": "68da94ee8e96de15d099883df90b3b2a60fb71e1af06c9775b5c33202316ff0b"
+  }
+}

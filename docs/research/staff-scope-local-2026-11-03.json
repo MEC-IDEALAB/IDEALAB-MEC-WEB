@@ -1,0 +1,125 @@
+{
+  "capturedAt": "2026-11-03T13:15:03.112Z",
+  "scope": "Local disposable PostgreSQL. Synthetic identities and SQL fixtures.",
+  "fingerprints": {
+    "supabase/validation/mec_staff_scope_candidate.sql": "050b85a9bd3410f34d028593782b00bbc6ebc4f669a1c8c7214af4d38860d7be",
+    "supabase/validation/mec_staff_scope_rollback.sql": "bf19c51d75ea2166b130f85fa40d0819be7dd3718fa00d1669d7a8bc6fa6f303",
+    "supabase/tests/database/mec_staff_scope_fixture.sql": "f5f5e8da1057c9a8b645cb9fb1312f47126d9decae510d7d6dce27dce07a8a42",
+    "supabase/tests/database/mec_staff_scope.test.sql": "96f8fd39e3361ff52a73eb5c02dabadc5d5c6d0dfd322778ace37645920632f8",
+    "supabase/tests/database/mec_staff_scope_shared_accounts.sql": "f068276845cc82c043cb56814542d4133c83e1dab69e939a04404e83fe8f1192",
+    "scripts/db-runtime.mjs": "35362c6fa7b5bb251c09a8d38fb0bf0ec0a976a2fb3bfde0d36a90ed94197e76",
+    "scripts/staff-scope-concurrency.mjs": "facacba1818a28d51f4242007182e0d7b6f58f2400cefc11604c3b63334b471d"
+  },
+  "sharedProfileSha256": "ed013ced6cb7ba8f77a9b341814f3ad533d85db338afb24e57e268a5334cdaad",
+  "runs": [
+    {
+      "capturedAt": "2026-11-03T13:19:25.659Z",
+      "nodeVersion": "v24.22.1",
+      "version": "postgres (PostgreSQL) 17.6",
+      "scope": "Disposable PostgreSQL with synthetic staff assignment fixtures. No live Supabase services accessed.",
+      "checks": {
+        "privateScratchDirectory": true,
+        "isolatedIdentity": true,
+        "wrongCredentialDenied": true,
+        "transactionRollback": true,
+        "staffScope": true,
+        "staffScopeConcurrency": true,
+        "staffScopeRollback": true,
+        "clusterStoppedAndRemoved": true
+      },
+      "database": {
+        "version": "17.6",
+        "encoding": "UTF8",
+        "locale": "C"
+      },
+      "result": "passed",
+      "started": true
+    },
+    {
+      "capturedAt": "2026-11-03T13:13:48.794Z",
+      "nodeVersion": "v24.22.1",
+      "version": "postgres (PostgreSQL) 17.6",
+      "scope": "Disposable PostgreSQL with shared profile SQL and synthetic staff checks. No live Supabase services accessed.",
+      "checks": {
+        "privateScratchDirectory": true,
+        "isolatedIdentity": true,
+        "wrongCredentialDenied": true,
+        "transactionRollback": true,
+        "staffScopeOnSharedProfile": true,
+        "sharedProfileAndStaffRolledBack": true,
+        "clusterStoppedAndRemoved": true
+      },
+      "database": {
+        "version": "17.6",
+        "encoding": "UTF8",
+        "locale": "C"
+      },
+      "result": "passed",
+      "started": true
+    }
+  ],
+  "remoteInspection": {
+    "projectRef": "huftzhfqnnslvnfzvbex",
+    "access": "read-only metadata",
+    "accountRoles": [
+      "student",
+      "lab_admin",
+      "super_admin"
+    ],
+    "privateSchemaOwner": "postgres",
+    "authenticatedSchemaUsage": true,
+    "verifiedEmailHelperPresent": true,
+    "staffScopesInstalled": false
+  },
+  "unverified": [
+    "Live JWT and PostgREST authorization",
+    "Staff client UI and Flutter integration",
+    "Approved resource mapping",
+    "Account deletion and audit retention integration",
+    "Shared installation and rollout"
+  ],
+  "priorPostgres16Run": {
+    "capturedAt": "2026-11-03T13:10:12.032Z",
+    "nodeVersion": "v24.22.1",
+    "version": "postgres (PostgreSQL) 16.1",
+    "scope": "Disposable PostgreSQL with synthetic staff assignment fixtures. No live Supabase services accessed.",
+    "checks": {
+      "privateScratchDirectory": true,
+      "isolatedIdentity": true,
+      "wrongCredentialDenied": true,
+      "transactionRollback": true,
+      "staffScope": true,
+      "staffScopeConcurrency": true,
+      "staffScopeRollback": true,
+      "clusterStoppedAndRemoved": true
+    },
+    "database": {
+      "version": "16.1",
+      "encoding": "UTF8",
+      "locale": "C"
+    },
+    "result": "passed",
+    "started": true
+  },
+  "priorPostgres16Note": "The runner subsequently gained the additive shared-profile mode. Current-source PostgreSQL 17 runs are listed under runs.",
+  "ci": {
+    "job": "staff-authority-sql",
+    "runner": "ubuntu-24.04",
+    "postgresBin": "/usr/lib/postgresql/16/bin",
+    "runnerInventorySource": "https://github.com/actions/runner-images/blob/799bcd0daf03c14c460e2662bcc9ca94a4a8aaa8/images/ubuntu/Ubuntu2404-Readme.md",
+    "localYamlValidation": "passed",
+    "hostedRun": "unverified; local changes have not been pushed",
+    "workflowSha256": "8b453242b290bb83962fc7fa33ea60193cf10c1a27faa2597dbf945667dffc47"
+  },
+  "independentReview": {
+    "scope": "Read-only SQL, fixture, concurrency runner and CI configuration review",
+    "candidateSha256": "050b85a9bd3410f34d028593782b00bbc6ebc4f669a1c8c7214af4d38860d7be",
+    "result": "No blocking source defect found after fixing the deletion and retry findings",
+    "remaining": [
+      "One-head-per-scope decision",
+      "Account deletion/handover integration",
+      "Audit UUID retention",
+      "Live API, Flutter and hosted CI verification"
+    ]
+  }
+}

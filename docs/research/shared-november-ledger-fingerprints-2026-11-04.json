@@ -1,0 +1,21 @@
+{
+  "projectId": "huftzhfqnnslvnfzvbex",
+  "capturedDate": "2026-11-04",
+  "scope": "Read-only migration ledger statement fingerprints, no statement bodies or user rows.",
+  "migrations": [
+    {
+      "version": "20261102083307",
+      "name": "shared_access_hardening_v1",
+      "statement_count": 1,
+      "statements_md5": "37356e044ead2b84bfd8e57ea4ee91be",
+      "statements_sha256": "d0b78457f55befaabc67d4767507e0b6a282ed6c909c4884cae7535719f23a15"
+    },
+    {
+      "version": "20261102130200",
+      "name": "shared_profile_contract_v1",
+      "statement_count": 1,
+      "statements_md5": "2c8b6db3124aae8acd34ca84b42e8a6b",
+      "statements_sha256": "492fbccba41ac6db03836b2ab62b1a5e9d7349a278d0670f032e8b2daad297b0"
+    }
+  ]
+}

@@ -1,9 +1,10 @@
-export type MemberLoadingKind = 'page' | 'opening' | 'visits' | 'events' | 'projects';
+export type MemberLoadingKind = 'page' | 'opening' | 'visits' | 'lab-session' | 'events' | 'projects';
 
 const statusText: Record<MemberLoadingKind, string> = {
   page: 'Loading your workspace.',
   opening: 'Loading the lab opening status.',
   visits: 'Loading your lab visits.',
+  'lab-session': 'Loading your lab session.',
   events: 'Loading the event programme.',
   projects: 'Loading your projects.',
 };
@@ -47,6 +48,14 @@ function PageShape() {
 }
 
 function PanelShape({ kind }: { kind: Exclude<MemberLoadingKind, 'page'> }) {
+  if (kind === 'lab-session') {
+    return <div className="member-loading__lab-session" aria-hidden="true">
+      <div className="member-loading__panel-heading"><span className="member-loading__mark" /><div><Line size="short" /><Line size="regular" /></div></div>
+      <div className="member-loading__session-summary"><div><Line size="short" /><Line size="regular" /><Line size="long" /></div><div><Line size="short" /><Line size="regular" /></div></div>
+      <div className="member-loading__panel-footer"><Line size="short" /><Line size="short" /></div>
+    </div>;
+  }
+
   if (kind === 'projects') {
     return <div className="member-loading__collection">
       <div className="member-loading__collection-heading"><Line size="title" /><Line size="short" /></div>

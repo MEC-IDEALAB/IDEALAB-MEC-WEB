@@ -15,6 +15,12 @@ BEGIN
     ASSERT has_function_privilege('authenticated',t,'EXECUTE'), 'member RPC callable with inner guards';
     ASSERT (SELECT proconfig = ARRAY['search_path=""']::text[] FROM pg_proc WHERE oid = t::regprocedure), 'empty search path';
   END LOOP;
+  ASSERT (SELECT provolatile = 'v' FROM pg_proc WHERE oid = 'idealab_private.lab_opening_member_ready_v1()'::regprocedure),
+    'Auth-ban guard is volatile because it locks the Auth row';
+  ASSERT (SELECT provolatile = 'v' FROM pg_proc WHERE oid = 'idealab_private.get_lab_opening_v1()'::regprocedure),
+    'guarded status read is volatile';
+  ASSERT (SELECT provolatile = 'v' FROM pg_proc WHERE oid = 'public.get_lab_opening_v1()'::regprocedure),
+    'public status read preserves guarded volatility';
 END;
 $catalog$;
 SET LOCAL ROLE authenticated;
@@ -28,4 +34,4 @@ BEGIN
 END;
 $negative$;
 RESET ROLE;
-SELECT '30 lab opening catalog/negative-role assertions passed' AS result;
+SELECT '33 lab opening catalog/negative-role assertions passed' AS result;

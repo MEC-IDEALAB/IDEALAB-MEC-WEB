@@ -50,6 +50,8 @@ jobs:
         run: npm run build:acceptance
       - run: npx playwright install --with-deps chromium
       - run: npm run test:acceptance
+      - name: Verify gated member workspace preview (no member services)
+        run: npm run test:member-space
       - name: Require Vercel project credentials
         shell: bash
         env:

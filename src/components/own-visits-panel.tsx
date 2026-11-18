@@ -15,7 +15,7 @@ export async function OwnVisitsPanel({ history = false }: { history?: boolean })
   return <section className="workspace-card own-visits-panel" aria-label="Your lab visits">
     <span className="workspace-card-icon"><DoorOpen size={24} aria-hidden="true" /></span>
     <h2 id="own-visit-title" tabIndex={-1}>Your lab visits</h2>
-    {process.env.ACCOUNT_ENVIRONMENT === 'validation' && <p className="small-copy">Isolated test workspace · these are not your live Grow visit records.</p>}
+    {process.env.ACCOUNT_ENVIRONMENT === 'validation' && <p className="small-copy">Isolated test workspace · these are not your live IDEALAB MEC visit records.</p>}
     {result.status === 'unavailable' ? <p role="status">We couldn’t load your visit records. Refresh to try again; this does not mean your history is empty.</p>
       : <><p className="visit-current-state">{active ? 'You are checked in.' : 'You are not checked in.'}</p>
         {active && <p>Checked in: <time dateTime={active.checkin_time}>{dateTime(active.checkin_time)} IST</time></p>}

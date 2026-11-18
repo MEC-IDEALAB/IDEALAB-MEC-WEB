@@ -1,3 +1,4 @@
+import '../auth-styles';
 import { AuthExperience } from '@/components/auth-experience';
 
 export const metadata = { title: 'Create an account' };

@@ -9,19 +9,11 @@ import './brand-loading.css';
 import './audit-polish.css';
 import './home-neo.css';
 import './home-refinements.css';
-import './onboarding-preview.css';
-import './staff-preview.css';
-import './auth-recovery.css';
-import './auth-flow.css';
-import './auth-pixels.css';
-import './member-shell.css';
-import './account-setup.css';
 import './navigation-refresh.css';
 import { BrandLoading } from '@/components/brand-loading';
 import { BootReady } from '@/components/boot-ready';
 import { PwaServiceWorker } from '@/components/pwa-service-worker';
 import { AutomaticMotionProvider } from '@/components/automatic-motion';
-import { VercelTelemetry } from '@/components/vercel-telemetry';
 import {
   BRAND_LOADING_EXIT_MS,
   BRAND_LOADING_MINIMUM_DURATION_MS,
@@ -235,6 +227,21 @@ try {
 export const metadata: Metadata = {
   title: { default: "IDEALAB MEC — A place to make things happen", template: "%s | IDEALAB MEC" },
   description: "Explore the IDEA Lab at Model Engineering College. Bring your ideas, discover the lab, and connect with a community of makers.",
+  metadataBase: new URL('https://idealab-mec-web.vercel.app'),
+  openGraph: {
+    type: 'website',
+    siteName: 'IDEALAB MEC',
+    locale: 'en_IN',
+    title: 'IDEALAB MEC — A place to make things happen',
+    description: 'Explore the IDEA Lab at Model Engineering College. Bring your ideas, discover the lab, and connect with a community of makers.',
+    images: [{ url: '/brand/idea-lab.png', alt: 'IDEA Lab at Model Engineering College' }],
+  },
+  twitter: {
+    card: 'summary',
+    title: 'IDEALAB MEC — A place to make things happen',
+    description: 'Explore the IDEA Lab at Model Engineering College. Bring your ideas, discover the lab, and connect with a community of makers.',
+    images: ['/brand/idea-lab.png'],
+  },
   icons: { icon: [{ url: "/brand/app-icon-192.png", type: "image/png" }], apple: "/brand/app-icon-192.png" },
 };
 
@@ -267,7 +274,6 @@ export default async function RootLayout({ children }: Readonly<{ children: Reac
             {children}
           </div>
         </AutomaticMotionProvider>
-        <VercelTelemetry vercelEnvironment={process.env.VERCEL_ENV} />
       </body>
     </html>
   );

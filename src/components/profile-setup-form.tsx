@@ -4,6 +4,7 @@ import { useActionState, useEffect, useId, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { ArrowLeft, ArrowRight, Check, LockKeyhole } from 'lucide-react';
 import type { OwnProfile } from '@/lib/member-profile';
+import { registrationClaimNumberError } from '@/features/profile/registration-claim';
 import {
   buildProfileSavePayload, initialProfileSaveState, parseProfileSaveResponse,
   profileSaveFieldErrors, profileSaveFields,
@@ -63,8 +64,14 @@ function ProfileSetupFields({ profile, action, mode = 'setup' }: Props) {
   // separate versioned full-replacement/partial-save contract.
   const requireComplete = true;
   const errors = profileSaveFieldErrors(values, requireComplete);
+  // Catch the same format errors the declaration would reject after saving.
+  // Keep existing profile edits and the server's partial-save contract intact.
+  if (mode === 'setup' && profile.role === 'student' && !errors.college_roll) {
+    const registrationError = registrationClaimNumberError(values.college_roll);
+    if (registrationError) errors.college_roll = registrationError;
+  }
   const [state, formAction, pending] = useActionState(async (previous: ProfileSaveState, formData: FormData) => {
-    if (Object.keys(profileSaveFieldErrors(values, requireComplete)).length) {
+    if (Object.keys(errors).length) {
       return { status: 'invalid', message: 'Check the highlighted profile details. Your entries are still here.' } as ProfileSaveState;
     }
     const input = buildProfileSavePayload(formData);

@@ -3,7 +3,7 @@ import { ArrowUpRight,FolderKanban,LockKeyhole,UsersRound } from 'lucide-react';
 import { randomUUID } from 'node:crypto';
 import { stages,type ProjectCard,type OwnProjectRequest } from './project-contract';
 import { ProjectSmallAction } from './project-forms';
-export function ProjectTestNote() { return process.env.ACCOUNT_ENVIRONMENT==='validation'?<p className="project-test-note">Isolated test workspace · these are not the live Grow project records.</p>:null; }
+export function ProjectTestNote() { return process.env.ACCOUNT_ENVIRONMENT==='validation'?<p className="project-test-note">Isolated test workspace · these are not the live IDEALAB MEC project records.</p>:null; }
 export function ProjectsUnavailable() { return <section className="workspace-card" role="status"><h2>Projects couldn’t be loaded.</h2><p>Refresh to try again. An unavailable connection does not mean there are no projects or requests.</p></section>; }
 export function ProjectCards({items}:{items:ProjectCard[]}) {
   return <div className="project-card-grid">{items.map(project=><Link className="project-discovery-card" key={project.id} href={`/app/projects/${project.id}`}>

@@ -19,7 +19,7 @@ const restoredNotice = (draft: DraftData) => referenceError(draft.references)
   ? 'Saved draft restored. Correct its reference links before saving or continuing.'
   : 'Saved browser draft restored. If you previously submitted it, check request history before submitting again.';
 
-export function RequestDraft({ accountId, restoreOnOpen = false, returnHref, storageScope = 'local', onlineCommandId }: { accountId: string; restoreOnOpen?: boolean; returnHref?: string; storageScope?: DraftStorageScope; onlineCommandId?: string }) {
+export function RequestDraft({ accountId, restoreOnOpen = false, returnHref, storageScope = 'local', initialKind = 'machine', onlineCommandId }: { accountId: string; restoreOnOpen?: boolean; returnHref?: string; storageScope?: DraftStorageScope; initialKind?: DraftData['kind']; onlineCommandId?: string }) {
   const router=useRouter();
   const [sending,setSending]=useState(false);
   const [onlineState,setOnlineState]=useState<IntakeState>({status:'idle',message:''});
@@ -30,11 +30,12 @@ export function RequestDraft({ accountId, restoreOnOpen = false, returnHref, sto
   const [recoveryMarkers,setRecoveryMarkers]=useState<string[]>([]);
   const onlineFeedback=useRef<HTMLDivElement>(null);
   const [commandId]=useState(onlineCommandId);
-  const [draft, setDraft] = useState<DraftData>(emptyDraft);
+  const [draft, setDraft] = useState<DraftData>(() => ({ ...emptyDraft, kind: initialKind }));
   const [step, setStep] = useState(0);
   const [notice, setNotice] = useState('');
   const [referenceErrorMessage, setReferenceErrorMessage] = useState('');
   const [referencesValue, setReferencesValue] = useState('');
+  const [replacedDraft, setReplacedDraft] = useState<{ draft: DraftData; referencesValue: string; step: number } | null>(null);
   const formRef = useRef<HTMLFormElement>(null);
   const referencesRef = useRef<HTMLTextAreaElement>(null);
   const serviceRef = useRef<HTMLSelectElement>(null);
@@ -75,7 +76,7 @@ export function RequestDraft({ accountId, restoreOnOpen = false, returnHref, sto
       else setNotice('Your browser couldn’t open the saved draft. Your current text has been kept.');
     });
   }, [accountId, restoreOnOpen, storageScope]);
-  const update = (field: 'serviceId' | 'title' | 'details' | 'preferredTime' | 'technicalDetails', value: string) => { setDraft(previous => ({ ...previous, [field]: value })); setNotice(''); };
+  const update = (field: 'serviceId' | 'title' | 'details' | 'preferredTime' | 'technicalDetails', value: string) => { setReplacedDraft(null); setDraft(previous => ({ ...previous, [field]: value })); setNotice(''); };
   useEffect(()=>{if(onlineState.status!=='idle')onlineFeedback.current?.focus();},[onlineState]);
   async function sendPending(pending:PendingSubmission){
     if(currentAccount.current!==pending.accountId)return;
@@ -131,6 +132,7 @@ export function RequestDraft({ accountId, restoreOnOpen = false, returnHref, sto
     finally{setSending(false);}
   }
   const updateReferences = (value: string) => {
+    setReplacedDraft(null);
     setReferencesValue(value);
     const references = parseReferenceText(value);
     setDraft(previous => ({ ...previous, references }));
@@ -156,10 +158,22 @@ export function RequestDraft({ accountId, restoreOnOpen = false, returnHref, sto
   }
   function restore() {
     const result = readSavedDraft(accountId, undefined, storageScope);
-    if (result.status === 'found') { setDraft(result.draft); setReferencesValue(referencesToText(result.draft.references)); setStep(0); setReferenceErrorMessage(''); setNotice(restoredNotice(result.draft)); }
+    if (result.status === 'found') {
+      setReplacedDraft(current => current ?? { draft, referencesValue, step });
+      setDraft(result.draft); setReferencesValue(referencesToText(result.draft.references)); setStep(0); setReferenceErrorMessage(''); setNotice(restoredNotice(result.draft));
+    }
     else if (result.status === 'empty') setNotice(`No saved draft was found in ${storageScope === 'memory' ? 'this preview session' : 'this browser'}.`);
     else if (result.status === 'invalid') setNotice('The saved draft can’t be opened. Your current text has been kept.');
     else setNotice('Your browser couldn’t open the saved draft. Your current text has been kept.');
+  }
+  function undoRestore() {
+    if (!replacedDraft) return;
+    setDraft(replacedDraft.draft);
+    setReferencesValue(replacedDraft.referencesValue);
+    setStep(replacedDraft.step);
+    setReferenceErrorMessage('');
+    setReplacedDraft(null);
+    setNotice('Your previous entries are back. The saved draft has not changed.');
   }
   function deleteSaved() {
     if (deleteSavedDraft(accountId, undefined, storageScope)) setNotice(storageScope === 'memory' ? 'Preview draft deleted. Text currently on this page has been kept.' : 'Saved draft deleted from this browser for your account. Text currently on this page has been kept.');
@@ -192,7 +206,7 @@ export function RequestDraft({ accountId, restoreOnOpen = false, returnHref, sto
           { value: 'machine', title: 'Machine work', description: 'Fabrication and machine support.' },
           { value: 'operations', title: 'Operations support', description: 'Components, tools and other lab support.' },
         ].map(option => <label className="request-option" key={option.value}>
-          <input type="radio" name="kind" value={option.value} checked={draft.kind === option.value} onChange={() => { setDraft(previous => ({ ...previous, kind: option.value as DraftData['kind'], serviceId: '' })); setNotice(''); }} />
+          <input type="radio" name="kind" value={option.value} checked={draft.kind === option.value} onChange={() => { setReplacedDraft(null); setDraft(previous => ({ ...previous, kind: option.value as DraftData['kind'], serviceId: '' })); setNotice(''); }} />
           <strong>{option.title}</strong><span>{option.description}</span>
         </label>)}</div>
       </fieldset>}
@@ -238,8 +252,8 @@ export function RequestDraft({ accountId, restoreOnOpen = false, returnHref, sto
       </div>
     </form>
     {online&&<div className="notice" tabIndex={-1} ref={onlineFeedback} role={onlineState.status==='error'?'alert':'status'}>{onlineState.message}{onlineState.status==='error'&&<p><Link href="/app/requests">Check request history before starting another request</Link>. Your text stays here until you leave.</p>}</div>}
-    <div className="draft-toolbar"><button className="text-link" type="button" onClick={restore} disabled={sending}>Restore saved draft</button>{step !== 2 && <button className="text-link" type="button" onClick={save} disabled={sending}>Save for later</button>}<button className="text-link" type="button" onClick={deleteSaved} disabled={sending}>Delete saved draft</button></div>
+    <div className="draft-toolbar"><button className="text-link" type="button" onClick={restore} disabled={sending}>Restore saved draft</button>{replacedDraft && <button className="text-link" type="button" onClick={undoRestore} disabled={sending}>Undo restore</button>}{step !== 2 && <button className="text-link" type="button" onClick={save} disabled={sending}>Save for later</button>}<button className="text-link" type="button" onClick={deleteSaved} disabled={sending}>Delete saved draft</button></div>
     <p className="small-copy">{storageScope === 'memory' ? 'Preview drafts stay in page memory and clear on refresh or when you leave the preview.' : 'Local drafts and pending submissions stay in this browser after sign-out. Avoid saving private details on a shared device.'}</p>{notice && <div className="notice" role="status">{notice}</div>}
-    {returnHref && <Link className="text-link" href={returnHref}>Return to work requests</Link>}
+    {returnHref && <Link className="text-link" href={returnHref}>Return to Make & borrow</Link>}
   </section>;
 }

@@ -116,3 +116,31 @@ installation approval and does not replace a current shared FK/ledger read.
   remain unchanged.
 - No production database, GitHub PR, Vercel deployment, or release setting was
   changed by this follow-up.
+
+## Dependency audit follow-up — 18 November 2026
+
+The hosted `npm audit --audit-level=high` check failed on PR head
+`ebce6994b5acbb873a6bf9d049de46b0da8ca008`. Updated the direct Next.js
+dependency from 16.4.2 to 16.4.6, which is beyond the fixed 16.4.5 versions
+listed in the two applicable Next.js cache-disclosure advisories. The lockfile
+was regenerated from the npm registry; no audit override or CI exception was
+added.
+
+After the update, `npm audit --omit=dev --audit-level=high` reports zero
+production dependency vulnerabilities. The full audit still exits 1 with nine
+high findings because `picomatch@4.0.7` is pulled into the development toolchain
+through `fdir` and `tinyglobby` used by `typescript-eslint`. The reviewed GitHub
+advisory currently lists no patched release. `npm audit fix --force` proposes
+a downgrade to `typescript-eslint@8.47.0`; that breaking downgrade was not
+applied. The repository's high-severity audit gate remains unchanged, so this
+finding still blocks a green hosted foundation check.
+
+On the updated local source, `npm run typecheck`, `npm run lint`,
+`npm run test:boundaries` (218/218), `npm run test:proxy`,
+`npm run build:acceptance`, and `npm run test:acceptance` passed.
+`node scripts/check-docs.mjs` passed before this section was added; rerun it
+after the documentation update. The browser suite covers public and gated
+preview behavior only. Live account creation, provider callbacks, email
+delivery, recovery, authenticated member workflows and Grow runtime
+compatibility remain unverified. No database mutation, merge or production
+deployment was performed.

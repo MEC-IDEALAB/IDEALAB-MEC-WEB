@@ -1,5 +1,5 @@
 -- CANDIDATE ONLY: no authorization to install on shared production.
--- Target metadata: huftzhfqnnslvnfzvbex, catalog/advisor captured 2026-11-06.
+-- Target metadata: huftzhfqnnslvnfzvbex, catalog/advisor rechecked 2026-11-18.
 -- Rehearse only on db-runtime's disposable synthetic cluster.
 -- A future approved installer must verify the actual project out-of-band, then
 -- SET idealab.reviewed_project_ref = 'huftzhfqnnslvnfzvbex' in this session.
@@ -30,6 +30,7 @@ BEGIN
     ('project_members', 'user_id', 'project_members_user_id_fkey', 'users', 'idealab_fk_project_members_user_id_v1'),
     ('projects', 'club_id', 'projects_club_id_fkey', 'clubs', 'idealab_fk_projects_club_id_v1'),
     ('tool_bookings', 'project_id', 'fk_bookings_project', 'projects', 'idealab_fk_tool_bookings_project_id_v1'),
+    ('tool_bookings', 'tool_id', 'tool_bookings_tool_id_fkey', 'tools', 'idealab_fk_tool_bookings_tool_id_v1'),
     ('tool_bookings', 'approved_by', 'tool_bookings_approved_by_fkey', 'users', 'idealab_fk_tool_bookings_approved_by_v1'),
     ('users', 'club_id', 'fk_users_club', 'clubs', 'idealab_fk_users_club_id_v1')
   ) AS spec(table_name, column_name, constraint_name, referenced_table, index_name)
@@ -62,7 +63,7 @@ BEGIN
         WHERE i.indexrelid=existing AND i.indrelid=relation
           AND i.indisvalid AND i.indisready AND i.indislive
           AND pg_get_indexdef(i.indexrelid)=expected_definition
-          AND obj_description(i.indexrelid,'pg_class')='IDEALAB shared FK indexes v1; reviewed candidate 2026-11-06') THEN
+          AND obj_description(i.indexrelid,'pg_class')='IDEALAB shared FK indexes v1; reviewed candidate 2026-11-18') THEN
         RAISE EXCEPTION 'rollback refuses changed/unowned index: %',item.index_name;
       END IF;
       EXECUTE format('DROP INDEX public.%I',item.index_name);

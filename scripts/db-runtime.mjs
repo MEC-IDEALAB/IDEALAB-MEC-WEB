@@ -2,7 +2,7 @@
 // existing data directory, application SQL or production credentials.
 import assert from 'node:assert/strict';
 import { execFile } from 'node:child_process';
-import { randomBytes } from 'node:crypto';
+import { createHash, randomBytes } from 'node:crypto';
 import { access, appendFile, mkdir, mkdtemp, readFile, realpath, rm, rmdir, unlink, writeFile } from 'node:fs/promises';
 import { createServer } from 'node:net';
 import { dirname, isAbsolute, join, relative, resolve } from 'node:path';
@@ -322,30 +322,165 @@ try {
     stage = 'maker-publication';
     assert.equal(Number(identity.version.split('.')[0]), 17, 'Maker profile rehearsal requires PostgreSQL 17.');
     const grow = await realpath(resolve(project, '../Grow'));
-    const sqlSources = await Promise.all([
+    const [fixture, migration, staffCandidate, makerCandidate, test, rollback] = await Promise.all([
       readFile(join(grow, 'supabase/tests/shared_profile_contract_v1_fixture.sql'), 'utf8'),
       readFile(join(grow, 'supabase/migrations/20261102130200_shared_profile_contract_v1.sql'), 'utf8'),
+      readFile(new URL('../supabase/validation/mec_staff_scope_candidate.sql', import.meta.url), 'utf8'),
       readFile(new URL('../supabase/validation/mec_maker_publication_candidate.sql', import.meta.url), 'utf8'),
       readFile(new URL('../supabase/tests/database/mec_maker_publication.test.sql', import.meta.url), 'utf8'),
+      readFile(new URL('../supabase/validation/mec_maker_publication_rollback.sql', import.meta.url), 'utf8'),
     ]);
-    await sql(['BEGIN; SET LOCAL plpgsql.check_asserts = on;', ...sqlSources, 'ROLLBACK;'].join('\n'));
+    const fixtureExtras = [
+      'ALTER TABLE auth.users ADD COLUMN banned_until timestamptz;',
+      'CREATE TABLE public.user_profiles (user_id uuid PRIMARY KEY, bio text NOT NULL);',
+      "INSERT INTO public.user_profiles VALUES ('00000000-0000-4000-8000-000000000005','legacy fixture');",
+    ].join('\n');
+    const migrationSources = [fixture, migration, fixtureExtras, staffCandidate, makerCandidate];
+    const testSources = [...migrationSources, test];
+    const hash = value => createHash('sha256').update(value).digest('hex');
+    summary.sources = {
+      growFixtureSha256: hash(fixture),
+      growMigrationSha256: hash(migration),
+      fixtureExtrasSha256: hash(fixtureExtras),
+      staffCandidateSha256: hash(staffCandidate),
+      makerCandidateSha256: hash(makerCandidate),
+      acceptanceSqlSha256: hash(test),
+      makerRollbackSha256: hash(rollback),
+    };
+    await sql(['BEGIN; SET LOCAL plpgsql.check_asserts = on;', ...testSources, 'ROLLBACK;'].join('\n'));
     assert.equal((await sql("SELECT to_regnamespace('idealab_private') IS NULL AND to_regnamespace('auth') IS NULL")).stdout.trim(), 't');
-    summary.scope = 'Disposable PostgreSQL with synthetic accounts, maker draft/publication transitions and legacy row sentinel.';
+    summary.scope = 'Disposable PostgreSQL 17 with synthetic shared-account, staff-roster and maker-profile fixtures; no Supabase API or shared project accessed.';
     summary.checks.makerPublicationTransitions = true;
     summary.checks.makerPublicationFixtureRolledBack = true;
+    summary.checks.noAnonymousProfileResolver = true;
 
-    await sql(['BEGIN;', ...sqlSources.slice(0, 3), 'COMMIT;'].join('\n'));
-    const actor = '00000000-0000-4000-8000-000000000005';
-    const draft = '{"display_name":"Race fixture","bio":"Race fixture","interests":["Art"],"skills":[],"links":[]}';
-    const command = async (body) => JSON.parse((await sql(
-      "BEGIN; SET LOCAL ROLE authenticated; SET LOCAL request.jwt.claim.sub='" + actor + "';" + body + 'COMMIT;'
+    await sql([
+      'BEGIN; SET LOCAL plpgsql.check_asserts = on;',
+      ...migrationSources,
+      'SAVEPOINT maker_preuse_rollback;',
+      rollback,
+      'DO $assert_rollback$ BEGIN',
+      "  ASSERT to_regclass('idealab_private.maker_profiles_v1') IS NULL",
+      "    AND to_regclass('idealab_private.maker_publication_history_v1') IS NULL",
+      "    AND to_regclass('idealab_private.maker_install_state_v1') IS NULL",
+      "    AND to_regprocedure('public.get_own_public_profile_v1()') IS NULL;",
+      'END $assert_rollback$;',
+      'ROLLBACK TO SAVEPOINT maker_preuse_rollback;',
+      'DO $assert_recovered$ BEGIN',
+      "  ASSERT to_regclass('idealab_private.maker_profiles_v1') IS NOT NULL",
+      "    AND to_regclass('idealab_private.maker_install_state_v1') IS NOT NULL",
+      "    AND to_regprocedure('public.get_own_public_profile_v1()') IS NOT NULL;",
+      'END $assert_recovered$;',
+      'COMMIT;',
+    ].join('\n'));
+    summary.checks.preuseRollbackAtomicAndSavepointRecoverable = true;
+    let missingMarkerRollbackRejected = false;
+    try {
+      await sql([
+        'BEGIN; SET LOCAL ROLE postgres;',
+        'DELETE FROM idealab_private.maker_install_state_v1 WHERE singleton=1;',
+        rollback,
+        'COMMIT;',
+      ].join('\n'));
+    } catch (error) {
+      missingMarkerRollbackRejected = /Maker profile data or mutation marker state requires an approved recovery plan/.test(error.stderr ?? '');
+    }
+    assert(missingMarkerRollbackRejected, 'Rollback refuses when the install-use marker row is missing.');
+    assert.equal((await sql("SELECT count(*)=1 AND bool_and(candidate_used IS FALSE AND first_mutation_at IS NULL) FROM idealab_private.maker_install_state_v1;")).stdout.trim(), 't');
+    summary.checks.missingRollbackMarkerFailsClosed = true;
+    await sql(['BEGIN; SET LOCAL ROLE postgres; SET LOCAL plpgsql.check_asserts = on;', test, 'COMMIT;'].join('\n'));
+    summary.checks.makerAclMatrixAndAuditIdentifiers = true;
+    summary.checks.nullAdmissionHelperDenied = true;
+    summary.checks.missingUseMarkerMutationDenied = true;
+    await sql('DELETE FROM idealab_private.maker_profiles_v1;');
+    const actor = '00000000-0000-4000-8000-000000000006';
+    const draft = '{"display_name":"Race fixture","bio":"Race fixture","interests":["Art"],"skills":[],"links":[],"visibility":"private"}';
+    const command = async (body, application) => JSON.parse((await sql(
+      "BEGIN; SET LOCAL application_name='" + application + "'; SET LOCAL ROLE authenticated; SET LOCAL request.jwt.claim.sub='" + actor + "';" + body + 'COMMIT;'
     )).stdout.trim());
-    assert.equal((await command("SELECT public.mutate_maker_profile_v1('save_draft','0','" + draft + "'::jsonb);")).revision, '1');
-    const publish = "SELECT public.mutate_maker_profile_v1('publish','1');";
-    const results = await Promise.all([command(publish), command(publish)]);
-    assert.deepEqual(results.map(result => result.status).sort(), ['conflict', 'saved']);
-    assert.equal((await sql('SELECT count(*) FROM idealab_private.maker_publication_history_v1;')).stdout.trim(), '1');
+    const saved = await command(
+      "SELECT public.save_own_public_profile_v1('" + draft + "'::jsonb,'0');",
+      'maker-publish-prepare'
+    );
+    assert.equal(saved.status, 'saved');
+    assert.equal(saved.profile.revision, '1');
+
+    const blocker = sql([
+      'BEGIN;',
+      "SET LOCAL application_name='maker-publish-blocker';",
+      "SELECT id FROM public.users WHERE id='" + actor + "' FOR UPDATE;",
+      'SELECT pg_sleep(4);',
+      'COMMIT;',
+    ].join('\n'));
+    let blockerReady = false;
+    for (let attempt = 0; attempt < 40; attempt += 1) {
+      const count = Number((await sql("SELECT count(*) FROM pg_stat_activity WHERE application_name='maker-publish-blocker' AND state='active' AND wait_event='PgSleep';")).stdout.trim());
+      if (count === 1) { blockerReady = true; break; }
+      await delay(50);
+    }
+    assert(blockerReady, 'The test blocker must hold the synthetic account row before both publication attempts start.');
+    const publish = "SELECT public.publish_own_public_profile_v1('1');";
+    const firstPublish = command(publish, 'maker-publish-race-a');
+    const secondPublish = command(publish, 'maker-publish-race-b');
+    let observedLockWaiters = 0;
+    for (let attempt = 0; attempt < 60; attempt += 1) {
+      observedLockWaiters = Number((await sql([
+        'WITH RECURSIVE wait_graph(root_pid, blocker_pid, depth, path) AS (',
+        '  SELECT waiter.pid, blocker.pid, 1, ARRAY[waiter.pid, blocker.pid]',
+        '  FROM pg_stat_activity AS waiter',
+        '  CROSS JOIN LATERAL unnest(pg_blocking_pids(waiter.pid)) AS blocker(pid)',
+        "  WHERE waiter.application_name IN ('maker-publish-race-a','maker-publish-race-b')",
+        "    AND waiter.wait_event_type='Lock'",
+        '  UNION ALL',
+        '  SELECT graph.root_pid, blocker.pid, graph.depth+1, graph.path || blocker.pid',
+        '  FROM wait_graph AS graph',
+        '  CROSS JOIN LATERAL unnest(pg_blocking_pids(graph.blocker_pid)) AS blocker(pid)',
+        '  WHERE graph.depth<5 AND NOT blocker.pid=ANY(graph.path)',
+        ')',
+        'SELECT count(DISTINCT graph.root_pid)',
+        'FROM wait_graph AS graph',
+        'JOIN pg_stat_activity AS blocker ON blocker.pid=graph.blocker_pid',
+        "WHERE blocker.application_name='maker-publish-blocker' AND blocker.wait_event='PgSleep';",
+      ].join('\n'))).stdout.trim());
+      if (observedLockWaiters === 2) break;
+      await delay(50);
+    }
+    const waitGraph = (await sql([
+      'SELECT coalesce(json_agg(json_build_object(',
+      "  'application',activity.application_name,",
+      "  'state',activity.state,",
+      "  'wait_type',activity.wait_event_type,",
+      "  'wait_event',activity.wait_event,",
+      "  'blockers',pg_blocking_pids(activity.pid)",
+      ')),\'[]\'::json)',
+      'FROM pg_stat_activity AS activity',
+      "WHERE activity.application_name IN ('maker-publish-blocker','maker-publish-race-a','maker-publish-race-b');",
+    ].join('\n'))).stdout.trim();
+    assert.equal(observedLockWaiters, 2, 'pg_blocking_pids must show both requests transitively waiting on the named account-row blocker during PgSleep: ' + waitGraph);
+    await blocker;
+    const publishResults = await Promise.all([firstPublish, secondPublish]);
+    const statuses = publishResults.map(result => result.status).sort();
+    assert.deepEqual(statuses, ['conflict', 'saved']);
+    assert.equal((await sql('SELECT count(*) FROM idealab_private.maker_publication_history_v1 WHERE operation=\'publish\';')).stdout.trim(), '1');
+    assert.equal((await sql('SELECT candidate_used AND first_mutation_at IS NOT NULL FROM idealab_private.maker_install_state_v1 WHERE singleton=1;')).stdout.trim(), 't');
     summary.checks.concurrentPublishCreatesOneTransition = true;
+    summary.checks.concurrentAccountLockOverlapObserved = true;
+    summary.observed = { concurrentLockWaiters: observedLockWaiters, concurrentPublishStatuses: statuses };
+
+    await sql('DELETE FROM idealab_private.maker_profiles_v1;');
+    assert.equal((await sql('SELECT count(*)=0 FROM idealab_private.maker_profiles_v1;')).stdout.trim(), 't');
+    assert.equal((await sql('SELECT count(*)=0 FROM idealab_private.maker_publication_history_v1;')).stdout.trim(), 't');
+    let retainedRollbackRejected = false;
+    try {
+      await sql(['SET ROLE postgres;', rollback].join('\n'));
+    } catch (error) {
+      retainedRollbackRejected = /Maker profile data or mutation marker state requires an approved recovery plan/.test(error.stderr ?? '');
+    }
+    assert(retainedRollbackRejected, 'Rollback must refuse after any successful mutation, even if profile and history rows were deleted afterward.');
+    assert.equal((await sql('SELECT candidate_used AND first_mutation_at IS NOT NULL FROM idealab_private.maker_install_state_v1 WHERE singleton=1;')).stdout.trim(), 't');
+    assert.equal((await sql("SELECT to_regclass('idealab_private.maker_profiles_v1') IS NOT NULL AND to_regprocedure('public.get_own_public_profile_v1()') IS NOT NULL;")).stdout.trim(), 't');
+    assert.equal((await sql("SELECT count(*) FROM public.user_profiles WHERE bio='legacy fixture';")).stdout.trim(), '1');
+    summary.checks.rollbackRefusesAfterUseEvenAfterCascadeDeletion = true;
   }
   if (process.argv.includes('--shared-fk-indexes')) {
     stage = 'shared-fk-indexes';

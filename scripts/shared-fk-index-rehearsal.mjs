@@ -47,6 +47,13 @@ const specs = [
   },
   {
     "table": "tool_bookings",
+    "column": "tool_id",
+    "fk": "tool_bookings_tool_id_fkey",
+    "ref": "tools",
+    "index": "idealab_fk_tool_bookings_tool_id_v1"
+  },
+  {
+    "table": "tool_bookings",
     "column": "approved_by",
     "fk": "tool_bookings_approved_by_fkey",
     "ref": "users",
@@ -85,6 +92,7 @@ export async function rehearseSharedFkIndexes(sql) {
   await run('synthetic baseline', `
     CREATE ROLE phase1_reader NOLOGIN;
     CREATE TABLE public.clubs (id uuid PRIMARY KEY);
+    CREATE TABLE public.tools (id uuid PRIMARY KEY);
     CREATE TABLE public.users (id uuid PRIMARY KEY, club_id uuid CONSTRAINT fk_users_club REFERENCES public.clubs(id));
     CREATE TABLE public.events (id uuid PRIMARY KEY,
       club_id uuid CONSTRAINT events_club_id_fkey REFERENCES public.clubs(id),
@@ -97,10 +105,13 @@ export async function rehearseSharedFkIndexes(sql) {
       user_id uuid CONSTRAINT project_members_user_id_fkey REFERENCES public.users(id));
     CREATE TABLE public.tool_bookings (id uuid PRIMARY KEY,
       project_id uuid CONSTRAINT fk_bookings_project REFERENCES public.projects(id),
+      tool_id uuid CONSTRAINT tool_bookings_tool_id_fkey REFERENCES public.tools(id),
+      status text NOT NULL DEFAULT 'active',
       approved_by uuid CONSTRAINT tool_bookings_approved_by_fkey REFERENCES public.users(id));
     INSERT INTO public.clubs VALUES ('00000000-0000-4000-8000-000000000001');
     INSERT INTO public.users VALUES ('00000000-0000-4000-8000-000000000002','00000000-0000-4000-8000-000000000001');
     CREATE INDEX phase1_unrelated ON public.users(id);
+    CREATE INDEX partial_tool_id_fixture ON public.tool_bookings(tool_id) WHERE status='active';
     ALTER TABLE public.users ENABLE ROW LEVEL SECURITY;
     ALTER TABLE public.users FORCE ROW LEVEL SECURITY;
     CREATE POLICY own_fixture ON public.users FOR SELECT TO phase1_reader USING (false);
@@ -127,19 +138,26 @@ export async function rehearseSharedFkIndexes(sql) {
   await reject('stale covering-index telemetry', intent+candidate, /covering index already exists/);
   await run('remove external fixture', 'DROP INDEX public.external_cover;');
   await run('first apply',intent+candidate);
-  const definitions = await run('eight valid indexes', `SELECT count(*) FROM pg_index i JOIN pg_class c ON c.oid=i.indexrelid
+  const definitions = await run('nine valid indexes', `SELECT count(*) FROM pg_index i JOIN pg_class c ON c.oid=i.indexrelid
     WHERE c.relname LIKE 'idealab_fk_%' AND i.indisvalid AND i.indisready;`);
-  assert.equal(definitions,'8');
+  assert.equal(definitions,'9');
+  assert.equal(await run('tool FK has full btree index', `SELECT count(*) FROM pg_index i
+    JOIN pg_class ix ON ix.oid=i.indexrelid JOIN pg_am am ON am.oid=ix.relam
+    WHERE i.indexrelid=to_regclass('public.idealab_fk_tool_bookings_tool_id_v1')
+      AND i.indisvalid AND i.indisready AND i.indpred IS NULL AND am.amname='btree'
+      AND i.indkey[0]=(SELECT attnum FROM pg_attribute
+        WHERE attrelid='public.tool_bookings'::regclass AND attname='tool_id');`),'1');
   await run('idempotent second apply',intent+candidate);
   assert.equal(await security(),before,'Indexes must not change grants, policies, constraints or data');
   await run('tamper ownership marker', 'COMMENT ON INDEX public.'+specs[7].index+" IS 'external ownership';");
   await reject('rollback refuses changed index atomically',intent+rollback,/rollback refuses changed\/unowned index/);
-  assert.equal(await run('failed rollback preserves all eight indexes', "SELECT count(*) FROM pg_class WHERE relname LIKE 'idealab_fk_%';"),'8');
-  await run('restore synthetic marker', 'COMMENT ON INDEX public.'+specs[7].index+" IS 'IDEALAB shared FK indexes v1; reviewed candidate 2026-11-06';");
+  assert.equal(await run('failed rollback preserves all nine indexes', "SELECT count(*) FROM pg_class WHERE relname LIKE 'idealab_fk_%';"),'9');
+  await run('restore synthetic marker', 'COMMENT ON INDEX public.'+specs[7].index+" IS 'IDEALAB shared FK indexes v1; reviewed candidate 2026-11-18';");
   await run('rollback',intent+rollback);
   await run('idempotent second rollback',intent+rollback);
   assert.equal(await run('candidate indexes absent', "SELECT count(*) FROM pg_class WHERE relname LIKE 'idealab_fk_%';"),'0');
   assert.equal(await run('unrelated index retained', "SELECT to_regclass('public.phase1_unrelated') IS NOT NULL;"),'t');
+  assert.equal(await run('partial tool index retained', "SELECT to_regclass('public.partial_tool_id_fixture') IS NOT NULL;"),'t');
   assert.equal(await security(),before);
   return { verificationLevel:'Disposable PostgreSQL synthetic topology; not a full shared schema restore or performance benchmark.',
     candidateSha256:createHash('sha256').update(candidate).digest('hex'),

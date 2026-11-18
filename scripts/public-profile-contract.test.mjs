@@ -128,7 +128,7 @@ async function draftAction({ enabled = true, own = profile, result, account = id
     .replace(/^import .*;\r?$/gm, '').replace(/^export /gm, '');
   const createAction = new Function('serverClient', 'hasVerifiedEmail', 'evaluateOwnProfile',
     'matchesFormAccount', 'publicProfileEnabled', 'parsePublicProfileRead', 'parsePublicProfileSave',
-    'profilePayloadFromForm', source + '\nreturn savePrivateProfileDraft;');
+    'profilePayloadFromForm', 'inspectMemberSessionScope', source + '\nreturn savePrivateProfileDraft;');
   const { hasVerifiedEmail } = await import('../src/lib/member-access.ts');
   const { evaluateOwnProfile } = await import('../src/lib/member-profile.ts');
   const { matchesFormAccount } = await import('../src/lib/form-account.ts');
@@ -150,7 +150,8 @@ async function draftAction({ enabled = true, own = profile, result, account = id
     },
   };
   const action = createAction(async () => client, hasVerifiedEmail, evaluateOwnProfile, matchesFormAccount,
-    () => enabled, parsePublicProfileRead, parsePublicProfileSave, profilePayloadFromForm);
+    () => enabled, parsePublicProfileRead, parsePublicProfileSave, profilePayloadFromForm,
+    async () => 'normal');
   return { calls, save: data => action({ status: 'idle', message: '' }, data) };
 }
 

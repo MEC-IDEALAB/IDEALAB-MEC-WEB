@@ -1,9 +1,29 @@
 # Optional public profile and lab signals — contract proposal
 
-Draft updated 3 November 2026. The local editor, guarded server actions, public
+Draft updated 18 November 2026. The local editor, guarded server actions, public
 route, share UI and candidate SQL exist; the public-profile migration is not
 installed in live Supabase and the production feature gate remains off.
 User decisions: [member workspace plan](member-workspace-redesign-2026-11-02.md).
+
+> **Current candidate checkpoint — 18 November 2026:** the standalone
+> [maker publication candidate](../supabase/validation/mec_maker_publication_candidate.sql)
+> stores private drafts and audited publish, withdrawal and staff-takedown
+> transitions in `idealab_private`; withdrawal and takedown rotate the opaque
+> share ID. Its companion [rollback](../supabase/validation/mec_maker_publication_rollback.sql)
+> is guarded and atomic. The edited candidate and acceptance SQL were re-run on
+> a disposable PostgreSQL 17.6 cluster and passed; exact output and source hashes
+> are in the [18 November validation record](quality/maker-publication-validation-2026-11-18.md).
+> The rehearsal uses synthetic fixtures and the repository's
+> `20261102130200_shared_profile_contract_v1` migration only; legacy Grow
+> migrations 003–008 were not replayed. No Supabase API or shared project was
+> accessed. No anonymous resolver is included, the public route remains source-
+> disabled, and scratch data was rolled back before the cluster was removed.
+> This is candidate evidence, not installation or release approval.
+>
+> The eight-table policy observations and generic-publish behavior below refer
+> to the earlier `shared_public_profile_v1` proposal. They are historical and do
+> not describe this standalone candidate. Do not replay or install that older
+> proposal based on these notes.
 
 Preserve the installed owner-only thirteen-field `get_own_profile_v1` contract.
 Do not append public fields to it or publish required account records. Reconcile
@@ -21,7 +41,7 @@ contract together; direct child-table reads cannot bypass visibility.
 | Public presence count | Aggregate count and as-of timestamp only; no per-user records |
 | Utility read/write | Wi-Fi/power state with updated-at and Unknown; writes require explicit trusted core capability, revision/idempotency and audit |
 
-The current SQL candidate does **not** preserve owner access to existing rich
+The earlier `shared_public_profile_v1` SQL candidate did **not** preserve owner access to existing rich
 profile rows through the new APIs: it removes direct policies/permissions from
 eight ecosystem tables, while the new snapshot API returns only newly authored
 fields. Existing rows remain stored, but would not be available to their owner
@@ -63,7 +83,12 @@ this is a review draft, not an installation-ready cutover. No SQL was applied.
 The website feature is now source-disabled regardless of environment flags in
 `src/features/profile/public-profile-config.ts`; an environment variable alone
 cannot enable RPC calls that are absent from the installed shared schema. The
-profile editor demonstrates a private draft, public-field review and a separate publication action. Draft persistence and publication remain unavailable. The candidate generic save can still set public visibility. Shared enforcement and a distinct audited publication transition remain required.
+profile editor demonstrates a private draft, public-field review and a separate
+publication action. Draft persistence and publication remain unavailable. The
+generic-publish concern in this 3 November paragraph refers to the earlier
+`shared_public_profile_v1` candidate and is superseded by the standalone 15
+November candidate described above. Shared enforcement across the web and Grow
+clients remains a release gate.
 Current backend evidence and the full list of acceptance gates are recorded in
 [member platform readiness](quality/member-platform-readiness-2026-11-03.md).
 

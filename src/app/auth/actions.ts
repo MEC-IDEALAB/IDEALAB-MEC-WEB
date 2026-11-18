@@ -7,6 +7,7 @@ import { googleAuthConfig, passwordRecoveryConfig, signupAuthConfig } from '@/li
 import { exitLocalAuthSession } from '@/lib/local-auth-exit';
 import { attemptSignupAndClearSession } from '@/lib/signup-cleanup';
 import { matchesFormAccount } from '@/lib/form-account';
+import { inspectMemberSessionScope } from '@/lib/recovery-authority';
 
 export async function signInWithGoogle() {
   const config = googleAuthConfig();
@@ -62,12 +63,18 @@ export async function updatePassword(form: FormData) {
   const client = await serverClient({ writable: true });
   if (!client) redirect('/reset-password?notice=configuration');
 
-  let authenticated = false;
+  let authenticatedUser: { id: string } | null = null;
   try {
-    const { data, error } = await client.auth.getUser();
-    authenticated = !error && !!data.user;
+    const identity = await client.auth.getUser();
+    if (!identity.error && identity.data.user
+      && matchesFormAccount(form, identity.data.user.id)) authenticatedUser = identity.data.user;
   } catch { /* Fail closed; never reflect auth tokens or provider errors. */ }
-  if (!authenticated) redirect('/forgot-password?notice=expired');
+  if (!authenticatedUser) redirect('/forgot-password?notice=expired');
+  // Keep this check inside the action as well as the page. If recovery is ever
+  // enabled, a normal login, switched account, or unverifiable session must
+  // not gain password-change authority by calling the server action directly.
+  const sessionScope = await inspectMemberSessionScope(client, authenticatedUser);
+  if (sessionScope !== 'recovery') redirect('/forgot-password?notice=expired');
 
   let updated = false;
   try { const { error } = await client.auth.updateUser({ password }); updated = !error; } catch { /* Keep provider details out of the response. */ }
@@ -103,6 +110,26 @@ export async function finishPasswordResetSignOut() {
   redirect(exit === 'cleared' ? '/sign-in?notice=password-updated' : '/sign-in?notice=password-updated-cleanup');
 }
 
+/** End a recovery-marked session only for the account shown by the page. */
+export async function signOutExpiredRecovery(form: FormData) {
+  const client = await serverClient({ writable: true });
+  if (!client) redirect('/sign-in?notice=configuration');
+
+  let sameAccount = false;
+  try {
+    const identity = await client.auth.getUser();
+    sameAccount = !identity.error && !!identity.data.user
+      && matchesFormAccount(form, identity.data.user.id);
+  } catch { /* An unavailable identity grants no sign-out authority. */ }
+  if (!sameAccount) redirect('/sign-in?notice=session');
+
+  const exit = await exitLocalAuthSession(
+    () => client.auth.signOut({ scope: 'local' }),
+    clearLocalAuthSession,
+  );
+  if (exit !== 'cleared') redirect('/reset-password?notice=cleanup');
+  redirect('/sign-in?notice=session');
+}
 /** Supabase Auth owns identity creation; never insert profiles from client metadata. */
 export async function signUp(form: FormData) {
   const config = signupAuthConfig();
